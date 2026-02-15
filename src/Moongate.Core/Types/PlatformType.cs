@@ -7,6 +7,6 @@ public enum PlatformType : byte
 {
     Unknown,
     Windows,
-    MacOS,
+    Osx,
     Linux
 }

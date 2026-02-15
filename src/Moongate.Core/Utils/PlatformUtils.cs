@@ -20,7 +20,7 @@ public static class PlatformUtils
 
         if (IsRunningOnMacOS())
         {
-            return PlatformType.MacOS;
+            return PlatformType.Osx;
         }
 
         return IsRunningOnLinux() ? PlatformType.Linux : PlatformType.Unknown;

@@ -18,6 +18,11 @@ public static class JsonUtils
 
     private static volatile JsonSerializerOptions? _jsonSerializerOptions;
 
+    [UnconditionalSuppressMessage(
+         "Aot",
+         "IL3050",
+         Justification = "Global enum string conversion is intentionally configured via JsonStringEnumConverter."
+     )]
     static JsonUtils()
     {
         // Add default converters
