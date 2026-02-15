@@ -1,6 +1,6 @@
-using DarkLilly.Core.Types;
+using Moongate.Core.Types;
 
-namespace DarkLilly.Core.Utils;
+namespace Moongate.Core.Utils;
 
 /// <summary>
 /// Provides utilities for detecting the current platform.

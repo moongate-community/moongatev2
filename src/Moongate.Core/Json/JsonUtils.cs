@@ -4,9 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using DarkLilly.Core.Data.Json.Converters;
 
-namespace DarkLilly.Core.Json;
+namespace Moongate.Core.Json;
 
 /// <summary>
 /// Provides utility methods for JSON serialization and deserialization.
@@ -23,7 +22,6 @@ public static class JsonUtils
     {
         // Add default converters
         JsonConverters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
-        JsonConverters.Add(new DarkLyColorConverter());
         RebuildJsonSerializerContexts();
     }
 

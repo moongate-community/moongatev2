@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace DarkLilly.Core.Extensions.Env;
+namespace Moongate.Core.Extensions.Env;
 
 /// <summary>
 /// Provides extension methods for expanding environment variables in strings

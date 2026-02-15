@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace DarkLilly.Core.Utils;
+namespace Moongate.Core.Utils;
 
 /// <summary>
 /// Provides utilities for working with embedded resources.

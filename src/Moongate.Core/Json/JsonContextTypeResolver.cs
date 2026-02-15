@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace DarkLilly.Core.Json;
+namespace Moongate.Core.Json;
 
 /// <summary>
 /// Utility class to retrieve registered types from JsonSerializerContext at runtime.

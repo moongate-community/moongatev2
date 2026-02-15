@@ -1,7 +1,7 @@
-using DarkLilly.Core.Types;
+using Moongate.Core.Types;
 using Serilog.Events;
 
-namespace DarkLilly.Core.Extensions.Logger;
+namespace Moongate.Core.Extensions.Logger;
 
 /// <summary>
 /// Extension methods for converting log levels between different logging frameworks.

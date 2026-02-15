@@ -1,6 +1,6 @@
 using DryIoc;
 
-namespace DarkLilly.Core.Extensions.Container;
+namespace Moongate.Core.Extensions.Container;
 
 /// <summary>
 /// Extension methods for registering typed lists in the dependency injection container.

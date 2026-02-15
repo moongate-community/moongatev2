@@ -1,18 +1,13 @@
-namespace DarkLilly.Core.Types;
+namespace Moongate.Core.Types;
 
 public enum DirectoryType
 {
     Config,
     Assets,
-    AssetsFonts,
-    AssetsShaders,
-    AssetsTextures,
-    AssetsMaterials,
-    AssetsModels,
-    AssetsAudio,
-    AssetsMusic,
+    Templates,
     Scripts,
     Save,
     Logs,
-    Cache
+    Cache,
+    Database
 }

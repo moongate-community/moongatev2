@@ -1,6 +1,6 @@
-using DarkLilly.Core.Utils;
+using Moongate.Core.Utils;
 
-namespace DarkLilly.Core.Extensions.Strings;
+namespace Moongate.Core.Extensions.Strings;
 
 /// <summary>
 /// Provides extension methods for string operations, particularly for case conversions.

@@ -1,6 +1,6 @@
-using DarkLilly.Core.Extensions.Strings;
+using Moongate.Core.Extensions.Strings;
 
-namespace DarkLilly.Core.Data.Directories;
+namespace Moongate.Core.Data.Directories;
 
 /// <summary>
 /// Configuration for managing directory structures with automatic creation and path resolution

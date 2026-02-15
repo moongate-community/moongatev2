@@ -1,4 +1,4 @@
-namespace DarkLilly.Core.Types;
+namespace Moongate.Core.Types;
 
 /// <summary>
 /// Enumerates the supported platform types.

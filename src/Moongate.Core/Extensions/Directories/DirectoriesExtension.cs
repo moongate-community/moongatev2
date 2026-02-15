@@ -1,6 +1,6 @@
-using DarkLilly.Core.Extensions.Env;
+using Moongate.Core.Extensions.Env;
 
-namespace DarkLilly.Core.Extensions.Directories;
+namespace Moongate.Core.Extensions.Directories;
 
 /// <summary>
 /// Provides extension methods for directory path resolution and environment variable expansion
