@@ -1,0 +1,92 @@
+<Project>
+
+    <!-- Global Properties -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <WarningsAsErrors/>
+        <WarningsNotAsErrors/>
+        <LangVersion>latest</LangVersion>
+        <NoWarn>CA1707;CA1711;CA1822;CA1305;IL2026;IL2091;CA1513;IL2090;CA2211;IL2075;CA2208;CA1310;</NoWarn>
+
+    </PropertyGroup>
+
+    <!-- Code Analysis -->
+    <PropertyGroup>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!-- AOT readiness -->
+        <IsAotCompatible>true</IsAotCompatible>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+
+    </PropertyGroup>
+
+    <!-- Package Metadata -->
+    <PropertyGroup>
+        <Product>$(MSBuildProjectName)</Product>
+        <Company>Squid Development</Company>
+        <Copyright>© $(Company) $([System.DateTime]::Now.Year)</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/tgiachi/$(MSBuildProjectName)</PackageProjectUrl>
+        <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+    </PropertyGroup>
+
+    <!-- Build Configuration -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- Security -->
+    <PropertyGroup>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <IsTrimmable>true</IsTrimmable>
+        <TrimMode>link</TrimMode>
+    </PropertyGroup>
+
+    <!-- Common Package References -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.102">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+
+        <!--        <PackageReference Include="Meziantou.Analyzer" Version="2.0.299">-->
+        <!--            <PrivateAssets>all</PrivateAssets>-->
+        <!--            <IncludeAssets>runtime; build; native; contentfiles; analyzers;buildtransitive</IncludeAssets>-->
+        <!--        </PackageReference>-->
+
+        <!--        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.19.0.132793">-->
+        <!--            <PrivateAssets>all</PrivateAssets>-->
+        <!--            <IncludeAssets>runtime; build; native; contentfiles; analyzers;buildtransitive</IncludeAssets>-->
+        <!--        </PackageReference>-->
+
+        <!--        <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">-->
+        <!--            <PrivateAssets>all</PrivateAssets>-->
+        <!--            <IncludeAssets>runtime; build; native; contentfiles; analyzers;buildtransitive</IncludeAssets>-->
+        <!--        </PackageReference>-->
+
+    </ItemGroup>
+
+
+    <!-- Source Generators -->
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+
+</Project>
