@@ -20,4 +20,8 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\Moongate.Network\Moongate.Network.csproj" />
+    </ItemGroup>
+
 </Project>

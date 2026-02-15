@@ -1,6 +1,7 @@
 using System.Collections;
+using Moongate.Network.Exceptions.Buffers;
 
-namespace Moongate.Core.Network.Buffers;
+namespace Moongate.Network.Buffers;
 
 /// <inheritdoc />
 /// <summary>
@@ -112,12 +113,12 @@ public class CircularBuffer<T> : IEnumerable<T>
         {
             if (IsEmpty)
             {
-                throw new IndexOutOfRangeException($"Cannot access index {index}. Buffer is empty");
+                throw new CircularBufferEmptyException($"Cannot access index {index}. Buffer is empty.");
             }
 
             if (index >= Size)
             {
-                throw new IndexOutOfRangeException($"Cannot access index {index}. Buffer size is {Size}");
+                throw new CircularBufferIndexOutOfRangeException(nameof(index), index, Size);
             }
 
             var actualIndex = InternalIndex(index);
@@ -128,12 +129,12 @@ public class CircularBuffer<T> : IEnumerable<T>
         {
             if (IsEmpty)
             {
-                throw new IndexOutOfRangeException($"Cannot access index {index}. Buffer is empty");
+                throw new CircularBufferEmptyException($"Cannot access index {index}. Buffer is empty.");
             }
 
             if (index >= Size)
             {
-                throw new IndexOutOfRangeException($"Cannot access index {index}. Buffer size is {Size}");
+                throw new CircularBufferIndexOutOfRangeException(nameof(index), index, Size);
             }
 
             var actualIndex = InternalIndex(index);

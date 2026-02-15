@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Moongate.Core.Network.Compression;
+namespace Moongate.Network.Compression;
 
 /// <summary>
 /// Handles outgoing packet compression for the network.

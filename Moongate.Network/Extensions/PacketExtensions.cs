@@ -1,6 +1,7 @@
 namespace Moongate.Network.Extensions;
 
-public class PacketExtensions
+public static class PacketExtensions
 {
-    
+    public static string ToPacketString(this byte opCode)
+        => "0x" + opCode.ToString("X2");
 }
