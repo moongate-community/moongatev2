@@ -11,14 +11,16 @@
             "id": "b8da64b32f2538af",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "kanban",
               "state": {
-                "file": "protocol/README.md",
-                "mode": "source",
-                "source": false
+                "file": "sprints/sprint-001-kanban.md",
+                "kanbanViewState": {
+                  "kanban-plugin": "board",
+                  "list-collapse": []
+                }
               },
-              "icon": "lucide-file",
-              "title": "README"
+              "icon": "lucide-trello",
+              "title": "sprint-001-kanban"
             }
           }
         ]
@@ -94,7 +96,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "protocol/README.md",
+                "file": "sprints/sprint-001-kanban.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +106,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for README"
+              "title": "Backlinks for sprint-001-kanban"
             }
           },
           {
@@ -113,12 +115,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "protocol/README.md",
+                "file": "sprints/sprint-001-kanban.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from README"
+              "title": "Outgoing links from sprint-001-kanban"
             }
           },
           {
@@ -156,13 +158,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "protocol/README.md",
+                "file": "sprints/sprint-001-kanban.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of README"
+              "title": "Outline of sprint-001-kanban"
             }
           },
           {
@@ -197,8 +199,10 @@
   },
   "active": "b8da64b32f2538af",
   "lastOpenFiles": [
-    "Home.md",
     "sprints/sprint-001.md",
+    "sprints/sprint-001-kanban.md",
+    "protocol/README.md",
+    "Home.md",
     "sprints/README.md",
     "OBSIDIAN_SETUP.md",
     "plans/moongate-v2-development-plan.md",

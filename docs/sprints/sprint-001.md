@@ -1,5 +1,7 @@
 # Sprint 001 - M0 Skeleton
 
+Kanban board: [[sprint-001-kanban|Sprint 001 - Kanban]]
+
 ## Sprint Goal
 Get a runnable server skeleton with a visible game loop and TCP listener, plus CI validation including AOT publish.
 
@@ -9,8 +11,8 @@ Get a runnable server skeleton with a visible game loop and TCP listener, plus C
 - Status: In Progress
 
 ## Sprint Backlog
-- [ ] Verify solution layout matches the target structure in the development plan
-- [ ] Confirm `Directory.Build.props` is aligned with .NET 10 + nullable + AOT-ready settings
+- [x] Verify solution layout matches the target structure in the development plan ✅ 2026-02-15
+- [x] Confirm `Directory.Build.props` is aligned with .NET 10 + nullable + AOT-ready settings ✅ 2026-02-15
 - [ ] Create `GameLoop` with a basic tick loop and console tick output
 - [ ] Create `NetworkService` with TCP listener on port `2593`
 - [ ] Ensure accepted connections are logged and disconnected cleanly
@@ -24,7 +26,6 @@ Get a runnable server skeleton with a visible game loop and TCP listener, plus C
 - CI passes build + test + AOT publish
 
 ## Risks
-- .NET 10 preview/SDK mismatch across local and CI environments
 - AOT publish issues caused by package/runtime incompatibilities
 
 ## Out of Scope

@@ -1,3 +1,8 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿
+using ConsoleAppFramework;
 
-Console.WriteLine("Hello, World!");
+await ConsoleApp.RunAsync(args,
+                          () =>
+                          {
+
+                          });

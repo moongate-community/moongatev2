@@ -1,6 +1,3 @@
 namespace Moongate.Abstractions.Data.Internal;
 
-public class ServiceRegistrationObject
-{
-    
-}
+public record ServiceRegistrationObject(Type ServiceType, Type ImplementationType, int Priority);
