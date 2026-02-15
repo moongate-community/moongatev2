@@ -1,2 +1,4 @@
 <Solution>
+  <Project Path="src/Moongate.Core/Moongate.Core.csproj" />
+  <Project Path="src/Moongate.Server/Moongate.Server.csproj" />
 </Solution>
