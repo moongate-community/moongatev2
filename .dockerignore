@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github/
+
+# IDE / editor
+.idea/
+.vscode/
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# Local tooling and docs
+docs/
+scripts/
+tests/
+
+# OS / temp
+.DS_Store
+*.tmp
+*.log
+
+# Docker
+.dockerignore

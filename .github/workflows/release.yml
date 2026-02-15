@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check for release label
+        id: release_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha;
+            const { owner, repo } = context.repo;
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: sha
+            });
+            if (!prs.data.length) {
+              core.setOutput('should_release', 'false');
+              return;
+            }
+            const pr = prs.data[0];
+            const hasReleaseLabel = pr.labels.some(label => label.name === 'release');
+            core.setOutput('should_release', hasReleaseLabel ? 'true' : 'false');
+
+      - name: Exit if no release label
+        if: steps.release_check.outputs.should_release != 'true'
+        run: echo "No 'release' label found, skipping release."
+
+      - name: Install versionize
+        if: steps.release_check.outputs.should_release == 'true'
+        run: dotnet tool install --global versionize
+
+      - name: Configure git user
+        if: steps.release_check.outputs.should_release == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run versionize
+        if: steps.release_check.outputs.should_release == 'true'
+        run: versionize --skip-dirty
+
+      - name: Push version commit and tag
+        if: steps.release_check.outputs.should_release == 'true'
+        run: |
+          git push
+          git push --tags
