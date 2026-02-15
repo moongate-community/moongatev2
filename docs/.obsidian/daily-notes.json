@@ -1,0 +1,6 @@
+{
+  "folder": "journal",
+  "template": "templates/session-checklist",
+  "format": "YYYY-MM-DD",
+  "autorun": false
+}

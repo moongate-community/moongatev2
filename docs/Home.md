@@ -6,6 +6,7 @@
 - [[sprints/sprint-001|Sprint 001 - M0 Skeleton]]
 - [[protocol/README|Protocol Notes]]
 - [[journal/README|Dev Journal]]
+- [[OBSIDIAN_SETUP|Obsidian Setup]]
 
 ## Vault Structure
 - `plans/`: roadmap, milestones, and planning notes

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "sprints/sprint-001.md",
+                "file": "protocol/README.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "sprint-001"
+              "title": "README"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "sprints/sprint-001.md",
+                "file": "protocol/README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for sprint-001"
+              "title": "Backlinks for README"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "sprints/sprint-001.md",
+                "file": "protocol/README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from sprint-001"
+              "title": "Outgoing links from README"
             }
           },
           {
@@ -156,13 +156,23 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "sprints/sprint-001.md",
+                "file": "protocol/README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of sprint-001"
+              "title": "Outline of README"
+            }
+          },
+          {
+            "id": "294b2f6a60316aad",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
             }
           }
         ]
@@ -180,16 +190,19 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "templater-obsidian:Templater": false,
+      "obsidian-kanban:Create new board": false
     }
   },
   "active": "b8da64b32f2538af",
   "lastOpenFiles": [
-    "sprints/README.md",
+    "Home.md",
     "sprints/sprint-001.md",
+    "sprints/README.md",
+    "OBSIDIAN_SETUP.md",
     "plans/moongate-v2-development-plan.md",
     "sprints",
-    "Home.md",
     "adr/README.md"
   ]
 }
