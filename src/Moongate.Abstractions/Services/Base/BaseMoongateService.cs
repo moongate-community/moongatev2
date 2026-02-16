@@ -1,4 +1,5 @@
 using Moongate.Abstractions.Interfaces.Services;
+using Moongate.Abstractions.Interfaces.Services.Base;
 
 namespace Moongate.Abstractions.Services.Base;
 

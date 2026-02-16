@@ -1,4 +1,4 @@
-namespace Moongate.Abstractions.Interfaces.Services;
+namespace Moongate.Abstractions.Interfaces.Services.Base;
 
 /// <summary>
 /// Defines the lifecycle contract for Moongate services managed by the host.

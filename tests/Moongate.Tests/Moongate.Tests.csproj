@@ -22,6 +22,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.Server\Moongate.Server.csproj" />
     </ItemGroup>
 
 </Project>
