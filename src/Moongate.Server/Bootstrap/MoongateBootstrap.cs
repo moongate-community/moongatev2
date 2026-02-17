@@ -1,6 +1,3 @@
 namespace Moongate.Server.Bootstrap;
 
-public class MoongateBootstrap
-{
-    
-}
+public class MoongateBootstrap { }

@@ -11,21 +11,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ConsoleAppFramework" Version="5.7.13">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
+        <PackageReference Include="ConsoleAppFramework" Version="5.7.13">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Resources\**\*.*" />
-      <EmbeddedResource Include="Resources\**\*.*" />
+        <None Remove="Resources\**\*.*"/>
+        <EmbeddedResource Include="Resources\**\*.*"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Moongate.Network\Moongate.Network.csproj" />
-      <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
-      <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\..\Moongate.Network\Moongate.Network.csproj"/>
+        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj"/>
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
+        <ProjectReference Include="..\Moongate.Network.Packets\Moongate.Network.Packets.csproj"/>
     </ItemGroup>
 
 </Project>

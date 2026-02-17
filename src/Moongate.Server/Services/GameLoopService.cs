@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Threading.Channels;
 using Moongate.Abstractions.Services.Base;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
 
@@ -7,15 +9,42 @@ namespace Moongate.Server.Services;
 
 public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposable
 {
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly Channel<GamePacket> _inboundPackets;
+    private readonly ILogger _logger = Log.ForContext<GameLoopService>();
+    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
+
     public long TickCount { get; private set; }
     public TimeSpan Uptime { get; private set; }
     public double AverageTickMs { get; private set; }
 
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    public GameLoopService()
+        => _inboundPackets = Channel.CreateUnbounded<GamePacket>(
+               new()
+               {
+                   SingleReader = true,
+                   SingleWriter = false
+               }
+           );
 
-    private readonly ILogger _logger = Log.ForContext<GameLoopService>();
+    public void Dispose()
+    {
+        if (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            _cancellationTokenSource.Cancel();
+        }
 
-    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
+        _cancellationTokenSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public void EnqueueGamePacket(GamePacket gamePacket)
+    {
+        if (!_inboundPackets.Writer.TryWrite(gamePacket))
+        {
+            _logger.Warning("Failed to enqueue game packet: {GamePacket}", gamePacket);
+        }
+    }
 
     public async Task StartAsync()
     {
@@ -32,7 +61,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
 
                     var elapsed = Stopwatch.GetElapsedTime(tickStart);
                     Uptime += elapsed;
-                    AverageTickMs = (AverageTickMs * 0.95) + (elapsed.TotalMilliseconds * 0.05);
+                    AverageTickMs = AverageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
 
                     var remaining = _tickInterval - elapsed;
 
@@ -54,15 +83,4 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     }
 
     private void ProcessQueue() { }
-
-    public void Dispose()
-    {
-        if (!_cancellationTokenSource.IsCancellationRequested)
-        {
-            _cancellationTokenSource.Cancel();
-        }
-
-        _cancellationTokenSource.Dispose();
-        GC.SuppressFinalize(this);
-    }
 }

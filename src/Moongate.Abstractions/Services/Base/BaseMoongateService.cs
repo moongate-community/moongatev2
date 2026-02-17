@@ -1,4 +1,3 @@
-using Moongate.Abstractions.Interfaces.Services;
 using Moongate.Abstractions.Interfaces.Services.Base;
 
 namespace Moongate.Abstractions.Services.Base;
@@ -13,16 +12,12 @@ public abstract class BaseMoongateService : IMoongateService
     /// </summary>
     /// <returns>A completed task.</returns>
     public Task StartAsync()
-    {
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 
     /// <summary>
     /// Stops the service.
     /// </summary>
     /// <returns>A completed task.</returns>
     public Task StopAsync()
-    {
-        return Task.CompletedTask;
-    }
+        => Task.CompletedTask;
 }

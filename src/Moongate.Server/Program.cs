@@ -22,5 +22,3 @@ static void ShowHeader()
     Console.WriteLine();
     Console.WriteLine("Platform: " + PlatformUtils.GetCurrentPlatform());
 }
-
-

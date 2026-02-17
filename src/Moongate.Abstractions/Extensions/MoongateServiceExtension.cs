@@ -19,14 +19,16 @@ public static class MoongateServiceExtension
         /// <typeparam name="TService">The service contract type.</typeparam>
         /// <typeparam name="TImplementation">The concrete implementation type.</typeparam>
         /// <param name="priority">The registration priority used for sorting service chains.</param>
-        /// <returns>The same <see cref="Container"/> instance to allow fluent chaining.</returns>
+        /// <returns>The same <see cref="Container" /> instance to allow fluent chaining.</returns>
         public Container RegisterMoongateService<TService, TImplementation>(int priority = 0)
             where TService : class
             where TImplementation : class, TService
         {
             container.Register<TService, TImplementation>(Reuse.Singleton);
 
-            container.AddToRegisterTypedList(new ServiceRegistrationObject(typeof(TService), typeof(TImplementation), priority));
+            container.AddToRegisterTypedList(
+                new ServiceRegistrationObject(typeof(TService), typeof(TImplementation), priority)
+            );
 
             return container;
         }
@@ -37,12 +39,10 @@ public static class MoongateServiceExtension
         /// </summary>
         /// <typeparam name="TService">The service type to register as both contract and implementation.</typeparam>
         /// <param name="priority">The registration priority used for sorting service chains.</param>
-        /// <returns>The same <see cref="Container"/> instance to allow fluent chaining.</returns>
+        /// <returns>The same <see cref="Container" /> instance to allow fluent chaining.</returns>
         public Container RegisterMoongateService<TService>(int priority = 0)
             where TService : class
-        {
-            return container.RegisterMoongateService<TService, TService>(priority);
-        }
+            => container.RegisterMoongateService<TService, TService>(priority);
 
         /// <summary>
         /// Registers a service contract and implementation type as a singleton and stores
@@ -51,7 +51,7 @@ public static class MoongateServiceExtension
         /// <param name="serviceType">The service contract type.</param>
         /// <param name="implementationType">The concrete implementation type.</param>
         /// <param name="priority">The registration priority used for sorting service chains.</param>
-        /// <returns>The same <see cref="Container"/> instance to allow fluent chaining.</returns>
+        /// <returns>The same <see cref="Container" /> instance to allow fluent chaining.</returns>
         public Container RegisterMoongateService(
             Type serviceType,
             Type implementationType,
@@ -72,7 +72,7 @@ public static class MoongateServiceExtension
         /// <typeparam name="TService">The service contract type.</typeparam>
         /// <param name="implementationType">The concrete implementation type.</param>
         /// <param name="priority">The registration priority used for sorting service chains.</param>
-        /// <returns>The same <see cref="Container"/> instance to allow fluent chaining.</returns>
+        /// <returns>The same <see cref="Container" /> instance to allow fluent chaining.</returns>
         public Container RegisterMoongateService<TService>(
             Type implementationType,
             int priority = 0

@@ -1,6 +1,3 @@
 namespace Moongate.Server.Data.Session;
 
-public class ClientSession
-{
-    
-}
+public class ClientSession { }
