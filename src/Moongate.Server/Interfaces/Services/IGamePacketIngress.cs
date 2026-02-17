@@ -11,5 +11,5 @@ public interface IGamePacketIngress
     /// Enqueues an inbound packet for game-loop processing.
     /// </summary>
     /// <param name="gamePacket">Parsed packet metadata and payload.</param>
-    void EnqueueGamePacket(GamePacket gamePacket);
+    void EnqueueGamePacket(IncomingGamePacket gamePacket);
 }

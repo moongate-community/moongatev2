@@ -8,10 +8,12 @@ namespace Moongate.Server.Data.Session;
 public sealed class GameNetworkSession
 {
     private readonly List<byte> _pendingBytes = [];
+    private MoongateTCPClient? _client;
 
     public GameNetworkSession(MoongateTCPClient client)
     {
         SessionId = client.SessionId;
+        _client = client;
         RemoteEndPoint = client.RemoteEndPoint?.ToString();
     }
 
@@ -26,12 +28,26 @@ public sealed class GameNetworkSession
     public string? RemoteEndPoint { get; private set; }
 
     /// <summary>
+    /// Gets the currently associated TCP client, if still attached.
+    /// </summary>
+    public MoongateTCPClient? Client => Volatile.Read(ref _client);
+
+    /// <summary>
     /// Updates endpoint information from current client state.
     /// </summary>
     /// <param name="client">Source TCP client.</param>
     public void Refresh(MoongateTCPClient client)
     {
+        _client = client;
         RemoteEndPoint = client.RemoteEndPoint?.ToString();
+    }
+
+    /// <summary>
+    /// Detaches the underlying TCP client from this session.
+    /// </summary>
+    public void DetachClient()
+    {
+        _client = null;
     }
 
     /// <summary>

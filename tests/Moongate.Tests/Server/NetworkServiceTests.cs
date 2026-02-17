@@ -16,11 +16,11 @@ public class NetworkServiceTests
 {
     private sealed class TestGamePacketIngress : IGamePacketIngress
     {
-        private readonly List<GamePacket> _packets = [];
+        private readonly List<IncomingGamePacket> _packets = [];
 
-        public List<GamePacket> Packets => _packets;
+        public List<IncomingGamePacket> Packets => _packets;
 
-        public void EnqueueGamePacket(GamePacket gamePacket)
+        public void EnqueueGamePacket(IncomingGamePacket gamePacket)
             => _packets.Add(gamePacket);
     }
 

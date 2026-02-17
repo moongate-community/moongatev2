@@ -27,14 +27,12 @@ public class NetworkService : INetworkService
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
     private readonly bool _logPacketData;
 
-    private readonly ConcurrentDictionary<long, MoongateTCPClient> _connectedClients = new();
-
     private readonly List<MoongateTCPServer> _tcpServers = new();
 
     private readonly PacketRegistry _packetRegistry = new();
-    private readonly ConcurrentQueue<GamePacket> _parsedPackets = new();
+    private readonly ConcurrentQueue<IncomingGamePacket> _parsedPackets = new();
 
-    public IReadOnlyCollection<GamePacket> ParsedPackets => _parsedPackets.ToArray();
+    public IReadOnlyCollection<IncomingGamePacket> ParsedPackets => _parsedPackets.ToArray();
 
     public NetworkService(
         IGamePacketIngress gamePacketIngress,
@@ -57,7 +55,7 @@ public class NetworkService : INetworkService
 
     private void ShowRegisteredPackets()
     {
-        _logger.Information("Registered packets:");
+        _logger.Information("Registered packets: {Count}", _packetRegistry.RegisteredPackets.Count);
 
         foreach (var packet in _packetRegistry.RegisteredPackets)
         {
@@ -115,7 +113,11 @@ public class NetworkService : INetworkService
     {
         _logger.Information("Client disconnected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
-        _connectedClients.TryRemove(e.Client.SessionId, out _);
+        if (_gameNetworkSessionService.TryGet(e.Client.SessionId, out var session))
+        {
+            session.DetachClient();
+        }
+
         _gameNetworkSessionService.Remove(e.Client.SessionId);
     }
 
@@ -123,7 +125,6 @@ public class NetworkService : INetworkService
     {
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
-        _connectedClients.TryAdd(e.Client.SessionId, e.Client);
         _gameNetworkSessionService.GetOrCreate(e.Client);
     }
 
@@ -137,7 +138,6 @@ public class NetworkService : INetworkService
         }
 
         _tcpServers.Clear();
-        _connectedClients.Clear();
         _gameNetworkSessionService.Clear();
 
         while (_parsedPackets.TryDequeue(out _)) { }
@@ -149,7 +149,7 @@ public class NetworkService : INetworkService
         GC.SuppressFinalize(this);
     }
 
-    public bool TryDequeueParsedPacket(out GamePacket gamePacket)
+    public bool TryDequeueParsedPacket(out IncomingGamePacket gamePacket)
         => _parsedPackets.TryDequeue(out gamePacket);
 
     private void ParseAvailablePackets(
@@ -230,7 +230,7 @@ public class NetworkService : INetworkService
                 continue;
             }
 
-            var gamePacket = new GamePacket(
+            var gamePacket = new IncomingGamePacket(
                 session,
                 opCode,
                 packet,

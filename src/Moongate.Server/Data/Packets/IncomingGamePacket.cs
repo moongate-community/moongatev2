@@ -6,7 +6,7 @@ namespace Moongate.Server.Data.Packets;
 /// <summary>
 /// Represents a parsed inbound packet with its source session.
 /// </summary>
-public readonly record struct GamePacket(
+public readonly record struct IncomingGamePacket(
     GameNetworkSession Session,
     byte PacketId,
     IGameNetworkPacket Packet,

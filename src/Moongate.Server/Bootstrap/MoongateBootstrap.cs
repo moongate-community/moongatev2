@@ -3,6 +3,7 @@ using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
 using Moongate.Abstractions.Interfaces.Services.Base;
 using Moongate.Core.Data.Directories;
+using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
 using Moongate.Core.Types;
 using Moongate.Server.Data.Config;
@@ -29,6 +30,7 @@ public class MoongateBootstrap
 
         CheckDirectoryConfig();
         CreateLogger();
+        Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
         RegisterServices();
     }
 
@@ -38,7 +40,11 @@ public class MoongateBootstrap
         {
             _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
                                             Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+
+
         }
+
+        _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
 
         _directoriesConfig = new DirectoriesConfig(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
     }
@@ -82,6 +88,7 @@ public class MoongateBootstrap
     private void RegisterServices()
     {
         _container.RegisterInstance(_moongateConfig);
+        _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);

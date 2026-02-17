@@ -20,5 +20,5 @@ public interface IPacketDispatchService
     /// </summary>
     /// <param name="gamePacket">Parsed packet with session context.</param>
     /// <returns><c>true</c> when at least one listener was notified.</returns>
-    bool NotifyPacketListeners(GamePacket gamePacket);
+    bool NotifyPacketListeners(IncomingGamePacket gamePacket);
 }

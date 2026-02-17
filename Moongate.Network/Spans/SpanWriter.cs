@@ -31,9 +31,9 @@ public ref struct SpanWriter : IDisposable
         }
     }
 
-    public int Capacity => _buffer.Length;
+    public readonly int Capacity => _buffer.Length;
     public ReadOnlySpan<byte> Span => _buffer[..Position];
-    public Span<byte> RawBuffer => _buffer;
+    public readonly Span<byte> RawBuffer => _buffer;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SpanWriter(Span<byte> initialBuffer, bool resize = false)

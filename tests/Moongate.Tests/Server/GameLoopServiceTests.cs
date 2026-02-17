@@ -9,7 +9,11 @@ public class GameLoopServiceTests
     [Test]
     public void Ctor_ShouldStartWithZeroedMetrics()
     {
-        _service = new(new PacketDispatchService());
+        _service = new(
+            new PacketDispatchService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService()
+        );
 
         Assert.Multiple(
             () =>
@@ -24,7 +28,11 @@ public class GameLoopServiceTests
     [Test]
     public async Task StartAsync_ShouldAdvanceLoopAndUpdateMetrics()
     {
-        _service = new(new PacketDispatchService());
+        _service = new(
+            new PacketDispatchService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService()
+        );
 
         await _service.StartAsync();
 
@@ -44,7 +52,11 @@ public class GameLoopServiceTests
     [Test]
     public async Task StopAsync_ShouldStopAdvancingTickCount()
     {
-        _service = new(new PacketDispatchService());
+        _service = new(
+            new PacketDispatchService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService()
+        );
         await _service.StartAsync();
 
         var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));

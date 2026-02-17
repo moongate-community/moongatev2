@@ -23,7 +23,7 @@ public class PacketDispatchService : IPacketDispatchService
         _logger.Information("Added packet listener for opcode 0x{OpCode:X2}", opCode);
     }
 
-    public bool NotifyPacketListeners(GamePacket gamePacket)
+    public bool NotifyPacketListeners(IncomingGamePacket gamePacket)
     {
         var opCode = gamePacket.PacketId;
 
@@ -54,7 +54,7 @@ public class PacketDispatchService : IPacketDispatchService
         return true;
     }
 
-    private async Task NotifyListenerSafeAsync(byte opCode, GamePacket gamePacket, IPacketListener listener)
+    private async Task NotifyListenerSafeAsync(byte opCode, IncomingGamePacket gamePacket, IPacketListener listener)
     {
         try
         {
