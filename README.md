@@ -36,6 +36,7 @@ The project is actively in development and already includes:
 - Domain event bus (`IGameEventBusService`) with initial events (`PlayerConnectedEvent`, `PlayerDisconnectedEvent`).
 - Session split between transport (`GameNetworkSession`) and gameplay/protocol context (`GameSession`).
 - Unit tests for core server behaviors and packet infrastructure.
+- Lua scripting runtime with module/function binding and `.luarc` generation support.
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-17.md`.
 
@@ -46,7 +47,8 @@ For a detailed internal status snapshot, see `docs/plans/status-2026-02-17.md`.
 - `src/Moongate.Network.Packets.Generators`: source generator for packet table registration.
 - `src/Moongate.UO.Data`: UO domain data types and utility models.
 - `src/Moongate.Core`: shared low-level utilities.
-- `Moongate.Network`: TCP/network primitives.
+- `src/Moongate.Network`: TCP/network primitives.
+- `src/Moongate.Scripting`: Lua engine service, script modules, script loaders, and scripting helpers.
 - `tests/Moongate.Tests`: unit tests.
 - `docs/`: Obsidian knowledge base (plans, sprints, protocol notes, journal).
 
@@ -64,6 +66,21 @@ dotnet run --project src/Moongate.Server
 ```
 
 By default, the server starts with packet data logging enabled in `Program.cs`.
+
+## Scripting
+
+Moongate includes a Lua scripting subsystem in `src/Moongate.Scripting`, based on MoonSharp.
+
+- `LuaScriptEngineService` handles script execution, callbacks, constants, and function invocation.
+- Script modules are exposed with attributes (`[ScriptModule]`, `[ScriptFunction]`).
+- `LuaScriptLoader` resolves scripts from configured script directories.
+- `.luarc` metadata generation is included to improve editor tooling.
+
+Current automated coverage includes:
+
+- `LuaScriptLoader` file resolution and load behavior.
+- `LuaScriptEngineService` constants, callbacks, module calls, error path, and naming conversions.
+- `ScriptResultBuilder` success/error contract behavior.
 
 ## Docker
 

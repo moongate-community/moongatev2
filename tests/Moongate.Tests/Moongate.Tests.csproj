@@ -5,6 +5,8 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version>0.1.0</Version>
+        <Description>Automated test suite for Moongate core, networking, packets, and scripting components.</Description>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -29,6 +31,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Moongate.Network\Moongate.Network.csproj"/>
         <ProjectReference Include="..\..\src\Moongate.Network.Packets\Moongate.Network.Packets.csproj"/>
+        <ProjectReference Include="..\..\src\Moongate.Scripting\Moongate.Scripting.csproj"/>
         <ProjectReference Include="..\..\src\Moongate.Server\Moongate.Server.csproj"/>
         <ProjectReference Include="..\..\src\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
     </ItemGroup>

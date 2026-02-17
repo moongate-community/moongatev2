@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Version>0.1.0</Version>
+        <Description>Lua scripting runtime, module binding, and script execution services for Moongate.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MoonSharp" Version="2.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
+      <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+    </ItemGroup>
+
+</Project>
