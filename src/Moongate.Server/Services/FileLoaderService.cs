@@ -19,17 +19,18 @@ public class FileLoaderService : IFileLoaderService
 
     public void AddFileLoader<T>() where T : IFileLoader
     {
+        if (_fileLoaders.Any(loader => loader.GetType() == typeof(T)))
+        {
+            return;
+        }
+
         if (!_container.IsRegistered<T>())
         {
             _container.Register<T>();
         }
 
         var fileLoader = _container.Resolve<T>();
-
-        if (!_fileLoaders.Contains(fileLoader))
-        {
-            _fileLoaders.Add(fileLoader);
-        }
+        _fileLoaders.Add(fileLoader);
     }
 
     public void Dispose()
