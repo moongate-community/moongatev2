@@ -1,4 +1,5 @@
 using Moongate.Network.Packets.Incoming.Interaction;
+using Moongate.Network.Packets.Incoming.House;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Incoming.Movement;
 using Moongate.Network.Packets.Incoming.Speech;
@@ -30,6 +31,9 @@ public class PacketRegistryTests
 
                 Assert.That(registry.TryGetDescriptor(0x08, out var dropDescriptor), Is.True);
                 Assert.That(dropDescriptor.Length, Is.EqualTo(14));
+
+                Assert.That(registry.TryCreatePacket(0xFB, out var packetFb), Is.True);
+                Assert.That(packetFb, Is.TypeOf<UpdateViewPublicHouseContentsPacket>());
             }
         );
     }

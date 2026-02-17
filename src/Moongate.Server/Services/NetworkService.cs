@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
@@ -9,6 +10,7 @@ public class NetworkService : INetworkService
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
 
     private readonly Dictionary<byte, List<IPacketListener>> _packetListeners = new();
+
 
     public void AddPacketListener(byte OpCode, IPacketListener packetListener)
     {
