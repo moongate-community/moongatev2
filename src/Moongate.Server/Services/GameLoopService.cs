@@ -100,7 +100,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     {
         while (_inboundPackets.Reader.TryRead(out var gamePacket))
         {
-            _packetDispatchService.NotifyPacketListeners(gamePacket.PacketId, gamePacket.Packet);
+            _packetDispatchService.NotifyPacketListeners(gamePacket);
         }
     }
 }

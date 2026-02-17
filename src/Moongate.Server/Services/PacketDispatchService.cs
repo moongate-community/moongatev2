@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Moongate.Network.Packets.Interfaces;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
@@ -23,8 +23,10 @@ public class PacketDispatchService : IPacketDispatchService
         _logger.Information("Added packet listener for opcode 0x{OpCode:X2}", opCode);
     }
 
-    public bool NotifyPacketListeners(byte opCode, IGameNetworkPacket gamePacket)
+    public bool NotifyPacketListeners(GamePacket gamePacket)
     {
+        var opCode = gamePacket.PacketId;
+
         if (!_packetListeners.TryGetValue(opCode, out var listeners))
         {
             _logger.Warning("No packet listeners for opcode 0x{OpCode:X2}", opCode);
@@ -52,11 +54,11 @@ public class PacketDispatchService : IPacketDispatchService
         return true;
     }
 
-    private async Task NotifyListenerSafeAsync(byte opCode, IGameNetworkPacket gamePacket, IPacketListener listener)
+    private async Task NotifyListenerSafeAsync(byte opCode, GamePacket gamePacket, IPacketListener listener)
     {
         try
         {
-            _ = await listener.HandlePacketAsync(gamePacket);
+            _ = await listener.HandlePacketAsync(gamePacket.Session, gamePacket.Packet);
         }
         catch (Exception ex)
         {

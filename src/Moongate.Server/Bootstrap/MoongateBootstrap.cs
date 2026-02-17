@@ -22,6 +22,7 @@ public class MoongateBootstrap
     private void RegisterServices()
     {
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
+        _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);
         _container.RegisterMoongateService<INetworkService, NetworkService>(99);
         _container.RegisterDelegate<IGamePacketIngress>(

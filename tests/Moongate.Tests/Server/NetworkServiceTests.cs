@@ -26,7 +26,11 @@ public class NetworkServiceTests
     public void OnClientData_WhenFixedPacketArrives_ShouldEnqueueTypedGamePacket()
     {
         var ingress = new TestGamePacketIngress();
-        using var service = new NetworkService(ingress, new PacketDispatchService());
+        using var service = new NetworkService(
+            ingress,
+            new PacketDispatchService(),
+            new GameNetworkSessionService()
+        );
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
         var payload = new byte[21];
@@ -53,7 +57,11 @@ public class NetworkServiceTests
     public void OnClientData_WhenVariablePacketIsFragmented_ShouldParseAfterLengthIsComplete()
     {
         var ingress = new TestGamePacketIngress();
-        using var service = new NetworkService(ingress, new PacketDispatchService());
+        using var service = new NetworkService(
+            ingress,
+            new PacketDispatchService(),
+            new GameNetworkSessionService()
+        );
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
         InvokeOnClientData(service, client, [0xAD, 0x00]);

@@ -1,4 +1,4 @@
-using Moongate.Network.Packets.Interfaces;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Listener;
 
 namespace Moongate.Server.Interfaces.Services;
@@ -18,8 +18,7 @@ public interface IPacketDispatchService
     /// <summary>
     /// Dispatches a packet to all listeners registered for an opcode.
     /// </summary>
-    /// <param name="opCode">Packet opcode.</param>
-    /// <param name="gamePacket">Parsed packet.</param>
+    /// <param name="gamePacket">Parsed packet with session context.</param>
     /// <returns><c>true</c> when at least one listener was notified.</returns>
-    bool NotifyPacketListeners(byte opCode, IGameNetworkPacket gamePacket);
+    bool NotifyPacketListeners(GamePacket gamePacket);
 }
