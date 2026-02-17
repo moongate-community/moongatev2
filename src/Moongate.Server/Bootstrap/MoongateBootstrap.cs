@@ -85,7 +85,7 @@ public class MoongateBootstrap
         if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
         {
             _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
-                                            Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+                                            Path.Combine(AppContext.BaseDirectory, "moongate");
         }
 
         _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
