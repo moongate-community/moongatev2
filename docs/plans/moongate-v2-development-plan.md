@@ -7,6 +7,26 @@
 
 ---
 
+## Current Snapshot (2026-02-17)
+
+- M0 skeleton is functionally in place (server run loop + network listener).
+- Packet pipeline is beyond M0/M1 baseline:
+  - attribute-based packet mapping
+  - generated packet table registration
+  - fixed/variable packet framing + parsing
+- Session architecture evolved:
+  - transport session: `GameNetworkSession`
+  - gameplay/protocol session: `GameSession`
+- Eventing infrastructure is present:
+  - network->loop `IMessageBusService`
+  - domain `IGameEventBusService` (`PlayerConnectedEvent`, `PlayerDisconnectedEvent`)
+- Local verification is stable (`dotnet build`, test suite pass).
+- Remaining M0 backlog: top-level run `README.md` and CI AOT publish gate.
+
+Detailed status note: [[status-2026-02-17|Current Status (2026-02-17)]]
+
+---
+
 ## Technology Decisions (Locked)
 
 | Decision | Choice | Rationale |

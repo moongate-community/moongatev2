@@ -8,22 +8,22 @@ Get a runnable server skeleton with a visible game loop and TCP listener, plus C
 ## Scope
 - Milestone target: `M0 - Skeleton`
 - Timebox: 1 week (or 1 focused evening)
-- Status: In Progress
+- Status: In Progress (M0 mostly complete, CI AOT gate + README pending)
 
 ## Sprint Backlog
 - [x] Verify solution layout matches the target structure in the development plan ✅ 2026-02-15
 - [x] Confirm `Directory.Build.props` is aligned with .NET 10 + nullable + AOT-ready settings ✅ 2026-02-15
-- [ ] Create `GameLoop` with a basic tick loop and console tick output
-- [ ] Create `NetworkService` with TCP listener on port `2593`
-- [ ] Ensure accepted connections are logged and disconnected cleanly
+- [x] Create `GameLoop` with a basic tick loop and queue processing ✅ 2026-02-17
+- [x] Create `NetworkService` with TCP listener on port `2593` ✅ 2026-02-15
+- [x] Ensure accepted connections are logged and disconnected cleanly ✅ 2026-02-15
 - [ ] Add/update `README.md` with run instructions
-- [ ] Add CI workflow: build, test, and AOT publish gate
+- [ ] Add CI workflow: build, test, and AOT publish gate (AOT gate still missing)
 
 ## Definition of Done
 - `dotnet run` starts the server
-- Tick output is visible in console
+- Game loop is running and processing packet queues
 - TCP listener is active on port `2593`
-- CI passes build + test + AOT publish
+- CI passes build + test + AOT publish (currently only build + test)
 
 ## Risks
 - AOT publish issues caused by package/runtime incompatibilities
@@ -36,3 +36,5 @@ Get a runnable server skeleton with a visible game loop and TCP listener, plus C
 ## Notes
 - Keep this sprint at ~80% completion quality to preserve momentum.
 - If blocked for more than 30 minutes, ship a minimal fallback and continue.
+- Current implementation is already beyond M0 skeleton in networking internals:
+  packet registry/source gen, session model split, message bus, and domain events are in place.

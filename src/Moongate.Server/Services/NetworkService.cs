@@ -168,7 +168,7 @@ public class NetworkService : INetworkService
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
-        session.SetState(NetworkSessionState.Login);
+        session.NetworkSession.SetState(NetworkSessionState.Login);
         _ = PublishEventSafeAsync(
             new PlayerConnectedEvent(
                 e.Client.SessionId,
@@ -186,7 +186,7 @@ public class NetworkService : INetworkService
         }
 
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
-        session.WithPendingBytesLock(
+        session.NetworkSession.WithPendingBytesLock(
             pendingBytes =>
             {
                 pendingBytes.AddRange(e.Data.Span.ToArray());
@@ -201,8 +201,8 @@ public class NetworkService : INetworkService
 
         if (_gameNetworkSessionService.TryGet(e.Client.SessionId, out var session))
         {
-            session.SetState(NetworkSessionState.Disconnecting);
-            session.DetachClient();
+            session.NetworkSession.SetState(NetworkSessionState.Disconnecting);
+            session.NetworkSession.DetachClient();
         }
 
         _gameNetworkSessionService.Remove(e.Client.SessionId);
@@ -222,7 +222,7 @@ public class NetworkService : INetworkService
 
     private void ParseAvailablePackets(
         List<byte> pendingBytes,
-        GameNetworkSession session
+        GameSession session
     )
     {
         while (pendingBytes.Count > 0)

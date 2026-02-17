@@ -40,7 +40,7 @@ public class BasePacketListenerTests
         public TestListener(IOutgoingPacketQueue outgoingPacketQueue)
             : base(outgoingPacketQueue) { }
 
-        protected override Task<bool> HandleCoreAsync(GameNetworkSession session, IGameNetworkPacket packet)
+        protected override Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet)
         {
             Called = true;
             Enqueue(session, packet);
@@ -55,7 +55,7 @@ public class BasePacketListenerTests
         var queue = new TestOutgoingPacketQueue();
         var listener = new TestListener(queue);
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameNetworkSession(client);
+        var session = new GameSession(new GameNetworkSession(client));
         var packet = new LoginSeedPacket();
 
         var handled = await listener.HandlePacketAsync(session, packet);

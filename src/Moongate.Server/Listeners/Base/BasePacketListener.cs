@@ -16,7 +16,7 @@ public abstract class BasePacketListener : IPacketListener
         => _outgoingPacketQueue = outgoingPacketQueue;
 
     /// <inheritdoc />
-    public Task<bool> HandlePacketAsync(GameNetworkSession session, IGameNetworkPacket packet)
+    public Task<bool> HandlePacketAsync(GameSession session, IGameNetworkPacket packet)
         => HandleCoreAsync(session, packet);
 
     /// <summary>
@@ -24,7 +24,7 @@ public abstract class BasePacketListener : IPacketListener
     /// </summary>
     /// <param name="session">Target session.</param>
     /// <param name="packet">Packet to send.</param>
-    protected void Enqueue(GameNetworkSession session, IGameNetworkPacket packet)
+    protected void Enqueue(GameSession session, IGameNetworkPacket packet)
         => _outgoingPacketQueue.Enqueue(session.SessionId, packet);
 
     /// <summary>
@@ -41,5 +41,5 @@ public abstract class BasePacketListener : IPacketListener
     /// <param name="session">Source session.</param>
     /// <param name="packet">Parsed packet instance.</param>
     /// <returns><c>true</c> when handled; otherwise <c>false</c>.</returns>
-    protected abstract Task<bool> HandleCoreAsync(GameNetworkSession session, IGameNetworkPacket packet);
+    protected abstract Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet);
 }

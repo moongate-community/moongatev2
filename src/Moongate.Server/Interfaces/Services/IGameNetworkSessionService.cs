@@ -18,7 +18,7 @@ public interface IGameNetworkSessionService
     /// </summary>
     /// <param name="client">Client connection.</param>
     /// <returns>Session state object.</returns>
-    GameNetworkSession GetOrCreate(MoongateTCPClient client);
+    GameSession GetOrCreate(MoongateTCPClient client);
 
     /// <summary>
     /// Removes a session from the store.
@@ -33,5 +33,5 @@ public interface IGameNetworkSessionService
     /// <param name="sessionId">Session identifier.</param>
     /// <param name="session">Resolved session.</param>
     /// <returns><c>true</c> when session exists.</returns>
-    bool TryGet(long sessionId, out GameNetworkSession session);
+    bool TryGet(long sessionId, out GameSession session);
 }

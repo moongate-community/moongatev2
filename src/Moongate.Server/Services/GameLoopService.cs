@@ -94,7 +94,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         {
             if (
                 !_gameNetworkSessionService.TryGet(outgoingPacket.SessionId, out var session) ||
-                session.Client is not { } client
+                session.NetworkSession.Client is not { } client
             )
             {
                 _logger.Warning(

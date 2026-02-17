@@ -30,7 +30,7 @@ public class MessageBusServiceTests
     {
         var bus = new MessageBusService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameNetworkSession(client);
+        var session = new GameSession(new GameNetworkSession(client));
         var packet = new IncomingGamePacket(session, 0xEF, new TestPacket(0xEF), 123);
 
         bus.PublishIncomingPacket(packet);
@@ -53,7 +53,7 @@ public class MessageBusServiceTests
     {
         var bus = new MessageBusService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameNetworkSession(client);
+        var session = new GameSession(new GameNetworkSession(client));
 
         bus.PublishIncomingPacket(new(session, 0x01, new TestPacket(0x01), 1));
         bus.PublishIncomingPacket(new(session, 0x02, new TestPacket(0x02), 2));

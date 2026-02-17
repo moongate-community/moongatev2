@@ -7,15 +7,15 @@ namespace Moongate.Server.Services;
 
 public sealed class GameNetworkSessionService : IGameNetworkSessionService
 {
-    private readonly ConcurrentDictionary<long, GameNetworkSession> _sessions = new();
+    private readonly ConcurrentDictionary<long, GameSession> _sessions = new();
 
     public void Clear()
         => _sessions.Clear();
 
-    public GameNetworkSession GetOrCreate(MoongateTCPClient client)
+    public GameSession GetOrCreate(MoongateTCPClient client)
     {
-        var session = _sessions.GetOrAdd(client.SessionId, _ => new(client));
-        session.Refresh(client);
+        var session = _sessions.GetOrAdd(client.SessionId, _ => new(new GameNetworkSession(client)));
+        session.NetworkSession.Refresh(client);
 
         return session;
     }
@@ -23,6 +23,6 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
     public bool Remove(long sessionId)
         => _sessions.TryRemove(sessionId, out _);
 
-    public bool TryGet(long sessionId, out GameNetworkSession session)
+    public bool TryGet(long sessionId, out GameSession session)
         => _sessions.TryGetValue(sessionId, out session!);
 }
