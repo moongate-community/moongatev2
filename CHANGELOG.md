@@ -1,0 +1,31 @@
+# Change Log
+
+All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
+
+<a name="0.1.0"></a>
+## [0.1.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.1.0) (2026-02-17)
+
+### Features
+
+* add abstractions, network project, and Obsidian tooling setup ([300d338](https://www.github.com/moongate-community/moongatev2/commit/300d33837531512a083888dc7d03636112b31acd))
+* add core and server projects to solution ([d1e2f47](https://www.github.com/moongate-community/moongatev2/commit/d1e2f47efb795c6c1b6b2a19df58578065e02002))
+* **abstractions:** add service project wiring and sprint kanban ([d428991](https://www.github.com/moongate-community/moongatev2/commit/d428991c4581cfbd450be2036d574570821b3264))
+* **core:** add utility, json, and configuration foundations ([2868a72](https://www.github.com/moongate-community/moongatev2/commit/2868a72d5fa52cc071563383e42177cd775a6a53))
+* **network:** add packet registry with generated packet table ([9ba6051](https://www.github.com/moongate-community/moongatev2/commit/9ba60510191e7df730d8758e39a0d5c82481f0b9))
+* **network:** add span io and base packet parsing infrastructure ([89be21b](https://www.github.com/moongate-community/moongatev2/commit/89be21bea67b65b57b9649a1aa00ad3803cc185c))
+* **network:** add tcp client pipeline, events, and buffer exceptions ([97ff80f](https://www.github.com/moongate-community/moongatev2/commit/97ff80f89d7991828dee4573a558889fec365018))
+* **network:** add tcp server foundation with buffers and compression ([d3bed53](https://www.github.com/moongate-community/moongatev2/commit/d3bed53c02d88b83bc1e321a7b99fefbc2a7b91b))
+* **packets:** add packet descriptions from attributes and fix aot publish script ([03b6b52](https://www.github.com/moongate-community/moongatev2/commit/03b6b528eb4153b4f1285e94e9c846ed9def5b3a))
+* **packets:** organize incoming packets by domain ([aaad0bc](https://www.github.com/moongate-community/moongatev2/commit/aaad0bcc68503b217f78b71a812706430095e582))
+* **server:** add lifecycle run loop and align packet metadata ([c24abca](https://www.github.com/moongate-community/moongatev2/commit/c24abca925384b360e4e455f2d9025dae344fdea))
+* **server:** add message bus and domain event bus infrastructure ([03f605c](https://www.github.com/moongate-community/moongatev2/commit/03f605cbd1bfd4c2008d601ca24b3d0f9ec870d9))
+* **server:** add moongate bootstrap registration ([39ec37e](https://www.github.com/moongate-community/moongatev2/commit/39ec37e718045a4955e8f9177d112a5bf0c72989))
+* **server:** add packet data dump logging with dedicated sink ([12c9c81](https://www.github.com/moongate-community/moongatev2/commit/12c9c81b1e0115590bb96bd38f2d1f909cdc259b))
+* **server:** add startup header resource ([8f68586](https://www.github.com/moongate-community/moongatev2/commit/8f685865c37d09972dfd399f0e1decee030887fc))
+* **server:** implement game loop lifecycle and tests ([853c4fd](https://www.github.com/moongate-community/moongatev2/commit/853c4fd86a3bd0b0a52daa00ff6f8e3c7c3c359c))
+* **server:** scaffold game loop service contracts and models ([33f1cbe](https://www.github.com/moongate-community/moongatev2/commit/33f1cbe849a3eee8ad945153377d7defc01bf649))
+* **server:** scaffold network packet listener and service contracts ([f1cea7b](https://www.github.com/moongate-community/moongatev2/commit/f1cea7b69e8ab473815438c9ad08fbcd7fb6d9af))
+* **server:** wire startup banner and platform handling updates ([6e9af34](https://www.github.com/moongate-community/moongatev2/commit/6e9af3447d8878ac1239ef6277e580f4a4ea77ec))
+* **uo-data:** add Serial type and coverage tests ([69f5836](https://www.github.com/moongate-community/moongatev2/commit/69f5836095b265d0d843fbe4d7ba723b98cc8731))
+* **uo-data:** import core legacy UO data and add minimal entity model ([4359964](https://www.github.com/moongate-community/moongatev2/commit/43599640fb4b9a84fd0185c78580f876d10d003f))
+
