@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text;
 using Moongate.Network.Spans;
 
@@ -6,22 +5,6 @@ namespace Moongate.Tests.Network;
 
 public class SpanReadWriteTests
 {
-    [Test]
-    public void SpanWriterAndSpanReader_ShouldRoundTripBigEndianPrimitives()
-    {
-        using var writer = new SpanWriter(64);
-        writer.Write((byte)0x2A);
-        writer.Write((short)0x1234);
-        writer.Write(0x12345678);
-        writer.Write(0x0102030405060708L);
-
-        using var reader = new SpanReader(writer.Span);
-        Assert.That(reader.ReadByte(), Is.EqualTo(0x2A));
-        Assert.That(reader.ReadInt16(), Is.EqualTo(0x1234));
-        Assert.That(reader.ReadInt32(), Is.EqualTo(0x12345678));
-        Assert.That(reader.ReadInt64(), Is.EqualTo(0x0102030405060708L));
-    }
-
     [Test]
     public void SpanReader_ReadBigUni_ShouldAdvancePositionByTwoByteTerminator()
     {
@@ -41,9 +24,27 @@ public class SpanReadWriteTests
     }
 
     [Test]
+    public void SpanReader_SeekWithInvalidBounds_ShouldThrowIOException()
+    {
+        using var reader = new SpanReader(new byte[] { 0x01, 0x02 });
+        var didThrow = false;
+
+        try
+        {
+            reader.Seek(5, SeekOrigin.Begin);
+        }
+        catch (IOException)
+        {
+            didThrow = true;
+        }
+
+        Assert.That(didThrow, Is.True);
+    }
+
+    [Test]
     public void SpanWriter_SeekAndWritePacketLength_ShouldWriteLengthAtOffset1()
     {
-        using var writer = new SpanWriter(16, resize: true);
+        using var writer = new SpanWriter(16, true);
         writer.Write((byte)0xAA);
         writer.Write((ushort)0);
         writer.Write(Encoding.ASCII.GetBytes("TEST"));
@@ -65,9 +66,10 @@ public class SpanReadWriteTests
     public void SpanWriter_WhenResizeDisabledAndCapacityExceeded_ShouldThrowInvalidOperationException()
     {
         Span<byte> fixedBuffer = stackalloc byte[2];
-        using var writer = new SpanWriter(fixedBuffer, resize: false);
+        using var writer = new SpanWriter(fixedBuffer, false);
         writer.Write((ushort)1);
         var didThrow = false;
+
         try
         {
             writer.Write((byte)1);
@@ -81,19 +83,18 @@ public class SpanReadWriteTests
     }
 
     [Test]
-    public void SpanReader_SeekWithInvalidBounds_ShouldThrowIOException()
+    public void SpanWriterAndSpanReader_ShouldRoundTripBigEndianPrimitives()
     {
-        using var reader = new SpanReader(new byte[] { 0x01, 0x02 });
-        var didThrow = false;
-        try
-        {
-            reader.Seek(5, SeekOrigin.Begin);
-        }
-        catch (IOException)
-        {
-            didThrow = true;
-        }
+        using var writer = new SpanWriter(64);
+        writer.Write((byte)0x2A);
+        writer.Write((short)0x1234);
+        writer.Write(0x12345678);
+        writer.Write(0x0102030405060708L);
 
-        Assert.That(didThrow, Is.True);
+        using var reader = new SpanReader(writer.Span);
+        Assert.That(reader.ReadByte(), Is.EqualTo(0x2A));
+        Assert.That(reader.ReadInt16(), Is.EqualTo(0x1234));
+        Assert.That(reader.ReadInt32(), Is.EqualTo(0x12345678));
+        Assert.That(reader.ReadInt64(), Is.EqualTo(0x0102030405060708L));
     }
 }

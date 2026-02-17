@@ -19,14 +19,31 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     public double AverageTickMs { get; private set; }
 
     public GameLoopService()
+        => _inboundPackets = Channel.CreateUnbounded<GamePacket>(
+               new()
+               {
+                   SingleReader = true,
+                   SingleWriter = false
+               }
+           );
+
+    public void Dispose()
     {
-        _inboundPackets = Channel.CreateUnbounded<GamePacket>(
-            new UnboundedChannelOptions
-            {
-                SingleReader = true,
-                SingleWriter = false
-            }
-        );
+        if (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
+        _cancellationTokenSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    public void EnqueueGamePacket(GamePacket gamePacket)
+    {
+        if (!_inboundPackets.Writer.TryWrite(gamePacket))
+        {
+            _logger.Warning("Failed to enqueue game packet: {GamePacket}", gamePacket);
+        }
     }
 
     public async Task StartAsync()
@@ -44,7 +61,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
 
                     var elapsed = Stopwatch.GetElapsedTime(tickStart);
                     Uptime += elapsed;
-                    AverageTickMs = (AverageTickMs * 0.95) + (elapsed.TotalMilliseconds * 0.05);
+                    AverageTickMs = AverageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
 
                     var remaining = _tickInterval - elapsed;
 
@@ -65,27 +82,5 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         }
     }
 
-    public void EnqueueGamePacket(GamePacket gamePacket)
-    {
-        if (!_inboundPackets.Writer.TryWrite(gamePacket))
-        {
-            _logger.Warning("Failed to enqueue game packet: {GamePacket}", gamePacket);
-        }
-    }
-
-    private void ProcessQueue()
-    {
-
-    }
-
-    public void Dispose()
-    {
-        if (!_cancellationTokenSource.IsCancellationRequested)
-        {
-            _cancellationTokenSource.Cancel();
-        }
-
-        _cancellationTokenSource.Dispose();
-        GC.SuppressFinalize(this);
-    }
+    private void ProcessQueue() { }
 }

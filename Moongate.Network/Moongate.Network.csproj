@@ -10,6 +10,5 @@
         <ProjectReference Include="..\src\Moongate.Core\Moongate.Core.csproj"/>
     </ItemGroup>
 
-    
 
 </Project>

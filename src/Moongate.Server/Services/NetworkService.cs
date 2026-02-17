@@ -8,12 +8,11 @@ public class NetworkService : INetworkService
 {
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
 
-    private readonly Dictionary<byte, List<IPacketListener>> _packetListeners =
-        new Dictionary<byte, List<IPacketListener>>();
+    private readonly Dictionary<byte, List<IPacketListener>> _packetListeners = new();
 
     public void AddPacketListener(byte OpCode, IPacketListener packetListener)
     {
-        if (!_packetListeners.TryGetValue(OpCode, out List<IPacketListener>? value))
+        if (!_packetListeners.TryGetValue(OpCode, out var value))
         {
             value = new();
             _packetListeners[OpCode] = value;
