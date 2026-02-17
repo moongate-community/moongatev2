@@ -55,7 +55,7 @@ public class NetworkService : INetworkService
 
         foreach (var packet in _packetRegistry.RegisteredPackets)
         {
-            _logger.Debug(
+            _logger.Verbose(
                 " - OpCode: 0x{OpCode:X2}, Type: {PacketType}, Sizing: {PacketSizing}, Length: {Length}, Description: {Description}",
                 packet.OpCode,
                 packet.HandlerType.Name,
