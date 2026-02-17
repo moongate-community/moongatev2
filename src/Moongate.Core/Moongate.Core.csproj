@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -10,13 +10,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DryIoc.dll" Version="5.4.3"/>
-        <PackageReference Include="Serilog" Version="4.3.1"/>
-        <PackageReference Include="ZLinq" Version="1.5.5"/>
+        <PackageReference Include="DryIoc.dll" Version="5.4.3" />
+        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="ZLinq" Version="1.5.5" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Data\"/>
+        <Folder Include="Data\" />
     </ItemGroup>
 
 </Project>
