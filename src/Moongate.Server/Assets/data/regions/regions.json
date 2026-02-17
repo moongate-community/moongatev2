@@ -1,0 +1,4469 @@
+{
+  "header": {
+    "title": "UOX3 DFNs",
+    "repository": "https://github.com/UOX3DevTeam/UOX3",
+    "lastUpdate": "17 March, 2012",
+    "script": "regions.dfn",
+    "description": "Switches GUARDED,MARK,GATE,RECALL,ESCORTS,MAGICDAMAGE: 0=off/no; 1=on/yes. Set weather with ABWEATH from weather.dfn file."
+  },
+  "regions": [
+    {
+      "id": 3,
+      "appearance": "Spring",
+      "name": "the town of Britain",
+      "musiclist": 1,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 1330,
+          "y1": 1695,
+          "x2": 1407,
+          "y2": 1845
+        },
+        {
+          "x1": 1407,
+          "y1": 1490,
+          "x2": 1680,
+          "y2": 1695
+        },
+        {
+          "x1": 1407,
+          "y1": 1695,
+          "x2": 1680,
+          "y2": 1795
+        },
+        {
+          "x1": 1680,
+          "y1": 1525,
+          "x2": 1730,
+          "y2": 1695
+        },
+        {
+          "x1": 1407,
+          "y1": 1795,
+          "x2": 1455,
+          "y2": 1845
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Britain's farmlands",
+      "musiclist": 21,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1085,
+          "y1": 1530,
+          "x2": 1200,
+          "y2": 1695
+        },
+        {
+          "x1": 1200,
+          "y1": 1555,
+          "x2": 1295,
+          "y2": 1695
+        },
+        {
+          "x1": 1295,
+          "y1": 1695,
+          "x2": 1330,
+          "y2": 1850
+        },
+        {
+          "x1": 1100,
+          "y1": 1695,
+          "x2": 1295,
+          "y2": 1915
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Lord British's castle",
+      "musiclist": 4,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord British's Personal",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "abweath": 6,
+      "coordinates": [
+        {
+          "x1": 1295,
+          "y1": 1559,
+          "x2": 1407,
+          "y2": 1695
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Lord Blackthorn's castle",
+      "musiclist": 14,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord Blackthorn's Personal",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1490,
+          "y1": 1400,
+          "x2": 1545,
+          "y2": 1505
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "the town of Yew",
+      "musiclist": 13,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord British's",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 250,
+          "y1": 750,
+          "x2": 700,
+          "y2": 1260
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "the town of Skara Brae",
+      "musiclist": 9,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 520,
+          "y1": 2100,
+          "x2": 690,
+          "y2": 2225
+        },
+        {
+          "x1": 520,
+          "y1": 2225,
+          "x2": 635,
+          "y2": 2300
+        },
+        {
+          "x1": 710,
+          "y1": 2130,
+          "x2": 840,
+          "y2": 2300
+        },
+        {
+          "x1": 725,
+          "y1": 2300,
+          "x2": 885,
+          "y2": 2370
+        },
+        {
+          "x1": 860,
+          "y1": 2370,
+          "x2": 915,
+          "y2": 2425
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "the town of Trinsic",
+      "musiclist": 10,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 1792,
+          "y1": 2692,
+          "x2": 1811,
+          "y2": 2765
+        },
+        {
+          "x1": 1811,
+          "y1": 2660,
+          "x2": 1850,
+          "y2": 2765
+        },
+        {
+          "x1": 1850,
+          "y1": 2632,
+          "x2": 1939,
+          "y2": 2765
+        },
+        {
+          "x1": 1796,
+          "y1": 2765,
+          "x2": 1811,
+          "y2": 2874
+        },
+        {
+          "x1": 1811,
+          "y1": 2765,
+          "x2": 1858,
+          "y2": 2890
+        },
+        {
+          "x1": 1939,
+          "y1": 2660,
+          "x2": 1974,
+          "y2": 2874
+        },
+        {
+          "x1": 1858,
+          "y1": 2765,
+          "x2": 1939,
+          "y2": 2896
+        },
+        {
+          "x1": 1974,
+          "y1": 2680,
+          "x2": 2050,
+          "y2": 2940
+        },
+        {
+          "x1": 2050,
+          "y1": 2745,
+          "x2": 2080,
+          "y2": 2900
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "the town of Cove",
+      "musiclist": 16,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2205,
+          "y1": 1120,
+          "x2": 2290,
+          "y2": 1245
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "the town of Vesper",
+      "musiclist": 11,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2725,
+          "y1": 895,
+          "x2": 2800,
+          "y2": 1000
+        },
+        {
+          "x1": 2825,
+          "y1": 600,
+          "x2": 3035,
+          "y2": 815
+        },
+        {
+          "x1": 2800,
+          "y1": 815,
+          "x2": 3010,
+          "y2": 1010
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "the town of Minoc",
+      "musiclist": 6,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2395,
+          "y1": 430,
+          "x2": 2555,
+          "y2": 573
+        },
+        {
+          "x1": 2420,
+          "y1": 352,
+          "x2": 2555,
+          "y2": 430
+        },
+        {
+          "x1": 2555,
+          "y1": 450,
+          "x2": 2635,
+          "y2": 550
+        },
+        {
+          "x1": 2460,
+          "y1": 573,
+          "x2": 2590,
+          "y2": 650
+        },
+        {
+          "x1": 2590,
+          "y1": 595,
+          "x2": 2635,
+          "y2": 655
+        },
+        {
+          "x1": 2485,
+          "y1": 650,
+          "x2": 2575,
+          "y2": 695
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "the town of Moonglow",
+      "musiclist": 17,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 4380,
+          "y1": 1045,
+          "x2": 4500,
+          "y2": 1235
+        },
+        {
+          "x1": 4280,
+          "y1": 920,
+          "x2": 4345,
+          "y2": 1020
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "the town of Nujel'm",
+      "musiclist": 15,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 3485,
+          "y1": 1040,
+          "x2": 3825,
+          "y2": 1420
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "the town of Magincia",
+      "musiclist": 5,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 3645,
+          "y1": 2020,
+          "x2": 3815,
+          "y2": 2280
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "the town of Ocllo",
+      "musiclist": 7,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 3590,
+          "y1": 2460,
+          "x2": 3710,
+          "y2": 2695
+        },
+        {
+          "x1": 3700,
+          "y1": 2560,
+          "x2": 3760,
+          "y2": 2730
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "the town of Buccaneers' Den",
+      "guardowner": "The Town",
+      "musiclist": 2,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2620,
+          "y1": 2070,
+          "x2": 2785,
+          "y2": 2265
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "the town of Serpent's Hold",
+      "musiclist": 8,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2870,
+          "y1": 3330,
+          "x2": 3075,
+          "y2": 3575
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Jhelom Dueling Pit",
+      "musiclist": 1,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1385,
+          "y1": 3729,
+          "x2": 1414,
+          "y2": 3758
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "the town of Jhelom",
+      "musiclist": 3,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 1230,
+          "y1": 3600,
+          "x2": 1510,
+          "y2": 3910
+        },
+        {
+          "x1": 1090,
+          "y1": 3560,
+          "x2": 1210,
+          "y2": 3680
+        },
+        {
+          "x1": 1375,
+          "y1": 3950,
+          "x2": 1490,
+          "y2": 4045
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name": "the town of Wind",
+      "musiclist": 12,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 5139,
+          "y1": 2,
+          "x2": 5198,
+          "y2": 58
+        },
+        {
+          "x1": 5135,
+          "y1": 50,
+          "x2": 5200,
+          "y2": 87
+        },
+        {
+          "x1": 5202,
+          "y1": 109,
+          "x2": 5262,
+          "y2": 191
+        },
+        {
+          "x1": 5261,
+          "y1": 116,
+          "x2": 5282,
+          "y2": 173
+        },
+        {
+          "x1": 5279,
+          "y1": 112,
+          "x2": 5327,
+          "y2": 133
+        },
+        {
+          "x1": 5285,
+          "y1": 22,
+          "x2": 5368,
+          "y2": 115
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord British's Personal",
+      "name": "Jail",
+      "magicdamage": false,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "coordinates": [
+        {
+          "x1": 5272,
+          "y1": 1160,
+          "x2": 5310,
+          "y2": 1190
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Papua",
+      "magicdamage": false,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 5643,
+          "y1": 3111,
+          "x2": 5850,
+          "y2": 3306
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Delucia",
+      "magicdamage": false,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 5192,
+          "y1": 3931,
+          "x2": 5313,
+          "y2": 3946
+        },
+        {
+          "x1": 5129,
+          "y1": 3947,
+          "x2": 5313,
+          "y2": 4061
+        },
+        {
+          "x1": 5129,
+          "y1": 4062,
+          "x2": 5270,
+          "y2": 4082
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Shrine of Honesty",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 4208,
+          "y1": 561,
+          "x2": 4215,
+          "y2": 567
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "a guard outpost",
+      "magicdamage": true,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Royal",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": false,
+      "coordinates": [
+        {
+          "x1": 2036,
+          "y1": 785,
+          "x2": 2079,
+          "y2": 823
+        },
+        {
+          "x1": 1932,
+          "y1": 1141,
+          "x2": 1943,
+          "y2": 1154
+        },
+        {
+          "x1": 1813,
+          "y1": 716,
+          "x2": 1825,
+          "y2": 728
+        },
+        {
+          "x1": 1242,
+          "y1": 849,
+          "x2": 1264,
+          "y2": 888
+        },
+        {
+          "x1": 704,
+          "y1": 1474,
+          "x2": 743,
+          "y2": 1489
+        },
+        {
+          "x1": 2258,
+          "y1": 918,
+          "x2": 2283,
+          "y2": 937
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "name": "an abandoned guard outpost",
+      "magicdamage": true,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": false,
+      "coordinates": [
+        {
+          "x1": 1028,
+          "y1": 1075,
+          "x2": 1047,
+          "y2": 1086
+        },
+        {
+          "x1": 741,
+          "y1": 1286,
+          "x2": 758,
+          "y2": 1325
+        },
+        {
+          "x1": 948,
+          "y1": 1757,
+          "x2": 979,
+          "y2": 1770
+        },
+        {
+          "x1": 1405,
+          "y1": 2096,
+          "x2": 1425,
+          "y2": 2111
+        },
+        {
+          "x1": 1682,
+          "y1": 2464,
+          "y2": 2477
+        },
+        {
+          "x1": 1680,
+          "y1": 2440,
+          "x2": 1694,
+          "y2": 2501
+        },
+        {
+          "x1": 1674,
+          "y1": 2670,
+          "x2": 1687,
+          "y2": 2682
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Covetous",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5377,
+          "y1": 1777,
+          "x2": 5629,
+          "y2": 2045
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Deceit",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5120,
+          "y1": 512,
+          "x2": 5350,
+          "y2": 767
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Despise",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5379,
+          "y1": 516,
+          "x2": 5528,
+          "y2": 769
+        },
+        {
+          "x1": 5565,
+          "y1": 621,
+          "x2": 5589,
+          "y2": 642
+        },
+        {
+          "x1": 5380,
+          "y1": 767,
+          "x2": 5633,
+          "y2": 1029
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Destard",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5120,
+          "y1": 775,
+          "x2": 5373,
+          "y2": 1022
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Hythloth",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5896,
+          "y1": 4,
+          "x2": 6142,
+          "y2": 244
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Shame",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "y": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5377,
+          "y1": 1,
+          "x2": 5632,
+          "y2": 261
+        },
+        {
+          "x1": 5630,
+          "x2": 5890,
+          "y2": 123
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Wrong",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5637,
+          "y1": 504,
+          "x2": 5886,
+          "y2": 675
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Terathan Keep",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5123,
+          "y1": 1522,
+          "x2": 5243,
+          "y2": 1721
+        },
+        {
+          "x1": 5242,
+          "y1": 1426,
+          "x2": 5274,
+          "y2": 1748
+        },
+        {
+          "x1": 5274,
+          "y1": 1538,
+          "x2": 5367,
+          "y2": 1796
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Fire Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5634,
+          "y1": 1283,
+          "x2": 5795,
+          "y2": 1533
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Ice Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5661,
+          "y1": 125,
+          "x2": 5892,
+          "y2": 269
+        },
+        {
+          "x1": 5643,
+          "y1": 289,
+          "x2": 5712,
+          "y2": 357
+        },
+        {
+          "x1": 5800,
+          "y1": 310,
+          "x2": 5868,
+          "y2": 386
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Khaldun",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5375,
+          "y1": 1280,
+          "x2": 5617,
+          "y2": 1530
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "appearance": "Spring",
+      "name": "the town of Britain",
+      "musiclist": 1,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1330,
+          "y1": 1695,
+          "x2": 1407,
+          "y2": 1845
+        },
+        {
+          "x1": 1407,
+          "y1": 1490,
+          "x2": 1680,
+          "y2": 1695
+        },
+        {
+          "x1": 1407,
+          "y1": 1695,
+          "x2": 1680,
+          "y2": 1795
+        },
+        {
+          "x1": 1680,
+          "y1": 1525,
+          "x2": 1730,
+          "y2": 1695
+        },
+        {
+          "x1": 1407,
+          "y1": 1795,
+          "x2": 1455,
+          "y2": 1845
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Britain's farmlands",
+      "musiclist": 21,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1085,
+          "y1": 1530,
+          "x2": 1200,
+          "y2": 1695
+        },
+        {
+          "x1": 1200,
+          "y1": 1555,
+          "x2": 1295,
+          "y2": 1695
+        },
+        {
+          "x1": 1295,
+          "y1": 1695,
+          "x2": 1330,
+          "y2": 1850
+        },
+        {
+          "x1": 1100,
+          "y1": 1695,
+          "x2": 1295,
+          "y2": 1915
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Lord British's castle",
+      "musiclist": 4,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord British's Personal",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "abweath": 6,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1295,
+          "y1": 1559,
+          "x2": 1407,
+          "y2": 1695
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Lord Blackthorn's castle",
+      "musiclist": 14,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord Blackthorn's Personal",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1490,
+          "y1": 1400,
+          "x2": 1545,
+          "y2": 1505
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "name": "the town of Yew",
+      "musiclist": 13,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "Lord British's",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 250,
+          "y1": 750,
+          "x2": 700,
+          "y2": 1260
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "name": "the town of Skara Brae",
+      "musiclist": 9,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 520,
+          "y1": 2100,
+          "x2": 690,
+          "y2": 2225
+        },
+        {
+          "x1": 520,
+          "y1": 2225,
+          "x2": 635,
+          "y2": 2300
+        },
+        {
+          "x1": 710,
+          "y1": 2130,
+          "x2": 840,
+          "y2": 2300
+        },
+        {
+          "x1": 725,
+          "y1": 2300,
+          "x2": 885,
+          "y2": 2370
+        },
+        {
+          "x1": 860,
+          "y1": 2370,
+          "x2": 915,
+          "y2": 2425
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "name": "the town of Trinsic",
+      "musiclist": 10,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1792,
+          "y1": 2692,
+          "x2": 1811,
+          "y2": 2765
+        },
+        {
+          "x1": 1811,
+          "y1": 2660,
+          "x2": 1850,
+          "y2": 2765
+        },
+        {
+          "x1": 1850,
+          "y1": 2632,
+          "x2": 1939,
+          "y2": 2765
+        },
+        {
+          "x1": 1796,
+          "y1": 2765,
+          "x2": 1811,
+          "y2": 2874
+        },
+        {
+          "x1": 1811,
+          "y1": 2765,
+          "x2": 1858,
+          "y2": 2890
+        },
+        {
+          "x1": 1939,
+          "y1": 2660,
+          "x2": 1974,
+          "y2": 2874
+        },
+        {
+          "x1": 1858,
+          "y1": 2765,
+          "x2": 1939,
+          "y2": 2896
+        },
+        {
+          "x1": 1974,
+          "y1": 2680,
+          "x2": 2050,
+          "y2": 2940
+        },
+        {
+          "x1": 2050,
+          "y1": 2745,
+          "x2": 2080,
+          "y2": 2900
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name": "the town of Cove",
+      "musiclist": 16,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2205,
+          "y1": 1120,
+          "x2": 2290,
+          "y2": 1245
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "name": "the town of Vesper",
+      "musiclist": 11,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "coordinates": [
+        {
+          "x1": 2725,
+          "y1": 895,
+          "x2": 2800,
+          "y2": 1000
+        },
+        {
+          "x1": 2825,
+          "y1": 600,
+          "x2": 3035,
+          "y2": 815
+        },
+        {
+          "x1": 2800,
+          "y1": 815,
+          "x2": 3010,
+          "y2": 1010
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "name": "the town of Minoc",
+      "musiclist": 6,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2395,
+          "y1": 430,
+          "x2": 2555,
+          "y2": 573
+        },
+        {
+          "x1": 2420,
+          "y1": 352,
+          "x2": 2555,
+          "y2": 430
+        },
+        {
+          "x1": 2555,
+          "y1": 450,
+          "x2": 2635,
+          "y2": 550
+        },
+        {
+          "x1": 2460,
+          "y1": 573,
+          "x2": 2590,
+          "y2": 650
+        },
+        {
+          "x1": 2590,
+          "y1": 595,
+          "x2": 2635,
+          "y2": 655
+        },
+        {
+          "x1": 2485,
+          "y1": 650,
+          "x2": 2575,
+          "y2": 695
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "name": "the town of Moonglow",
+      "musiclist": 17,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 4380,
+          "y1": 1045,
+          "x2": 4500,
+          "y2": 1235
+        },
+        {
+          "x1": 4280,
+          "y1": 920,
+          "x2": 4345,
+          "y2": 1020
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "name": "the town of Nujel'm",
+      "musiclist": 15,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 3485,
+          "y1": 1040,
+          "x2": 3825,
+          "y2": 1420
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "name": "the town of Magincia",
+      "musiclist": 5,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 3645,
+          "y1": 2020,
+          "x2": 3815,
+          "y2": 2280
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "name": "the town of Haven",
+      "musiclist": 7,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 3590,
+          "y1": 2460,
+          "x2": 3710,
+          "y2": 2635
+        },
+        {
+          "x1": 3700,
+          "y1": 2560,
+          "x2": 3760,
+          "y2": 2730
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "name": "the town of Buccaneers' Den",
+      "guardowner": "The Town",
+      "musiclist": 2,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2620,
+          "y1": 2070,
+          "x2": 2785,
+          "y2": 2265
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "name": "the town of Serpent's Hold",
+      "musiclist": 8,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2870,
+          "y1": 3330,
+          "x2": 3075,
+          "y2": 3575
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Jhelom Dueling Pit",
+      "musiclist": 1,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1385,
+          "y1": 3729,
+          "x2": 1414,
+          "y2": 3758
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "name": "the town of Jhelom",
+      "musiclist": 3,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1230,
+          "y1": 3600,
+          "x2": 1510,
+          "y2": 3910
+        },
+        {
+          "x1": 1090,
+          "y1": 3560,
+          "x2": 1210,
+          "y2": 3680
+        },
+        {
+          "x1": 1375,
+          "y1": 3950,
+          "x2": 1490,
+          "y2": 4045
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "name": "the town of Wind",
+      "musiclist": 12,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5139,
+          "y1": 2,
+          "x2": 5198,
+          "y2": 58
+        },
+        {
+          "x1": 5135,
+          "y1": 50,
+          "x2": 5200,
+          "y2": 87
+        },
+        {
+          "x1": 5202,
+          "y1": 109,
+          "x2": 5262,
+          "y2": 191
+        },
+        {
+          "x1": 5261,
+          "y1": 116,
+          "x2": 5282,
+          "y2": 173
+        },
+        {
+          "x1": 5279,
+          "y1": 112,
+          "x2": 5327,
+          "y2": 133
+        },
+        {
+          "x1": 5285,
+          "y1": 22,
+          "x2": 5368,
+          "y2": 115
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Papua",
+      "magicdamage": false,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5643,
+          "y1": 3111,
+          "x2": 5850,
+          "y2": 3306
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Delucia",
+      "magicdamage": false,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5192,
+          "y1": 3931,
+          "x2": 5313,
+          "y2": 3946
+        },
+        {
+          "x1": 5129,
+          "y1": 3947,
+          "x2": 5313,
+          "y2": 4061
+        },
+        {
+          "x1": 5129,
+          "y1": 4062,
+          "x2": 5270,
+          "y2": 4082
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Shrine of Honesty",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 4208,
+          "y1": 561,
+          "x2": 4215,
+          "y2": 567
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "name": "a guard outpost",
+      "magicdamage": true,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Royal",
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": false,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2036,
+          "y1": 785,
+          "x2": 2079,
+          "y2": 823
+        },
+        {
+          "x1": 1932,
+          "y1": 1141,
+          "x2": 1943,
+          "y2": 1154
+        },
+        {
+          "x1": 1813,
+          "y1": 716,
+          "x2": 1825,
+          "y2": 728
+        },
+        {
+          "x1": 1242,
+          "y1": 849,
+          "x2": 1264,
+          "y2": 888
+        },
+        {
+          "x1": 704,
+          "y1": 1474,
+          "x2": 743,
+          "y2": 1489
+        },
+        {
+          "x1": 2258,
+          "y1": 918,
+          "x2": 2283,
+          "y2": 937
+        }
+      ]
+    },
+    {
+      "id": 71,
+      "name": "an abandoned guard outpost",
+      "magicdamage": true,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": false,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1028,
+          "y1": 1075,
+          "x2": 1047,
+          "y2": 1086
+        },
+        {
+          "x1": 741,
+          "y1": 1286,
+          "x2": 758,
+          "y2": 1325
+        },
+        {
+          "x1": 948,
+          "y1": 1757,
+          "x2": 979,
+          "y2": 1770
+        },
+        {
+          "x1": 1405,
+          "y1": 2096,
+          "x2": 1425,
+          "y2": 2111
+        },
+        {
+          "x1": 1682,
+          "y1": 2464,
+          "y2": 2477
+        },
+        {
+          "x1": 1680,
+          "y1": 2440,
+          "x2": 1694,
+          "y2": 2501
+        },
+        {
+          "x1": 1674,
+          "y1": 2670,
+          "x2": 1687,
+          "y2": 2682
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "name": "Covetous",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5377,
+          "y1": 1777,
+          "x2": 5629,
+          "y2": 2045
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "name": "Deceit",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5120,
+          "y1": 512,
+          "x2": 5350,
+          "y2": 767
+        }
+      ]
+    },
+    {
+      "id": 74,
+      "name": "Despise",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5379,
+          "y1": 516,
+          "x2": 5528,
+          "y2": 769
+        },
+        {
+          "x1": 5565,
+          "y1": 621,
+          "x2": 5589,
+          "y2": 642
+        },
+        {
+          "x1": 5380,
+          "y1": 767,
+          "x2": 5633,
+          "y2": 1029
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "name": "Destard",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5120,
+          "y1": 775,
+          "x2": 5373,
+          "y2": 1022
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "name": "Hythloth",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5896,
+          "y1": 4,
+          "x2": 6142,
+          "y2": 244
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "name": "Shame",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "y": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5377,
+          "y1": 1,
+          "x2": 5632,
+          "y2": 261
+        },
+        {
+          "x1": 5630,
+          "x2": 5890,
+          "y2": 123
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Wrong",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5637,
+          "y1": 504,
+          "x2": 5886,
+          "y2": 675
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Terathan Keep",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5123,
+          "y1": 1522,
+          "x2": 5243,
+          "y2": 1721
+        },
+        {
+          "x1": 5242,
+          "y1": 1426,
+          "x2": 5274,
+          "y2": 1748
+        },
+        {
+          "x1": 5274,
+          "y1": 1538,
+          "x2": 5367,
+          "y2": 1796
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Fire Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5634,
+          "y1": 1283,
+          "x2": 5795,
+          "y2": 1533
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Ice Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5661,
+          "y1": 125,
+          "x2": 5892,
+          "y2": 269
+        },
+        {
+          "x1": 5643,
+          "y1": 289,
+          "x2": 5712,
+          "y2": 357
+        },
+        {
+          "x1": 57,
+          "y1": 310,
+          "x2": 5868,
+          "y2": 361
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Reg Volom",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": false,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 5643,
+          "y1": 3111,
+          "x2": 5850,
+          "y2": 3306
+        }
+      ]
+    },
+    {
+      "id": 84,
+      "name": "Shrine of Valor",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 521,
+          "y1": 210,
+          "x2": 535,
+          "y2": 225
+        }
+      ]
+    },
+    {
+      "id": 85,
+      "name": "Shrine of Chaos",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1745,
+          "y1": 232,
+          "x2": 1756,
+          "y2": 243
+        }
+      ]
+    },
+    {
+      "id": 86,
+      "name": "Shrine of Sacrifice",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1166,
+          "y1": 1281,
+          "x2": 1191,
+          "y2": 1294
+        }
+      ]
+    },
+    {
+      "id": 87,
+      "name": "Shrine of Honesty",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 714,
+          "y1": 1348,
+          "x2": 729,
+          "y2": 1369
+        }
+      ]
+    },
+    {
+      "id": 88,
+      "name": "Shrine of Compassion",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1203,
+          "y1": 473,
+          "x2": 1213,
+          "y2": 482
+        },
+        {
+          "x1": 1211,
+          "y1": 463,
+          "x2": 1221,
+          "y2": 473
+        },
+        {
+          "x1": 1221,
+          "y1": 457,
+          "x2": 1230,
+          "y2": 465
+        }
+      ]
+    },
+    {
+      "id": 89,
+      "name": "Shrine of Humility",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 278,
+          "y1": 1011,
+          "x2": 297,
+          "y2": 1021
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "name": "Shrine of Spirituality",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1524,
+          "y1": 1336,
+          "x2": 1534,
+          "y2": 1345
+        }
+      ]
+    },
+    {
+      "id": 91,
+      "name": "Shrine of Honor",
+      "magicdamage": false,
+      "guarded": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 740,
+          "y1": 719,
+          "x2": 754,
+          "y2": 736
+        }
+      ]
+    },
+    {
+      "id": 92,
+      "name": "The City of Val Lor Reg",
+      "musiclist": 12,
+      "guarded": false,
+      "guardlist": "guard",
+      "guardowner": "the gargoyle",
+      "magicdamage": false,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 755,
+          "y1": 605,
+          "x2": 803,
+          "y2": 679
+        },
+        {
+          "x1": 802,
+          "y1": 580,
+          "x2": 877,
+          "y2": 703
+        },
+        {
+          "x1": 826,
+          "y1": 701,
+          "x2": 853,
+          "y2": 727
+        },
+        {
+          "x1": 826,
+          "y1": 701,
+          "x2": 853,
+          "y2": 727
+        },
+        {
+          "x1": 876,
+          "y1": 604,
+          "x2": 901,
+          "y2": 679
+        },
+        {
+          "x1": 900,
+          "y1": 628,
+          "x2": 925,
+          "y2": 655
+        }
+      ]
+    },
+    {
+      "id": 93,
+      "name": "a desert outpost",
+      "musiclist": 12,
+      "guarded": false,
+      "guardlist": "guard",
+      "guardowner": "the gypsy",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1594,
+          "y1": 533,
+          "x2": 1631,
+          "y2": 566
+        }
+      ]
+    },
+    {
+      "id": 94,
+      "name": "a gypsy caravan",
+      "musiclist": 12,
+      "guarded": false,
+      "guardlist": "guard",
+      "guardowner": "the gypsy",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1385,
+          "y1": 425,
+          "x2": 1409,
+          "y2": 443
+        }
+      ]
+    },
+    {
+      "id": 95,
+      "name": "a gypsy caravan",
+      "musiclist": 12,
+      "guarded": false,
+      "guardlist": "guard",
+      "guardowner": "the gypsy",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1218,
+          "y1": 534,
+          "x2": 1262,
+          "y2": 590
+        }
+      ]
+    },
+    {
+      "id": 96,
+      "name": "Blood Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 2037,
+          "y1": 824,
+          "x2": 2186,
+          "y2": 1060
+        }
+      ]
+    },
+    {
+      "id": 97,
+      "name": "Spectre Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1944,
+          "y1": 1010,
+          "x2": 2115,
+          "y2": 1111
+        }
+      ]
+    },
+    {
+      "id": 98,
+      "name": "Rock Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 2085,
+          "y1": 5,
+          "x2": 2245,
+          "y2": 320
+        }
+      ]
+    },
+    {
+      "id": 99,
+      "name": "Exodus Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1838,
+          "y1": 5,
+          "x2": 2078,
+          "y2": 216
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "name": "Sorcerers Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 50,
+          "y1": 1,
+          "x2": 480,
+          "y2": 145
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "name": "Anhk Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1,
+          "y1": 1252,
+          "x2": 177,
+          "y2": 1574
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Wisp Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "teleport": false,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 741,
+          "y1": 1510,
+          "x2": 815,
+          "y2": 1587
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Wisp Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 615,
+          "y1": 1428,
+          "x2": 911,
+          "y2": 1590
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "name": "Cyclops Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 916,
+          "y1": 1418,
+          "x2": 1018,
+          "y2": 1579
+        }
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Ratman Mines",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1153,
+          "y1": 1462,
+          "x2": 1357,
+          "y2": 1582
+        }
+      ]
+    },
+    {
+      "id": 106,
+      "appearance": "Spring",
+      "name": "the city of Luna",
+      "musiclist": 1,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 898,
+          "y1": 442,
+          "x2": 1086,
+          "y2": 1598
+        }
+      ]
+    },
+    {
+      "id": 107,
+      "appearance": "Spring",
+      "name": "Grand Arena",
+      "musiclist": 12,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 920,
+          "y1": 625,
+          "x2": 955,
+          "y2": 650
+        }
+      ]
+    },
+    {
+      "id": 108,
+      "appearance": "Spring",
+      "name": "the City of Umbra",
+      "musiclist": 1,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "escorts": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 1969,
+          "y1": 1283,
+          "x2": 2144,
+          "y2": 1415
+        }
+      ]
+    },
+    {
+      "id": 109,
+      "name": "Doom",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 250,
+          "y1": 2,
+          "x2": 511,
+          "y2": 558
+        }
+      ]
+    },
+    {
+      "id": 110,
+      "name": "Sanctuary",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6145,
+          "y1": 0,
+          "x2": 6397,
+          "y2": 253
+        }
+      ]
+    },
+    {
+      "id": 111,
+      "name": "Blighted Grove",
+      "guarded": false,
+      "musiclist": 25,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6440,
+          "y1": 819,
+          "x2": 6602,
+          "y2": 975
+        }
+      ]
+    },
+    {
+      "id": 112,
+      "name": "Painted Caves",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6239,
+          "y1": 852,
+          "x2": 6316,
+          "y2": 917
+        }
+      ]
+    },
+    {
+      "id": 113,
+      "name": "Prism of Light",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6455,
+          "y1": 16,
+          "x2": 6621,
+          "y2": 256
+        }
+      ]
+    },
+    {
+      "id": 114,
+      "name": "Solen Hive",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5642,
+          "y1": 1776,
+          "x2": 5935,
+          "y2": 2039
+        }
+      ]
+    },
+    {
+      "id": 115,
+      "name": "Orc Caves",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 5129,
+          "y1": 1944,
+          "x2": 5161,
+          "y2": 2018
+        },
+        {
+          "x1": 5285,
+          "y1": 1283,
+          "x2": 5375,
+          "y2": 1384
+        },
+        {
+          "x1": 5265,
+          "y1": 1950,
+          "x2": 5363,
+          "y2": 2046
+        }
+      ]
+    },
+    {
+      "id": 116,
+      "name": "Heartwood",
+      "musiclist": 24,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6911,
+          "y1": 256,
+          "x2": 7166,
+          "y2": 511
+        }
+      ]
+    },
+    {
+      "id": 117,
+      "name": "Labyrinth",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 255,
+          "y1": 1791,
+          "x2": 511,
+          "y2": 2046
+        }
+      ]
+    },
+    {
+      "id": 118,
+      "name": "Bedlam",
+      "guarded": false,
+      "musiclist": 28,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 73,
+          "y1": 1601,
+          "x2": 132,
+          "y2": 1690
+        },
+        {
+          "x1": 145,
+          "y1": 1715,
+          "x2": 198,
+          "y2": 1761
+        }
+      ]
+    },
+    {
+      "id": 120,
+      "name": "Twisted Weald",
+      "guarded": false,
+      "musiclist": 27,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 2103,
+          "y1": 1142,
+          "x2": 2252,
+          "y2": 1294
+        }
+      ]
+    },
+    {
+      "id": 121,
+      "name": "The Fan Dancer Dojo",
+      "guarded": false,
+      "musiclist": 29,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 40,
+          "y1": 319,
+          "x2": 198,
+          "y2": 713
+        }
+      ]
+    },
+    {
+      "id": 122,
+      "name": "The Citadel",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 59,
+          "y1": 1859,
+          "x2": 191,
+          "y2": 1982
+        }
+      ]
+    },
+    {
+      "id": 123,
+      "name": "The Yomotsu Mines",
+      "guarded": false,
+      "musiclist": 29,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 1,
+          "y1": 1,
+          "x2": 127,
+          "y2": 128
+        }
+      ]
+    },
+    {
+      "id": 124,
+      "name": "Palace of Paroxysmus",
+      "guarded": false,
+      "musiclist": 26,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6198,
+          "y1": 316,
+          "x2": 6622,
+          "y2": 678
+        }
+      ]
+    },
+    {
+      "id": 125,
+      "name": "Orc Caves",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 5129,
+          "y1": 1944,
+          "x2": 5161,
+          "y2": 2018
+        },
+        {
+          "x1": 5285,
+          "y1": 1283,
+          "x2": 5375,
+          "y2": 1384
+        },
+        {
+          "x1": 5265,
+          "y1": 1950,
+          "x2": 5363,
+          "y2": 2046
+        }
+      ]
+    },
+    {
+      "id": 126,
+      "name": "Heartwood",
+      "musiclist": 24,
+      "guarded": true,
+      "guardlist": "guard",
+      "guardowner": "The Town",
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 6911,
+          "y1": 256,
+          "x2": 7166,
+          "y2": 511
+        }
+      ]
+    },
+    {
+      "id": 127,
+      "name": "Shrine of Compassion",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1853,
+          "y1": 865,
+          "x2": 1861,
+          "y2": 878
+        }
+      ]
+    },
+    {
+      "id": 128,
+      "name": "Chaos Shrine",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1456,
+          "y1": 840,
+          "x2": 1463,
+          "y2": 847
+        }
+      ]
+    },
+    {
+      "id": 129,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 3832,
+          "y1": 152,
+          "x2": 4352,
+          "y2": 796
+        },
+        {
+          "x1": 5120,
+          "y1": 2305,
+          "x2": 5595,
+          "y2": 2420
+        },
+        {
+          "x1": 5735,
+          "y1": 2305,
+          "x2": 6140,
+          "y2": 2440
+        },
+        {
+          "x1": 6053,
+          "y1": 2441,
+          "x2": 6140,
+          "y2": 2561
+        }
+      ]
+    },
+    {
+      "id": 130,
+      "name": "Shrine of Honor",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1719,
+          "y1": 3522,
+          "x2": 1731,
+          "y2": 3533
+        }
+      ]
+    },
+    {
+      "id": 131,
+      "name": "Shrine of Humility",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 4270,
+          "y1": 3693,
+          "x2": 4277,
+          "y2": 3700
+        }
+      ]
+    },
+    {
+      "id": 132,
+      "name": "Shrine of Justice",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1297,
+          "y1": 629,
+          "x2": 1304,
+          "y2": 636
+        }
+      ]
+    },
+    {
+      "id": 133,
+      "name": "Shrine of Sacrifice",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 3351,
+          "y1": 287,
+          "x2": 3358,
+          "y2": 296
+        }
+      ]
+    },
+    {
+      "id": 134,
+      "name": "Shrine of Spirituality",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 1588,
+          "y1": 2484,
+          "x2": 1607,
+          "y2": 2496
+        }
+      ]
+    },
+    {
+      "id": 135,
+      "name": "Shrine of Valor",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 2485,
+          "y1": 3925,
+          "x2": 2496,
+          "y2": 3936
+        }
+      ]
+    },
+    {
+      "id": 136,
+      "name": "Shrine of Compassion",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1853,
+          "y1": 865,
+          "x2": 1861,
+          "y2": 878
+        }
+      ]
+    },
+    {
+      "id": 137,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 3832,
+          "y1": 152,
+          "x2": 4352,
+          "y2": 796
+        },
+        {
+          "x1": 5120,
+          "y1": 2305,
+          "x2": 5595,
+          "y2": 2420
+        },
+        {
+          "x1": 5735,
+          "y1": 2305,
+          "x2": 6140,
+          "y2": 2440
+        },
+        {
+          "x1": 6053,
+          "y1": 2441,
+          "x2": 6140,
+          "y2": 2561
+        }
+      ]
+    },
+    {
+      "id": 138,
+      "name": "Shrine of Honor",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1719,
+          "y1": 3522,
+          "x2": 1731,
+          "y2": 3533
+        }
+      ]
+    },
+    {
+      "id": 139,
+      "name": "Shrine of Humility",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 4270,
+          "y1": 3693,
+          "x2": 4277,
+          "y2": 3700
+        }
+      ]
+    },
+    {
+      "id": 140,
+      "name": "Shrine of Justice",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1297,
+          "y1": 629,
+          "x2": 1304,
+          "y2": 636
+        }
+      ]
+    },
+    {
+      "id": 141,
+      "name": "Shrine of Sacrifice",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 3351,
+          "y1": 287,
+          "x2": 3358,
+          "y2": 296
+        }
+      ]
+    },
+    {
+      "id": 142,
+      "name": "Shrine of Spirituality",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 1588,
+          "y1": 2484,
+          "x2": 1607,
+          "y2": 2496
+        }
+      ]
+    },
+    {
+      "id": 143,
+      "name": "Shrine of Valor",
+      "escorts": true,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 2485,
+          "y1": 3925,
+          "x2": 2496,
+          "y2": 3936
+        }
+      ]
+    },
+    {
+      "id": 144,
+      "disabled": true,
+      "name": "Sea Market",
+      "guarded": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 4497,
+          "y1": 2265,
+          "x2": 4606,
+          "y2": 2440
+        }
+      ]
+    },
+    {
+      "id": 145,
+      "disabled": true,
+      "name": "Sea Market",
+      "guarded": true,
+      "recall": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 4497,
+          "y1": 2265,
+          "x2": 4606,
+          "y2": 2440
+        }
+      ]
+    },
+    {
+      "id": 146,
+      "name": "Blackthorn Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 0,
+      "coordinates": [
+        {
+          "x1": 6151,
+          "y1": 2301,
+          "x2": 6564,
+          "y2": 2840
+        }
+      ],
+      "description": "Spirituality (Felucca)"
+    },
+    {
+      "id": 147,
+      "name": "Blackthorn Dungeon",
+      "guarded": false,
+      "musiclist": 23,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": false,
+      "dungeon": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 6151,
+          "y1": 2301,
+          "x2": 6564,
+          "y2": 2840
+        }
+      ]
+    },
+    {
+      "id": 160,
+      "name": "Lakeshire",
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 1170,
+          "y1": 1087,
+          "x2": 1242,
+          "y2": 1204
+        }
+      ]
+    },
+    {
+      "id": 247,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 6975,
+          "y1": 2048,
+          "x2": 7042,
+          "y2": 2115
+        }
+      ]
+    },
+    {
+      "id": 248,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": false,
+      "gate": false,
+      "recall": true,
+      "mapId": 5,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 1344,
+          "x2": 1087,
+          "y2": 2495
+        }
+      ]
+    },
+    {
+      "id": 249,
+      "guarded": false,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "coordinates": [
+        {
+          "x1": 5120,
+          "y1": 2304,
+          "x2": 1024,
+          "y2": 1792
+        }
+      ]
+    },
+    {
+      "id": 250,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "mapId": 5,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 1279,
+          "y2": 4095
+        }
+      ]
+    },
+    {
+      "id": 251,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "housing": true,
+      "mapId": 4,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 1447,
+          "y2": 1447
+        }
+      ]
+    },
+    {
+      "id": 252,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "housing": true,
+      "mapId": 3,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 2559,
+          "y2": 2047
+        }
+      ]
+    },
+    {
+      "id": 253,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": false,
+      "recall": true,
+      "mapId": 2,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 2303,
+          "y2": 1599
+        }
+      ]
+    },
+    {
+      "id": 254,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "housing": true,
+      "mapId": 1,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 7167,
+          "y2": 4095
+        }
+      ]
+    },
+    {
+      "id": 255,
+      "guarded": false,
+      "musiclist": 255,
+      "magicdamage": true,
+      "mark": true,
+      "gate": true,
+      "recall": true,
+      "housing": true,
+      "coordinates": [
+        {
+          "x1": 0,
+          "y1": 0,
+          "x2": 7167,
+          "y2": 4095
+        }
+      ]
+    }
+  ],
+  "musicLists": [
+    {
+      "name": "MUSICLIST 1",
+      "music": 9,
+      "id": 1
+    },
+    {
+      "name": "MUSICLIST 2",
+      "music": 11,
+      "id": 2
+    },
+    {
+      "name": "MUSICLIST 3",
+      "music": 12,
+      "id": 3
+    },
+    {
+      "name": "MUSICLIST 4",
+      "music": 13,
+      "id": 4
+    },
+    {
+      "name": "MUSICLIST 5",
+      "music": 15,
+      "id": 5
+    },
+    {
+      "name": "MUSICLIST 6",
+      "music": 16,
+      "id": 6
+    },
+    {
+      "name": "MUSICLIST 7",
+      "music": 17,
+      "id": 7
+    },
+    {
+      "name": "MUSICLIST 8",
+      "music": 19,
+      "description": "Blackthorn Dungeon (Felucca)",
+      "id": 8
+    },
+    {
+      "name": "MUSICLIST 9",
+      "music": 20,
+      "id": 9
+    },
+    {
+      "name": "MUSICLIST 10",
+      "music": 21,
+      "id": 10
+    },
+    {
+      "name": "MUSICLIST 11",
+      "music": 22,
+      "id": 11
+    },
+    {
+      "name": "MUSICLIST 12",
+      "music": 23,
+      "id": 12
+    },
+    {
+      "name": "MUSICLIST 13",
+      "music": 24,
+      "id": 13
+    },
+    {
+      "name": "MUSICLIST 14",
+      "music": 44,
+      "id": 14
+    },
+    {
+      "name": "MUSICLIST 15",
+      "music": 45,
+      "id": 15
+    },
+    {
+      "name": "MUSICLIST 16",
+      "music": 47,
+      "id": 16
+    },
+    {
+      "name": "MUSICLIST 17",
+      "music": 48,
+      "id": 17
+    },
+    {
+      "name": "MUSICLIST 18",
+      "music": 8,
+      "id": 18
+    },
+    {
+      "name": "MUSICLIST 19",
+      "music": 30,
+      "id": 19
+    },
+    {
+      "name": "MUSICLIST 20",
+      "music": 24,
+      "id": 20
+    },
+    {
+      "name": "MUSICLIST 21",
+      "music": 5,
+      "id": 21
+    },
+    {
+      "name": "MUSICLIST 22",
+      "music": 37,
+      "id": 22
+    },
+    {
+      "name": "MUSICLIST 23",
+      "music": 26,
+      "id": 23
+    },
+    {
+      "name": "MUSICLIST 24",
+      "music": 53,
+      "id": 24
+    },
+    {
+      "name": "MUSICLIST 25",
+      "music": 55,
+      "id": 25
+    },
+    {
+      "name": "MUSICLIST 26",
+      "music": 56,
+      "id": 26
+    },
+    {
+      "name": "MUSICLIST 27",
+      "music": 52,
+      "id": 27
+    },
+    {
+      "name": "MUSICLIST 28",
+      "music": 54,
+      "id": 28
+    },
+    {
+      "name": "MUSICLIST 29",
+      "music": 50,
+      "id": 29
+    },
+    {
+      "name": "MUSICLIST COMBAT",
+      "music": 40
+    },
+    {
+      "name": "MUSICLIST DEATH",
+      "music": 42
+    },
+    {
+      "name": "MUSICLIST 255",
+      "music": 27,
+      "id": 255
+    }
+  ],
+  "instalog": {
+    "areas": [
+      {
+        "x1": 1492,
+        "y1": 1602,
+        "x2": 1498,
+        "y2": 1624,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1499,
+        "y1": 1610,
+        "x2": 1506,
+        "y2": 1624,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1576,
+        "y1": 1584,
+        "x2": 1598,
+        "y2": 1598,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1456,
+        "y1": 1512,
+        "x2": 1470,
+        "y2": 1526,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1471,
+        "y1": 1512,
+        "x2": 1478,
+        "y2": 1518,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2712,
+        "y1": 2080,
+        "x2": 2726,
+        "y2": 2094,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2712,
+        "y1": 2096,
+        "x2": 2718,
+        "y2": 2102,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1352,
+        "y1": 3800,
+        "x2": 1366,
+        "y2": 3830,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1367,
+        "y1": 3808,
+        "x2": 1374,
+        "y2": 3822,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4384,
+        "y1": 1152,
+        "x2": 4390,
+        "y2": 1174,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4391,
+        "y1": 1160,
+        "x2": 4399,
+        "y2": 1166,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4400,
+        "y1": 1152,
+        "x2": 4406,
+        "y2": 1166,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3728,
+        "y1": 1192,
+        "x2": 3735,
+        "y2": 1205,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3736,
+        "y1": 1184,
+        "x2": 3750,
+        "y2": 1205,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3664,
+        "y1": 2608,
+        "x2": 3678,
+        "y2": 2622,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1834,
+        "y1": 2728,
+        "x2": 1854,
+        "y2": 2742,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2024,
+        "y1": 2784,
+        "x2": 2038,
+        "y2": 2811,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2952,
+        "y1": 864,
+        "x2": 2966,
+        "y2": 894,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2968,
+        "y1": 872,
+        "x2": 2974,
+        "y2": 886,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2768,
+        "y1": 961,
+        "x2": 2775,
+        "y2": 974,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2777,
+        "y1": 951,
+        "x2": 2790,
+        "y2": 982,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 600,
+        "y1": 808,
+        "x2": 670,
+        "y2": 831,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 624,
+        "y1": 832,
+        "x2": 646,
+        "y2": 854,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1492,
+        "y1": 1602,
+        "x2": 1498,
+        "y2": 1624,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1499,
+        "y1": 1610,
+        "x2": 1506,
+        "y2": 1624,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1576,
+        "y1": 1584,
+        "x2": 1598,
+        "y2": 1598,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1456,
+        "y1": 1512,
+        "x2": 1470,
+        "y2": 1526,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1471,
+        "y1": 1512,
+        "x2": 1478,
+        "y2": 1518,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2712,
+        "y1": 2080,
+        "x2": 2726,
+        "y2": 2094,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2712,
+        "y1": 2096,
+        "x2": 2718,
+        "y2": 2102,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1352,
+        "y1": 3800,
+        "x2": 1366,
+        "y2": 3830,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1367,
+        "y1": 3808,
+        "x2": 1374,
+        "y2": 3822,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4384,
+        "y1": 1152,
+        "x2": 4390,
+        "y2": 1174,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4391,
+        "y1": 1160,
+        "x2": 4399,
+        "y2": 1166,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 4400,
+        "y1": 1152,
+        "x2": 4406,
+        "y2": 1166,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3728,
+        "y1": 1192,
+        "x2": 3735,
+        "y2": 1205,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3736,
+        "y1": 1184,
+        "x2": 3750,
+        "y2": 1205,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 3664,
+        "y1": 2608,
+        "x2": 3678,
+        "y2": 2622,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1834,
+        "y1": 2728,
+        "x2": 1854,
+        "y2": 2742,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2024,
+        "y1": 2784,
+        "x2": 2038,
+        "y2": 2811,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2952,
+        "y1": 864,
+        "x2": 2966,
+        "y2": 894,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2968,
+        "y1": 872,
+        "x2": 2974,
+        "y2": 886,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2768,
+        "y1": 961,
+        "x2": 2775,
+        "y2": 974,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 2777,
+        "y1": 951,
+        "x2": 2790,
+        "y2": 982,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 600,
+        "y1": 808,
+        "x2": 670,
+        "y2": 831,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 624,
+        "y1": 832,
+        "x2": 646,
+        "y2": 854,
+        "mapId": 2,
+        "instanceId": 0
+      },
+      {
+        "x1": 1546,
+        "y1": 1037,
+        "x2": 1566,
+        "y2": 1056,
+        "mapId": 2,
+        "instanceId": 0
+      }
+    ]
+  },
+  "sosAreas": {
+    "areas": [
+      {
+        "x1": 55,
+        "y1": 100,
+        "x2": 290,
+        "y2": 1300,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 55,
+        "y1": 1540,
+        "x2": 305,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 305,
+        "y1": 1730,
+        "x2": 680,
+        "y2": 2035,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1540,
+        "y1": 3595,
+        "x2": 2030,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2205,
+        "y1": 2380,
+        "x2": 3320,
+        "y2": 3315,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2265,
+        "y1": 1330,
+        "x2": 2745,
+        "y2": 1635,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2990,
+        "y1": 1100,
+        "x2": 3400,
+        "y2": 1770,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3540,
+        "y1": 100,
+        "x2": 3840,
+        "y2": 1020,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3840,
+        "y1": 1550,
+        "x2": 4500,
+        "y2": 3050,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 4595,
+        "y1": 1550,
+        "x2": 5030,
+        "y2": 3050,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3100,
+        "y1": 2940,
+        "x2": 4080,
+        "y2": 3660,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2565,
+        "y1": 3660,
+        "x2": 4080,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 55,
+        "y1": 100,
+        "x2": 290,
+        "y2": 1300,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 55,
+        "y1": 1540,
+        "x2": 305,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 305,
+        "y1": 1730,
+        "x2": 680,
+        "y2": 2035,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1540,
+        "y1": 3595,
+        "x2": 2030,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2205,
+        "y1": 2380,
+        "x2": 3320,
+        "y2": 3315,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2265,
+        "y1": 1330,
+        "x2": 2745,
+        "y2": 1635,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2990,
+        "y1": 1100,
+        "x2": 3400,
+        "y2": 1770,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3540,
+        "y1": 100,
+        "x2": 3840,
+        "y2": 1020,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3840,
+        "y1": 1550,
+        "x2": 4500,
+        "y2": 3050,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 4595,
+        "y1": 1550,
+        "x2": 5030,
+        "y2": 3050,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 3100,
+        "y1": 2940,
+        "x2": 4080,
+        "y2": 3660,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 2565,
+        "y1": 3660,
+        "x2": 4080,
+        "y2": 3990,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1287,
+        "y1": 1060,
+        "x2": 1310,
+        "y2": 1160,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1420,
+        "y1": 1052,
+        "x2": 1520,
+        "y2": 1085,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1535,
+        "y1": 385,
+        "x2": 1718,
+        "y2": 486,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1465,
+        "y1": 1590,
+        "x2": 1665,
+        "y2": 1697,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1735,
+        "y1": 1595,
+        "x2": 1805,
+        "y2": 1700,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 15,
+        "y1": 15,
+        "x2": 73,
+        "y2": 1430,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 74,
+        "y1": 15,
+        "x2": 1430,
+        "y2": 130,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1388,
+        "y1": 131,
+        "x2": 1430,
+        "y2": 1430,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 74,
+        "y1": 1380,
+        "x2": 1387,
+        "y2": 1430,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 950,
+        "y1": 1140,
+        "x2": 1387,
+        "y2": 1379,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 1070,
+        "y1": 131,
+        "x2": 1387,
+        "y2": 440,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 74,
+        "y1": 131,
+        "x2": 670,
+        "y2": 265,
+        "mapId": 4,
+        "instanceId": 0
+      },
+      {
+        "x1": 450,
+        "y1": 616,
+        "x2": 765,
+        "y2": 795,
+        "mapId": 4,
+        "instanceId": 0
+      }
+    ],
+    "description": "Original Inn script by Mr_Fixit, Inns Coded by Zippy"
+  }
+}

@@ -2,7 +2,7 @@ namespace Moongate.Core.Types;
 
 public enum DirectoryType
 {
-    Assets,
+    Data,
     Templates,
     Scripts,
     Save,

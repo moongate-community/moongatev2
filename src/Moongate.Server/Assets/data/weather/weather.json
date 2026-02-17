@@ -1,0 +1,275 @@
+{
+  "header": {
+    "title": "UOX3 DFNs",
+    "repository": "https://github.com/UOX3DevTeam/UOX3",
+    "lastUpdate": "1/4/2003",
+    "script": "weatherab.dfn",
+    "description": "Weather definitions for UOX3 regions. Referenced from regions.dfn as ABWEATH=..."
+  },
+  "weatherTypes": [
+    {
+      "id": 0,
+      "rainchance": 0,
+      "rainintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "raintempdrop": 5,
+      "snowchance": 0,
+      "snowintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "snowthreshold": 0,
+      "stormchance": 0,
+      "stormintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 25,
+      "mintemp": 15,
+      "coldchance": 0,
+      "coldintensity": 0,
+      "heatchance": 0,
+      "heatintensity": 0,
+      "name": "No Weather"
+    },
+    {
+      "id": 1,
+      "rainchance": 1,
+      "rainintensity": {
+        "min": 5,
+        "max": 10
+      },
+      "raintempdrop": 5,
+      "snowchance": 0,
+      "snowintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "snowthreshold": 0,
+      "stormchance": 0,
+      "stormintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 30,
+      "mintemp": 10,
+      "coldchance": 0,
+      "coldintensity": 0,
+      "heatchance": 80,
+      "heatintensity": 35,
+      "lightmin": 0,
+      "lightmax": 5,
+      "name": "Desert"
+    },
+    {
+      "id": 2,
+      "rainchance": 80,
+      "rainintensity": {
+        "min": 60,
+        "max": 100
+      },
+      "raintempdrop": 5,
+      "snowchance": 0,
+      "snowintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "snowthreshold": 0,
+      "stormchance": 60,
+      "stormintensity": {
+        "min": 80,
+        "max": 100
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 30,
+      "mintemp": 10,
+      "coldchance": 0,
+      "coldintensity": 0,
+      "heatchance": 80,
+      "heatintensity": 35,
+      "lightmin": 2,
+      "lightmax": 9,
+      "name": "Tropical"
+    },
+    {
+      "id": 3,
+      "rainchance": 20,
+      "rainintensity": {
+        "min": 30,
+        "max": 80
+      },
+      "raintempdrop": 5,
+      "snowchance": 10,
+      "snowintensity": {
+        "min": 40,
+        "max": 90
+      },
+      "snowthreshold": 10,
+      "stormchance": 20,
+      "stormintensity": {
+        "min": 50,
+        "max": 80
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 30,
+      "mintemp": 5,
+      "coldchance": 10,
+      "coldintensity": 2,
+      "heatchance": 10,
+      "heatintensity": 35,
+      "name": "Plains"
+    },
+    {
+      "id": 4,
+      "rainchance": 50,
+      "rainintensity": {
+        "min": 30,
+        "max": 60
+      },
+      "raintempdrop": 5,
+      "snowchance": 30,
+      "snowintensity": {
+        "min": 80,
+        "max": 100
+      },
+      "snowthreshold": 10,
+      "stormchance": 40,
+      "stormintensity": {
+        "min": 50,
+        "max": 60
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 25,
+      "mintemp": 4,
+      "coldchance": 20,
+      "coldintensity": 0,
+      "heatchance": 10,
+      "heatintensity": 30,
+      "lightmin": 0,
+      "lightmax": 6,
+      "name": "Northern Mountain"
+    },
+    {
+      "id": 5,
+      "rainchance": 20,
+      "rainintensity": {
+        "min": 15,
+        "max": 30
+      },
+      "raintempdrop": 5,
+      "snowchance": 10,
+      "snowintensity": {
+        "min": 67,
+        "max": 90
+      },
+      "snowthreshold": 15,
+      "stormchance": 40,
+      "stormintensity": {
+        "min": 43,
+        "max": 60
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 30,
+      "mintemp": 10,
+      "coldchance": 20,
+      "coldintensity": 5,
+      "heatchance": 20,
+      "heatintensity": 35,
+      "lightmin": 0,
+      "lightmax": 6,
+      "name": "Southern Mountain"
+    },
+    {
+      "id": 6,
+      "rainchance": 40,
+      "rainintensity": {
+        "min": 35,
+        "max": 70
+      },
+      "raintempdrop": 5,
+      "snowchance": 5,
+      "snowintensity": {
+        "min": 20,
+        "max": 100
+      },
+      "snowthreshold": 10,
+      "stormchance": 5,
+      "stormintensity": {
+        "min": 5,
+        "max": 30
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 25,
+      "mintemp": 5,
+      "coldchance": 10,
+      "coldintensity": 0,
+      "heatchance": 10,
+      "heatintensity": 30,
+      "name": "British"
+    },
+    {
+      "id": 7,
+      "rainchance": 0,
+      "rainintensity": {
+        "min": 0,
+        "max": 0
+      },
+      "raintempdrop": 0,
+      "snowchance": 90,
+      "snowintensity": {
+        "min": 90,
+        "max": 100
+      },
+      "snowthreshold": 5,
+      "stormchance": 40,
+      "stormintensity": {
+        "min": 43,
+        "max": 60
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 10,
+      "mintemp": 4,
+      "coldchance": 90,
+      "coldintensity": 1,
+      "heatchance": 0,
+      "heatintensity": 0,
+      "lightmin": 0,
+      "lightmax": 5,
+      "name": "Arctic"
+    },
+    {
+      "id": 8,
+      "rainchance": 20,
+      "rainintensity": {
+        "min": 5,
+        "max": 10
+      },
+      "raintempdrop": 5,
+      "snowchance": 5,
+      "snowintensity": {
+        "min": 5,
+        "max": 10
+      },
+      "snowthreshold": 5,
+      "stormchance": 5,
+      "stormintensity": {
+        "min": 4,
+        "max": 6
+      },
+      "stormtempdrop": 10,
+      "maxtemp": 20,
+      "mintemp": 5,
+      "coldchance": 20,
+      "coldintensity": 5,
+      "heatchance": 20,
+      "heatintensity": 35,
+      "lightmin": 4,
+      "lightmax": 10,
+      "name": "Forest"
+    }
+  ]
+}

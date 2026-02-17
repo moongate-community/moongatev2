@@ -1,0 +1,298 @@
+{
+  "professions": [
+    {
+      "name": "Samurai",
+      "trueName": "Samurai",
+      "nameId": 1062948,
+      "descId": 1062950,
+      "desc": 6,
+      "topLevel": true,
+      "gump": 5591,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Bushido",
+          "value": 30
+        },
+        {
+          "name": "Swordsmanship",
+          "value": 30
+        },
+        {
+          "name": "Focus",
+          "value": 30
+        },
+        {
+          "name": "Parrying",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 40
+        },
+        {
+          "type": "Dex",
+          "value": 30
+        },
+        {
+          "type": "Int",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "name": "Ninja",
+      "trueName": "Ninja",
+      "nameId": 1062949,
+      "descId": 1062951,
+      "desc": 7,
+      "topLevel": true,
+      "gump": 5589,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Ninjitsu",
+          "value": 30
+        },
+        {
+          "name": "Hiding",
+          "value": 30
+        },
+        {
+          "name": "Fencing",
+          "value": 30
+        },
+        {
+          "name": "Stealth",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 40
+        },
+        {
+          "type": "Dex",
+          "value": 30
+        },
+        {
+          "type": "Int",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "name": "Paladin",
+      "trueName": "Paladin",
+      "nameId": 1061177,
+      "descId": 1061227,
+      "desc": 5,
+      "topLevel": true,
+      "gump": 5587,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Chivalry",
+          "value": 30
+        },
+        {
+          "name": "Tactics",
+          "value": 30
+        },
+        {
+          "name": "Focus",
+          "value": 30
+        },
+        {
+          "name": "Swordsmanship",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 45
+        },
+        {
+          "type": "Dex",
+          "value": 20
+        },
+        {
+          "type": "Int",
+          "value": 25
+        }
+      ]
+    },
+    {
+      "name": "Necromancer",
+      "trueName": "Necromancer",
+      "nameId": 1061178,
+      "descId": 1061228,
+      "desc": 4,
+      "topLevel": true,
+      "gump": 5557,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Necromancy",
+          "value": 30
+        },
+        {
+          "name": "Spirit Speak",
+          "value": 30
+        },
+        {
+          "name": "Swordsmanship",
+          "value": 30
+        },
+        {
+          "name": "Meditation",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 25
+        },
+        {
+          "type": "Dex",
+          "value": 20
+        },
+        {
+          "type": "Int",
+          "value": 45
+        }
+      ]
+    },
+    {
+      "name": "Warrior",
+      "trueName": "Warrior",
+      "nameId": 1061180,
+      "descId": 1061230,
+      "desc": 1,
+      "topLevel": true,
+      "gump": 5577,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Tactics",
+          "value": 30
+        },
+        {
+          "name": "Healing",
+          "value": 30
+        },
+        {
+          "name": "Swordsmanship",
+          "value": 30
+        },
+        {
+          "name": "Anatomy",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 45
+        },
+        {
+          "type": "Dex",
+          "value": 35
+        },
+        {
+          "type": "Int",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "name": "Mage",
+      "trueName": "Mage",
+      "nameId": 1061179,
+      "descId": 1061229,
+      "desc": 2,
+      "topLevel": true,
+      "gump": 5569,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Magery",
+          "value": 30
+        },
+        {
+          "name": "Meditation",
+          "value": 30
+        },
+        {
+          "name": "Evaluate Intelligence",
+          "value": 30
+        },
+        {
+          "name": "Wrestling",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 25
+        },
+        {
+          "type": "Dex",
+          "value": 20
+        },
+        {
+          "type": "Int",
+          "value": 45
+        }
+      ]
+    },
+    {
+      "name": "Blacksmith",
+      "trueName": "Blacksmith",
+      "nameId": 1061181,
+      "descId": 1061231,
+      "desc": 3,
+      "topLevel": true,
+      "gump": 5555,
+      "type": "Profession",
+      "skills": [
+        {
+          "name": "Blacksmith",
+          "value": 30
+        },
+        {
+          "name": "Tinkering",
+          "value": 30
+        },
+        {
+          "name": "Mining",
+          "value": 30
+        },
+        {
+          "name": "Tailoring",
+          "value": 30
+        }
+      ],
+      "stats": [
+        {
+          "type": "Str",
+          "value": 60
+        },
+        {
+          "type": "Dex",
+          "value": 15
+        },
+        {
+          "type": "Int",
+          "value": 15
+        }
+      ]
+    }
+  ]
+}

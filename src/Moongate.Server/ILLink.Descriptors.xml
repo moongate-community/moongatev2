@@ -27,18 +27,18 @@
         <type fullname="Moongate.UO.*" preserve="all"/>
     </assembly>
 
+    <assembly fullname="Moongate.Scripting">
+        <type fullname="Moongate.Scripting.*" preserve="all"/>
+    </assembly>
+
     <assembly fullname="Moongate.Core.Persistence">
         <type fullname="Moongate.Core.Persistence.*" preserve="all"/>
     </assembly>
 
 
-    <assembly fullname="Jint">
-        <type fullname="Jint.*" preserve="all"/>
-        <type fullname="Jint.Native.*" preserve="all"/>
-        <type fullname="Jint.Runtime.*" preserve="all"/>
-        <type fullname="Jint.Parser.*" preserve="all"/>
-        <type fullname="Jint.Interpreter.*" preserve="all"/>
-        <type fullname="Jint.Engine" preserve="all"/>
+    <assembly fullname="MoonSharp">
+        <type fullname="MoonSharp.Interpreter.*" preserve="all"/>
+        <type fullname="MoonSharp.*" preserve="all"/>
     </assembly>
 
     <assembly fullname="DryIoc">

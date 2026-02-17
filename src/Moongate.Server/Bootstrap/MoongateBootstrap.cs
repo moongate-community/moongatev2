@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DryIoc;
 using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
@@ -6,6 +7,11 @@ using Moongate.Core.Data.Directories;
 using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
 using Moongate.Core.Types;
+using Moongate.Scripting.Data.Config;
+using Moongate.Scripting.Extensions.Scripts;
+using Moongate.Scripting.Interfaces;
+using Moongate.Scripting.Modules;
+using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
@@ -30,12 +36,15 @@ public class MoongateBootstrap
 
         CheckDirectoryConfig();
         CreateLogger();
+        EnsureDataAssets();
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
+        RegisterScriptModules();
         RegisterServices();
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
+        var startTime = Stopwatch.GetTimestamp();
         var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
                                              .OrderBy(s => s.Priority)
                                              .ToList();
@@ -56,6 +65,7 @@ public class MoongateBootstrap
             runningServices.Add(instance);
         }
 
+        _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
         _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
 
         try
@@ -122,6 +132,7 @@ public class MoongateBootstrap
     private void RegisterServices()
     {
         _container.RegisterInstance(_moongateConfig);
+        _container.RegisterInstance(_directoriesConfig);
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
@@ -129,6 +140,27 @@ public class MoongateBootstrap
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);
         _container.RegisterMoongateService<INetworkService, NetworkService>(99);
+        _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(101);
+    }
+
+    private void RegisterScriptModules()
+    {
+        _container.RegisterInstance(
+            new LuaEngineConfig(
+                _directoriesConfig[DirectoryType.Scripts],
+                _directoriesConfig[DirectoryType.Scripts],
+                "0.1.0"
+            )
+        );
+        _container.RegisterScriptModule<LogModule>();
+    }
+
+    private void EnsureDataAssets()
+    {
+        var sourceDataDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "data");
+        var destinationDataDirectory = _directoriesConfig[DirectoryType.Data];
+
+        DataAssetsBootstrapper.EnsureDataAssets(sourceDataDirectory, destinationDataDirectory, _logger);
     }
 
     private async Task StopAsync(IReadOnlyList<IMoongateService> runningServices)
