@@ -115,6 +115,7 @@ public class NetworkService : INetworkService
 
         if (_gameNetworkSessionService.TryGet(e.Client.SessionId, out var session))
         {
+            session.SetState(NetworkSessionState.Disconnecting);
             session.DetachClient();
         }
 
@@ -125,7 +126,8 @@ public class NetworkService : INetworkService
     {
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
-        _gameNetworkSessionService.GetOrCreate(e.Client);
+        var session = _gameNetworkSessionService.GetOrCreate(e.Client);
+        session.SetState(NetworkSessionState.Login);
     }
 
     public async Task StopAsync()

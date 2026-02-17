@@ -1,0 +1,329 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Moongate.Core.Buffers;
+
+namespace Moongate.Core.Extensions.Strings;
+
+/*************************************************************************
+ * ModernUO                                                              *
+ * Copyright 2019-2023 - ModernUO Development Team                       *
+ * Email: hi@modernuo.com                                                *
+ * File: StringHelpers.cs                                                *
+ *                                                                       *
+ * This program is free software: you can redistribute it and/or modify  *
+ * it under the terms of the GNU General Public License as published by  *
+ * the Free Software Foundation, either version 3 of the License, or     *
+ * (at your option) any later version.                                   *
+ *                                                                       *
+ * You should have received a copy of the GNU General Public License     *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ *************************************************************************/
+
+public static class StringHelpers
+{
+    public static void AppendSpaceWithArticle(this ref ValueStringBuilder builder, string text, bool articleAn)
+    {
+        if (builder.Length != 0)
+        {
+            builder.Append(' ');
+        }
+        else
+        {
+            builder.Append(articleAn ? "an " : "a ");
+        }
+
+        builder.Append(text);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string Capitalize(this string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        var chrs = STArrayPool<char>.Shared.Rent(value.Length);
+        var span = chrs.AsSpan(0, value.Length);
+
+        var sliced = value.AsSpan();
+
+        // Copy over the previous span
+        sliced.CopyTo(span);
+
+        var index = 0;
+
+        while (true)
+        {
+            // Special case for titles - words that don't get capitalized
+            if (sliced.InsensitiveStartsWith("the "))
+            {
+                sliced = sliced[4..];
+                index += 4;
+
+                continue;
+            }
+
+            var indexOf = sliced.IndexOf(' ');
+            span[index] = char.ToUpperInvariant(sliced[0]);
+
+            if (indexOf == -1)
+            {
+                break;
+            }
+
+            if (indexOf == sliced.Length - 1)
+            {
+                break;
+            }
+
+            sliced = sliced[(indexOf + 1)..];
+            index += indexOf + 1;
+        }
+
+        var str = span.ToString();
+
+        STArrayPool<char>.Shared.Return(chrs);
+
+        return str;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string DefaultIfNullOrEmpty(this string value, string def)
+        => string.IsNullOrWhiteSpace(value) ? def : value;
+
+    public static string IndentMultiline(this string str, string indent = "\t", string lineSeparator = "\n")
+    {
+        var parts = str.Split(lineSeparator);
+
+        for (var i = 0; i < parts.Length; i++)
+        {
+            parts[i] = $"{indent}{parts[i]}";
+        }
+
+        return string.Join(lineSeparator, parts);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int IndexOfTerminator(this Span<byte> buffer, int sizeT)
+    {
+        var index = sizeT switch
+        {
+            2 => MemoryMarshal.Cast<byte, char>(buffer).IndexOf((char)0),
+            4 => MemoryMarshal.Cast<byte, uint>(buffer).IndexOf((uint)0),
+            _ => buffer.IndexOf((byte)0)
+        };
+
+        return index == -1 ? -1 : index * sizeT;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int IndexOfTerminator(this ReadOnlySpan<byte> buffer, int sizeT)
+    {
+        var index = sizeT switch
+        {
+            2 => MemoryMarshal.Cast<byte, char>(buffer).IndexOf((char)0),
+            4 => MemoryMarshal.Cast<byte, uint>(buffer).IndexOf((uint)0),
+            _ => buffer.IndexOf((byte)0)
+        };
+
+        return index == -1 ? -1 : index * sizeT;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Remove(
+        this ReadOnlySpan<char> a,
+        ReadOnlySpan<char> b,
+        StringComparison comparison,
+        Span<char> buffer,
+        out int size
+    )
+    {
+        size = 0;
+
+        if (a == ReadOnlySpan<char>.Empty || a.Length == 0)
+        {
+            return;
+        }
+
+        var sliced = a;
+
+        while (true)
+        {
+            var indexOf = sliced.IndexOf(b, comparison);
+
+            if (indexOf == -1)
+            {
+                indexOf = sliced.Length;
+            }
+
+            if (size + indexOf > buffer.Length)
+            {
+                throw new OutOfMemoryException(nameof(buffer));
+            }
+
+            sliced[..indexOf].CopyTo(buffer[size..]);
+            size += indexOf;
+
+            if (indexOf == sliced.Length)
+            {
+                break;
+            }
+
+            sliced = sliced[(indexOf + 1)..];
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string Remove(this ReadOnlySpan<char> a, ReadOnlySpan<char> b, StringComparison comparison)
+    {
+        if (a == ReadOnlySpan<char>.Empty)
+        {
+            return null;
+        }
+
+        if (a.Length == 0)
+        {
+            return "";
+        }
+
+        var chrs = STArrayPool<char>.Shared.Rent(a.Length);
+        var span = chrs.AsSpan(0, a.Length);
+
+        a.Remove(b, comparison, span, out var size);
+
+        var str = span[..size].ToString();
+
+        STArrayPool<char>.Shared.Return(chrs);
+
+        return str;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReplaceAny(
+        this Span<char> chars,
+        ReadOnlySpan<char> invalidChars,
+        ReadOnlySpan<char> replacementChars
+    )
+    {
+        while (true)
+        {
+            var indexOf = chars.IndexOfAny(invalidChars);
+
+            if (indexOf == -1)
+            {
+                break;
+            }
+
+            var chr = chars[indexOf];
+
+            chars[indexOf] = replacementChars[invalidChars.IndexOf(chr)];
+            chars = chars[(indexOf + 1)..];
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static char[] ToPooledArray(this string str)
+    {
+        var chars = STArrayPool<char>.Shared.Rent(str.Length);
+        str.CopyTo(chars);
+
+        return chars;
+    }
+
+    public static string TrimMultiline(this string str, string lineSeparator = "\n")
+    {
+        var parts = str.Split(lineSeparator);
+
+        for (var i = 0; i < parts.Length; i++)
+        {
+            parts[i] = parts[i].Trim();
+        }
+
+        return string.Join(lineSeparator, parts);
+    }
+
+    public static List<string> Wrap(this string value, int perLine, int maxLines)
+    {
+        if ((value = value?.Trim() ?? "").Length <= 0)
+        {
+            return null;
+        }
+
+        var span = value.AsSpan();
+        var list = new List<string>(maxLines);
+        var lineLength = 0;
+
+        while (span.Length > 0)
+        {
+            var spaceIndex = span[lineLength..].IndexOf(' ');
+
+            if (spaceIndex == -1)
+            {
+                spaceIndex = span.Length - lineLength; // End of the string
+            }
+
+            var newLineLength = lineLength + spaceIndex;
+
+            // If the previous line is exactly perLine or not too long and we are at the end
+            if (newLineLength == perLine || newLineLength < perLine && newLineLength == span.Length)
+            {
+                list.Add(span[..newLineLength].ToString());
+
+                if (list.Count == maxLines || newLineLength == span.Length)
+                {
+                    break;
+                }
+
+                span = span[(newLineLength + 1)..];
+                lineLength = 0;
+            }
+
+            // We haven't hit perLine and are not sure if we can continue adding more words without going over
+            else if (newLineLength < perLine)
+            {
+                lineLength = newLineLength + 1;
+            }
+
+            // We already tried making the line longer, and it was too long, so fall back to the old line
+            else if (lineLength > 0 && lineLength <= perLine)
+            {
+                list.Add(span[..(lineLength - 1)].ToString());
+
+                if (list.Count == maxLines)
+                {
+                    break;
+                }
+
+                span = span[lineLength..];
+                lineLength = 0;
+            }
+
+            // We have a really long single word with no spaces and have to forcibly break it up.
+            else
+            {
+                lineLength = newLineLength;
+                var index = 0;
+
+                while (index < lineLength)
+                {
+                    lineLength -= perLine;
+
+                    var length = perLine - (span[index] == ' ' ? 1 : 0);
+                    list.Add(span.Slice(index, length).ToString());
+
+                    if (list.Count == maxLines)
+                    {
+                        break;
+                    }
+
+                    index += perLine;
+                }
+
+                span = span[(newLineLength - lineLength)..];
+            }
+        }
+
+        return list;
+    }
+}
