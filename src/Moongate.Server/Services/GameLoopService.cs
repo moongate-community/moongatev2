@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Threading.Channels;
 using Moongate.Abstractions.Services.Base;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
 
@@ -7,15 +9,25 @@ namespace Moongate.Server.Services;
 
 public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposable
 {
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly Channel<GamePacket> _inboundPackets;
+    private readonly ILogger _logger = Log.ForContext<GameLoopService>();
+    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
+
     public long TickCount { get; private set; }
     public TimeSpan Uptime { get; private set; }
     public double AverageTickMs { get; private set; }
 
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-
-    private readonly ILogger _logger = Log.ForContext<GameLoopService>();
-
-    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
+    public GameLoopService()
+    {
+        _inboundPackets = Channel.CreateUnbounded<GamePacket>(
+            new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = false
+            }
+        );
+    }
 
     public async Task StartAsync()
     {
@@ -53,7 +65,18 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         }
     }
 
-    private void ProcessQueue() { }
+    public void EnqueueGamePacket(GamePacket gamePacket)
+    {
+        if (!_inboundPackets.Writer.TryWrite(gamePacket))
+        {
+            _logger.Warning("Failed to enqueue game packet: {GamePacket}", gamePacket);
+        }
+    }
+
+    private void ProcessQueue()
+    {
+
+    }
 
     public void Dispose()
     {

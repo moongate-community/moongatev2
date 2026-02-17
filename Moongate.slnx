@@ -2,6 +2,7 @@
   <Project Path="Moongate.Network/Moongate.Network.csproj" />
   <Project Path="src/Moongate.Abstractions/Moongate.Abstractions.csproj" />
   <Project Path="src/Moongate.Core/Moongate.Core.csproj" />
+  <Project Path="src/Moongate.Network.Packets/Moongate.Network.Packets.csproj" />
   <Project Path="src/Moongate.Server/Moongate.Server.csproj" />
   <Project Path="tests/Moongate.Tests/Moongate.Tests.csproj" />
 </Solution>
