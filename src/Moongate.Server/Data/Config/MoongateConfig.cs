@@ -6,6 +6,8 @@ public class MoongateConfig
 {
     public string RootDirectory { get; set; }
 
+    public string UODirectory { get; set; }
+
     public LogLevelType LogLevel { get; set; }
 
     public bool LogPacketData { get; set; }
