@@ -1,4 +1,4 @@
-namespace DarkLilly.Scripting.Lua.Data.Scripts;
+namespace Moongate.Scripting.Data.Scripts;
 
 /// <summary>
 /// Detailed information about a JavaScript execution error

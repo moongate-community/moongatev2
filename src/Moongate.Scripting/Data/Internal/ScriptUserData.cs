@@ -1,4 +1,4 @@
-namespace DarkLilly.Scripting.Lua.Data.Internal;
+namespace Moongate.Scripting.Data.Internal;
 
 /// <summary>
 /// Represents user data for scripts.

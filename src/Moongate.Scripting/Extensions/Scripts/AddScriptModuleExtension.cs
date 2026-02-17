@@ -1,9 +1,9 @@
-using DarkLilly.Core.Extensions.Container;
-using DarkLilly.Scripting.Lua.Data.Internal;
 using DryIoc;
+using Moongate.Core.Extensions.Container;
+using Moongate.Scripting.Data.Internal;
 using MoonSharp.Interpreter;
 
-namespace DarkLilly.Scripting.Lua.Extensions.Scripts;
+namespace Moongate.Scripting.Extensions.Scripts;
 
 /// <summary>
 /// Extension methods for registering Lua script modules in the dependency injection container.

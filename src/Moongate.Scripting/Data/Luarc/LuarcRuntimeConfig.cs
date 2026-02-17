@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DarkLilly.Scripting.Lua.Data.Luarc;
+namespace Moongate.Scripting.Data.Luarc;
 
 /// <summary>
 /// Runtime configuration for Lua Language Server

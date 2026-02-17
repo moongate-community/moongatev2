@@ -2,7 +2,7 @@ using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Loaders;
 using Serilog;
 
-namespace DarkLilly.Scripting.Lua.Loaders;
+namespace Moongate.Scripting.Loaders;
 
 /// <summary>
 /// Custom script loader for MoonSharp that loads Lua modules from the configured Scripts directory.

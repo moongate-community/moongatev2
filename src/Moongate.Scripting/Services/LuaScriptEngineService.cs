@@ -6,19 +6,19 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using DarkLilly.Core.Data.Directories;
-using DarkLilly.Core.Extensions.Strings;
-using DarkLilly.Core.Json;
-using DarkLilly.Scripting.Lua.Attributes.Scripts;
-using DarkLilly.Scripting.Lua.Context;
-using DarkLilly.Scripting.Lua.Data.Config;
-using DarkLilly.Scripting.Lua.Data.Internal;
-using DarkLilly.Scripting.Lua.Data.Luarc;
-using DarkLilly.Scripting.Lua.Data.Scripts;
-using DarkLilly.Scripting.Lua.Interfaces;
-using DarkLilly.Scripting.Lua.Loaders;
-using DarkLilly.Scripting.Lua.Utils;
 using DryIoc;
+using Moongate.Core.Data.Directories;
+using Moongate.Core.Extensions.Strings;
+using Moongate.Core.Json;
+using Moongate.Scripting.Attributes.Scripts;
+using Moongate.Scripting.Context;
+using Moongate.Scripting.Data.Config;
+using Moongate.Scripting.Data.Internal;
+using Moongate.Scripting.Data.Luarc;
+using Moongate.Scripting.Data.Scripts;
+using Moongate.Scripting.Interfaces;
+using Moongate.Scripting.Loaders;
+using Moongate.Scripting.Utils;
 using MoonSharp.Interpreter;
 using Serilog;
 using SyntaxErrorException = System.Data.SyntaxErrorException;
@@ -26,7 +26,7 @@ using SyntaxErrorException = System.Data.SyntaxErrorException;
 #pragma warning disable IL2026 // RequiresUnreferencedCode - Lua scripting uses reflection for dynamic functionality
 #pragma warning disable IL2072 // DynamicallyAccessedMemberTypes - Reflection access is necessary for scripting
 
-namespace DarkLilly.Scripting.Lua.Services;
+namespace Moongate.Scripting.Services;
 
 /// <summary>
 /// Lua engine service that integrates MoonSharp with the SquidCraft game engine
@@ -85,7 +85,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         List<ScriptUserData> loadedUserData = null
     )
     {
-        JsonUtils.RegisterJsonContext(LillyLuaScriptJsonContext.Default);
+        JsonUtils.RegisterJsonContext(MoongateLuaScriptJsonContext.Default);
 
         ArgumentNullException.ThrowIfNull(directoriesConfig);
         ArgumentNullException.ThrowIfNull(scriptModules);
@@ -627,7 +627,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             await RegisterScriptModulesAsync(CancellationToken.None);
 
             AddConstant("version", "0.0.1");
-            AddConstant("engine", "SquidVox");
+            AddConstant("engine", "Moongate");
             AddConstant("platform", Environment.OSVersion.Platform.ToString());
 
             _ = Task.Run(() => GenerateLuaMetaFileAsync(CancellationToken.None), CancellationToken.None);
@@ -658,6 +658,20 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
 
             throw;
         }
+    }
+
+    public Task StopAsync()
+    {
+        if (_watcher != null)
+        {
+            _watcher.EnableRaisingEvents = false;
+            _watcher.Dispose();
+            _watcher = null;
+        }
+
+        _logger.Information("Lua engine stopped");
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

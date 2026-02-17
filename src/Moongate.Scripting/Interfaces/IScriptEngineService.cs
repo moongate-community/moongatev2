@@ -1,11 +1,12 @@
-using DarkLilly.Scripting.Lua.Data.Scripts;
+using Moongate.Abstractions.Interfaces.Services.Base;
+using Moongate.Scripting.Data.Scripts;
 
-namespace DarkLilly.Scripting.Lua.Interfaces;
+namespace Moongate.Scripting.Interfaces;
 
 /// <summary>
 /// Interface for the script engine service that manages JavaScript execution.
 /// </summary>
-public interface IScriptEngineService
+public interface IScriptEngineService : IMoongateService
 {
     /// <summary>
     /// Delegate for handling script file change events.

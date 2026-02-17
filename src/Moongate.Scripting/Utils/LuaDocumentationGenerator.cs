@@ -3,11 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
-using DarkLilly.Core.Extensions.Strings;
-using DarkLilly.Scripting.Lua.Attributes.Scripts;
-using DarkLilly.Scripting.Lua.Data.Internal;
+using Moongate.Core.Extensions.Strings;
+using Moongate.Scripting.Attributes.Scripts;
+using Moongate.Scripting.Data.Internal;
 
-namespace DarkLilly.Scripting.Lua.Utils;
+namespace Moongate.Scripting.Utils;
 
 /// <summary>
 /// Utility class for generating Lua meta files with EmmyLua/LuaLS annotations

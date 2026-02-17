@@ -10,4 +10,4 @@ namespace Moongate.Scripting.Context;
 /// <summary>
 /// JSON serialization context for Lua scripting configuration types.
 /// </summary>
-public partial class LillyLuaScriptJsonContext : JsonSerializerContext { }
+public partial class MoongateLuaScriptJsonContext : JsonSerializerContext { }

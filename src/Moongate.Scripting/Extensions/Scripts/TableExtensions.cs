@@ -1,8 +1,8 @@
 using System.Reflection;
-using DarkLilly.Scripting.Lua.Proxies;
+using Moongate.Scripting.Proxies;
 using MoonSharp.Interpreter;
 
-namespace DarkLilly.Scripting.Lua.Extensions.Scripts;
+namespace Moongate.Scripting.Extensions.Scripts;
 
 /// <summary>
 /// Provides extension methods for MoonSharp Table objects to enable proxying to interfaces.

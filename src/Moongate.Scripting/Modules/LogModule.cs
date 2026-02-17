@@ -1,7 +1,8 @@
-using DarkLilly.Scripting.Lua.Attributes.Scripts;
+using Moongate.Scripting.Attributes.Scripts;
 using Serilog;
+using Serilog.Events;
 
-namespace DarkLilly.Scripting.Lua.Modules;
+namespace Moongate.Scripting.Modules;
 
 [ScriptModule("log", "Provides logging functionalities to scripts.")]
 public class LogModule
@@ -11,18 +12,29 @@ public class LogModule
     [ScriptFunction(helpText: "Logs a message at the ERROR level.")]
     public void Error(string message, params object[]? args)
     {
-        _logger.Error(message, args);
+        Write(LogEventLevel.Error, message, args);
     }
 
     [ScriptFunction(helpText: "Logs a message at the INFO level.")]
     public void Info(string message, params object[]? args)
     {
-        _logger.Information(message, args);
+        Write(LogEventLevel.Information, message, args);
     }
 
     [ScriptFunction(helpText: "Logs a message at the WARNING level.")]
     public void Warning(string message, params object[]? args)
     {
-        _logger.Warning(message, args);
+        Write(LogEventLevel.Warning, message, args);
+    }
+
+    private void Write(LogEventLevel level, string message, object[]? args)
+    {
+        if (args is { Length: > 0 })
+        {
+            _logger.Write(level, "{LogMessage} | {@LogArgs}", message, args);
+            return;
+        }
+
+        _logger.Write(level, "{LogMessage}", message);
     }
 }

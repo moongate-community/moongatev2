@@ -1,4 +1,4 @@
-namespace DarkLilly.Scripting.Lua.Attributes.Scripts;
+namespace Moongate.Scripting.Attributes.Scripts;
 
 /// <summary>
 /// Attribute to mark a method as a script function that will be exposed to JavaScript.

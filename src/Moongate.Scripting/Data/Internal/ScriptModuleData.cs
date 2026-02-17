@@ -1,4 +1,4 @@
-namespace DarkLilly.Scripting.Lua.Data.Internal;
+namespace Moongate.Scripting.Data.Internal;
 
 /// <summary>
 /// Record containing data about a script module for internal processing.
