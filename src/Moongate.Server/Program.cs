@@ -1,20 +1,27 @@
 ﻿using ConsoleAppFramework;
+using Moongate.Core.Types;
 using Moongate.Core.Utils;
 using Moongate.Server.Bootstrap;
+using Moongate.Server.Data.Config;
 using Serilog;
 
 await ConsoleApp.RunAsync(
     args,
-    async (bool showHeader = true, string  rootDirectory = null, CancellationToken cancellationToken = default) =>
+    async (
+        bool showHeader = true,
+        string rootDirectory = null,
+        LogLevelType loglevel = LogLevelType.Debug,
+        CancellationToken cancellationToken = default
+    ) =>
     {
-        Log.Logger = new LoggerConfiguration()
-                     .MinimumLevel
-                     .Debug()
-                     .WriteTo
-                     .Console()
-                     .CreateLogger();
-
-        var bootstrap = new MoongateBootstrap();
+        var bootstrap = new MoongateBootstrap(
+            new MoongateConfig()
+            {
+                RootDirectory = rootDirectory,
+                LogLevel = loglevel,
+                LogPacketData = true
+            }
+        );
 
         if (showHeader)
         {

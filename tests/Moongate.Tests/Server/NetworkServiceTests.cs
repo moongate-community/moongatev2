@@ -4,6 +4,8 @@ using Moongate.Network.Client;
 using Moongate.Network.Events;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Incoming.Speech;
+using Moongate.Core.Types;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
@@ -29,7 +31,13 @@ public class NetworkServiceTests
         using var service = new NetworkService(
             ingress,
             new PacketDispatchService(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new MoongateConfig
+            {
+                RootDirectory = Path.GetTempPath(),
+                LogLevel = LogLevelType.Debug,
+                LogPacketData = false
+            }
         );
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
@@ -60,7 +68,13 @@ public class NetworkServiceTests
         using var service = new NetworkService(
             ingress,
             new PacketDispatchService(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new MoongateConfig
+            {
+                RootDirectory = Path.GetTempPath(),
+                LogLevel = LogLevelType.Debug,
+                LogPacketData = false
+            }
         );
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 

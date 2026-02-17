@@ -2,12 +2,14 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text;
 using Moongate.Network.Client;
 using Moongate.Network.Events;
 using Moongate.Network.Packets.Data.Packets;
 using Moongate.Network.Packets.Registry;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Server;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Listener;
@@ -19,9 +21,11 @@ namespace Moongate.Server.Services;
 public class NetworkService : INetworkService
 {
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
+    private readonly ILogger _packetDataLogger = Log.ForContext<NetworkService>().ForContext("PacketData", true);
     private readonly IGamePacketIngress _gamePacketIngress;
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
+    private readonly bool _logPacketData;
 
     private readonly ConcurrentDictionary<long, MoongateTCPClient> _connectedClients = new();
 
@@ -35,12 +39,14 @@ public class NetworkService : INetworkService
     public NetworkService(
         IGamePacketIngress gamePacketIngress,
         IPacketDispatchService packetDispatchService,
-        IGameNetworkSessionService gameNetworkSessionService
+        IGameNetworkSessionService gameNetworkSessionService,
+        MoongateConfig moongateConfig
     )
     {
         _gamePacketIngress = gamePacketIngress;
         _packetDispatchService = packetDispatchService;
         _gameNetworkSessionService = gameNetworkSessionService;
+        _logPacketData = moongateConfig.LogPacketData;
         PacketTable.Register(_packetRegistry);
 
         ShowRegisteredPackets();
@@ -195,6 +201,19 @@ public class NetworkService : INetworkService
             pendingBytes.CopyTo(0, rawPacket, 0, expectedLength.Value);
             pendingBytes.RemoveRange(0, expectedLength.Value);
 
+            if (_logPacketData)
+            {
+                _packetDataLogger.Information(
+                    "Inbound packet Session={SessionId} OpCode=0x{OpCode:X2} Name={PacketName} Length={Length}{NewLine}{Dump}",
+                    session.SessionId,
+                    opCode,
+                    descriptor.Description,
+                    rawPacket.Length,
+                    Environment.NewLine,
+                    BuildHexDump(rawPacket)
+                );
+            }
+
             if (!_packetRegistry.TryCreatePacket(opCode, out var packet) || packet is null)
             {
                 continue;
@@ -256,5 +275,56 @@ public class NetworkService : INetworkService
                                               )
                                               .Select(uip => new IPEndPoint(uip.Address, ipep.Port))
                                );
+    }
+
+    private static string BuildHexDump(ReadOnlySpan<byte> data)
+    {
+        if (data.IsEmpty)
+        {
+            return "<empty>";
+        }
+
+        var sb = new StringBuilder((data.Length / 16 + 1) * 80);
+
+        for (var i = 0; i < data.Length; i += 16)
+        {
+            var lineLength = Math.Min(16, data.Length - i);
+            sb.Append(i.ToString("X4"));
+            sb.Append("  ");
+
+            for (var j = 0; j < 16; j++)
+            {
+                if (j < lineLength)
+                {
+                    sb.Append(data[i + j].ToString("X2"));
+                }
+                else
+                {
+                    sb.Append("  ");
+                }
+
+                if (j != 15)
+                {
+                    sb.Append(' ');
+                }
+            }
+
+            sb.Append("  |");
+
+            for (var j = 0; j < lineLength; j++)
+            {
+                var b = data[i + j];
+                sb.Append(b is >= 32 and <= 126 ? (char)b : '.');
+            }
+
+            sb.Append('|');
+
+            if (i + lineLength < data.Length)
+            {
+                sb.AppendLine();
+            }
+        }
+
+        return sb.ToString();
     }
 }

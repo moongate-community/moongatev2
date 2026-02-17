@@ -2,9 +2,14 @@ using DryIoc;
 using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
 using Moongate.Abstractions.Interfaces.Services.Base;
+using Moongate.Core.Data.Directories;
+using Moongate.Core.Extensions.Logger;
+using Moongate.Core.Types;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
 using Serilog;
+using Serilog.Filters;
 
 namespace Moongate.Server.Bootstrap;
 
@@ -12,15 +17,71 @@ public class MoongateBootstrap
 {
     private readonly Container _container = new();
 
-    private readonly ILogger _logger = Log.ForContext<MoongateBootstrap>();
+    private ILogger _logger;
 
-    public MoongateBootstrap()
+    private DirectoriesConfig _directoriesConfig;
+
+    private readonly MoongateConfig _moongateConfig;
+
+    public MoongateBootstrap(MoongateConfig config)
     {
+        _moongateConfig = config;
+
+        CheckDirectoryConfig();
+        CreateLogger();
         RegisterServices();
+    }
+
+    private void CheckDirectoryConfig()
+    {
+        if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
+        {
+            _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
+                                            Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+        }
+
+        _directoriesConfig = new DirectoriesConfig(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
+    }
+
+    private void CreateLogger()
+    {
+        var appLogPath = Path.Combine(_directoriesConfig[DirectoryType.Logs], "moongate-.log");
+        var packetLogPath = Path.Combine(_directoriesConfig[DirectoryType.Logs], "packets-.log");
+        var configuration = new LoggerConfiguration()
+                            .MinimumLevel
+                            .Is(_moongateConfig.LogLevel.ToSerilogLogLevel())
+                            .WriteTo
+                            .Console()
+                            .WriteTo
+                            .File(
+                                appLogPath,
+                                rollingInterval: RollingInterval.Day
+                            );
+
+        if (_moongateConfig.LogPacketData)
+        {
+            configuration = configuration.WriteTo.Logger(
+                loggerConfiguration =>
+                    loggerConfiguration
+                        .Filter
+                        .ByIncludingOnly(Matching.WithProperty("PacketData"))
+                        .WriteTo
+                        .File(
+                            packetLogPath,
+                            rollingInterval: RollingInterval.Day,
+                            outputTemplate:
+                            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
+                        )
+            );
+        }
+
+        Log.Logger = configuration.CreateLogger();
+        _logger = Log.ForContext<MoongateBootstrap>();
     }
 
     private void RegisterServices()
     {
+        _container.RegisterInstance(_moongateConfig);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);
