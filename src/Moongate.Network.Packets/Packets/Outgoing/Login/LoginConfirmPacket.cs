@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Outgoing.Login;
 
-[PacketHandler(0x1B, PacketSizing.Fixed, Length = 37)]
+[PacketHandler(0x1B, PacketSizing.Fixed, Length = 37, Description = "Char Locale and Body")]
 public class LoginConfirmPacket : BaseGameNetworkPacket
 {
     public LoginConfirmPacket()

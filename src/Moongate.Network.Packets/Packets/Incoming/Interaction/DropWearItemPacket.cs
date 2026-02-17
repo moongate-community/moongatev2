@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x13, PacketSizing.Fixed, Length = 10)]
+[PacketHandler(0x13, PacketSizing.Fixed, Length = 10, Description = "Drop->Wear Item")]
 public class DropWearItemPacket : BaseGameNetworkPacket
 {
     public DropWearItemPacket()

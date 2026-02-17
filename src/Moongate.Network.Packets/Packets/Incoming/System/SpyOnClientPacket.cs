@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xD9, PacketSizing.Variable)]
+[PacketHandler(0xD9, PacketSizing.Variable, Description = "Spy On Client")]
 public class SpyOnClientPacket : BaseGameNetworkPacket
 {
     public SpyOnClientPacket()

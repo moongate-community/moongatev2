@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Speech;
 
-[PacketHandler(0xB3, PacketSizing.Variable)]
+[PacketHandler(0xB3, PacketSizing.Variable, Description = "Chat Text")]
 public class ChatTextPacket : BaseGameNetworkPacket
 {
     public ChatTextPacket()

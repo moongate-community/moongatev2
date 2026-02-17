@@ -18,13 +18,15 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
         public byte OpCode { get; }
         public bool IsFixed { get; }
         public int Length { get; }
+        public string? Description { get; }
 
-        public PacketModel(string typeName, byte opCode, bool isFixed, int length)
+        public PacketModel(string typeName, byte opCode, bool isFixed, int length, string? description)
         {
             TypeName = typeName;
             OpCode = opCode;
             IsFixed = isFixed;
             Length = length;
+            Description = description;
         }
     }
 
@@ -82,6 +84,12 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
                 sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
                 sb.Append(", ");
                 sb.Append(model.Length.ToString(CultureInfo.InvariantCulture));
+                if (!string.IsNullOrWhiteSpace(model.Description))
+                {
+                    sb.Append(", \"");
+                    sb.Append(EscapeStringLiteral(model.Description));
+                    sb.Append('"');
+                }
                 sb.AppendLine(");");
             }
             else
@@ -90,6 +98,12 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
                 sb.Append(model.TypeName);
                 sb.Append(">(0x");
                 sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
+                if (!string.IsNullOrWhiteSpace(model.Description))
+                {
+                    sb.Append(", \"");
+                    sb.Append(EscapeStringLiteral(model.Description));
+                    sb.Append('"');
+                }
                 sb.AppendLine(");");
             }
         }
@@ -130,14 +144,18 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
         var sizingValue = Convert.ToInt32(sizingRaw.Value, CultureInfo.InvariantCulture);
         var isFixed = sizingValue == 0;
         var length = -1;
+        string? description = null;
 
         foreach (var pair in attribute.NamedArguments)
         {
             if (pair.Key == "Length" && pair.Value.Value is int namedLength)
             {
                 length = namedLength;
+            }
 
-                break;
+            if (pair.Key == "Description" && pair.Value.Value is string namedDescription)
+            {
+                description = namedDescription;
             }
         }
 
@@ -149,6 +167,13 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
             fullTypeName = fullTypeName.Substring("global::".Length);
         }
 
-        return new(fullTypeName, opCode, isFixed, length);
+        return new(fullTypeName, opCode, isFixed, length, description);
+    }
+
+    private static string EscapeStringLiteral(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal);
     }
 }

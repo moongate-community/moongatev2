@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x06, PacketSizing.Fixed, Length = 5)]
+[PacketHandler(0x06, PacketSizing.Fixed, Length = 5, Description = "Double Click")]
 public class DoubleClickPacket : BaseGameNetworkPacket
 {
     public DoubleClickPacket()

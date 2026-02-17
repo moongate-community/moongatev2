@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xBE, PacketSizing.Variable)]
+[PacketHandler(0xBE, PacketSizing.Variable, Description = "Assist Version")]
 public class AssistVersionPacket : BaseGameNetworkPacket
 {
     public AssistVersionPacket()

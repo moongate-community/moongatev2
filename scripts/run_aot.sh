@@ -1,7 +1,6 @@
 #!/bin/bash
 
 RELEASE="Debug"
-IS_AOT=true
 # Detect OS and architecture
 UNAME_OS="$(uname -s)"
 UNAME_ARCH="$(uname -m)"
@@ -28,6 +27,8 @@ MINGW* | MSYS* | CYGWIN*) RID="win-$ARCH" ;;
 esac
 
 # Build and run
-dotnet publish -r "$RID" -o dist -p:PublishAot=$IS_AOT -c $RELEASE src/Moongate.Server &&
+# Do not pass PublishAot globally from CLI: it propagates to analyzer projects
+# (e.g. netstandard source generators) and can fail with NETSDK1207.
+dotnet publish -r "$RID" -o dist -c "$RELEASE" src/Moongate.Server/Moongate.Server.csproj &&
   ./dist/Moongate.Server "$@" &&
   rm -rf dist

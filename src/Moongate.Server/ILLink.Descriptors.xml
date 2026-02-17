@@ -1,0 +1,50 @@
+<linker>
+    <assembly fullname="Moongate.Server">
+        <type fullname="Moongate.Server.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Core.Server">
+        <type fullname="Moongate.Core.Server.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Core">
+        <type fullname="Moongate.Core.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Network.Packets">
+        <type fullname="Moongate.Network.Packets.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Core.Network">
+        <type fullname="Moongate.Core.Network.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.UO.Data">
+        <type fullname="Moongate.UO.Data.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.UO">
+        <type fullname="Moongate.UO.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Core.Persistence">
+        <type fullname="Moongate.Core.Persistence.*" preserve="all"/>
+    </assembly>
+
+
+    <assembly fullname="Jint">
+        <type fullname="Jint.*" preserve="all"/>
+        <type fullname="Jint.Native.*" preserve="all"/>
+        <type fullname="Jint.Runtime.*" preserve="all"/>
+        <type fullname="Jint.Parser.*" preserve="all"/>
+        <type fullname="Jint.Interpreter.*" preserve="all"/>
+        <type fullname="Jint.Engine" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="DryIoc">
+        <type fullname="DryIoc.ReflectionTools">
+            <method name="GetDefault"/>
+        </type>
+    </assembly>
+
+</linker>

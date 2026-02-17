@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Login;
 
-[PacketHandler(0x83, PacketSizing.Fixed, Length = 39)]
+[PacketHandler(0x83, PacketSizing.Fixed, Length = 39, Description = "Delete Character")]
 public class DeleteCharacterPacket : BaseGameNetworkPacket
 {
     public DeleteCharacterPacket()

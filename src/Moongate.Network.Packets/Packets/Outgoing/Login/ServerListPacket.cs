@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Outgoing.Login;
 
-[PacketHandler(0xA8, PacketSizing.Variable)]
+[PacketHandler(0xA8, PacketSizing.Variable, Description = "Game Server List")]
 public class ServerListPacket : BaseGameNetworkPacket
 {
     public ServerListPacket()

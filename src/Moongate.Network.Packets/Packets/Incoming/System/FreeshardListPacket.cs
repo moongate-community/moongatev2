@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xF1, PacketSizing.Variable)]
+[PacketHandler(0xF1, PacketSizing.Variable, Description = "Freeshard List")]
 public class FreeshardListPacket : BaseGameNetworkPacket
 {
     public FreeshardListPacket()

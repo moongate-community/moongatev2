@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.UI;
 
-[PacketHandler(0x9A, PacketSizing.Variable)]
+[PacketHandler(0x9A, PacketSizing.Variable, Description = "Console Entry Prompt")]
 public class ConsoleEntryPromptPacket : BaseGameNetworkPacket
 {
     public ConsoleEntryPromptPacket()

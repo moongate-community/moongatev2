@@ -31,6 +31,7 @@ public class PacketRegistryTests
 
                 Assert.That(registry.TryGetDescriptor(0x08, out var dropDescriptor), Is.True);
                 Assert.That(dropDescriptor.Length, Is.EqualTo(14));
+                Assert.That(dropDescriptor.Description, Is.EqualTo("Drop Item"));
 
                 Assert.That(registry.TryCreatePacket(0xFB, out var packetFb), Is.True);
                 Assert.That(packetFb, Is.TypeOf<UpdateViewPublicHouseContentsPacket>());
@@ -42,7 +43,7 @@ public class PacketRegistryTests
     public void Register_WhenOpcodeAlreadyRegistered_ShouldThrow()
     {
         var registry = new PacketRegistry();
-        registry.RegisterFixed<MoveRequestPacket>(0x02, 7);
+        registry.RegisterFixed<MoveRequestPacket>(0x02, 7, "Move Request");
 
         Assert.That(() => registry.RegisterFixed<DoubleClickPacket>(0x02, 5), Throws.TypeOf<InvalidOperationException>());
     }
@@ -52,7 +53,7 @@ public class PacketRegistryTests
     {
         var registry = new PacketRegistry();
 
-        registry.RegisterFixed<MoveRequestPacket>(0x02, 7);
+        registry.RegisterFixed<MoveRequestPacket>(0x02, 7, "Move Request");
 
         var hasDescriptor = registry.TryGetDescriptor(0x02, out var descriptor);
         var hasPacket = registry.TryCreatePacket(0x02, out var packet);
@@ -61,6 +62,7 @@ public class PacketRegistryTests
         Assert.That(descriptor.OpCode, Is.EqualTo(0x02));
         Assert.That(descriptor.Sizing, Is.EqualTo(PacketSizing.Fixed));
         Assert.That(descriptor.Length, Is.EqualTo(7));
+        Assert.That(descriptor.Description, Is.EqualTo("Move Request"));
         Assert.That(descriptor.HandlerType, Is.EqualTo(typeof(MoveRequestPacket)));
         Assert.That(hasPacket, Is.True);
         Assert.That(packet, Is.TypeOf<MoveRequestPacket>());
@@ -84,13 +86,14 @@ public class PacketRegistryTests
     {
         var registry = new PacketRegistry();
 
-        registry.RegisterVariable<UnicodeSpeechPacket>(0xAD);
+        registry.RegisterVariable<UnicodeSpeechPacket>(0xAD, "Unicode/Ascii speech request");
 
         var hasDescriptor = registry.TryGetDescriptor(0xAD, out var descriptor);
 
         Assert.That(hasDescriptor, Is.True);
         Assert.That(descriptor.Sizing, Is.EqualTo(PacketSizing.Variable));
         Assert.That(descriptor.Length, Is.EqualTo(-1));
+        Assert.That(descriptor.Description, Is.EqualTo("Unicode/Ascii speech request"));
     }
 
     [Test]

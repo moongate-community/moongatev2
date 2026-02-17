@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0x12, PacketSizing.Variable)]
+[PacketHandler(0x12, PacketSizing.Variable, Description = "Request Skill etc use")]
 public class RequestSkillUsePacket : BaseGameNetworkPacket
 {
     public RequestSkillUsePacket()

@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Login;
 
-[PacketHandler(0xA0, PacketSizing.Fixed, Length = 3)]
+[PacketHandler(0xA0, PacketSizing.Fixed, Length = 3, Description = "Select Server")]
 public class ServerSelectPacket : BaseGameNetworkPacket
 {
     public ServerSelectPacket()

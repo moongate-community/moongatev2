@@ -11,10 +11,7 @@ await ConsoleApp.RunAsync(
                      .MinimumLevel
                      .Verbose()
                      .WriteTo
-                     .Console(
-                         outputTemplate:
-                         "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} - {Message:lj}{NewLine}{Exception}"
-                     )
+                     .Console()
                      .CreateLogger();
 
         var bootstrap = new MoongateBootstrap();

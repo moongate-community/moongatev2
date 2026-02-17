@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Movement;
 
-[PacketHandler(0x02, PacketSizing.Fixed, Length = 7)]
+[PacketHandler(0x02, PacketSizing.Fixed, Length = 7, Description = "Move Request")]
 public class MoveRequestPacket : BaseGameNetworkPacket
 {
     public MoveRequestPacket()

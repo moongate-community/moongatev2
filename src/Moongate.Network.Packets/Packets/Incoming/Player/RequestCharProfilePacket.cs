@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0xB8, PacketSizing.Variable)]
+[PacketHandler(0xB8, PacketSizing.Variable, Description = "Request/Char Profile")]
 public class RequestCharProfilePacket : BaseGameNetworkPacket
 {
     public RequestCharProfilePacket()

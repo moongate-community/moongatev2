@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Outgoing.Entity;
 
-[PacketHandler(0x78, PacketSizing.Variable)]
+[PacketHandler(0x78, PacketSizing.Variable, Description = "Draw Object")]
 public class MobileIncomingPacket : BaseGameNetworkPacket
 {
     public MobileIncomingPacket()

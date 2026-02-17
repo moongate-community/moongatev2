@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0xEC, PacketSizing.Variable)]
+[PacketHandler(0xEC, PacketSizing.Variable, Description = "Equip Macro (KR)")]
 public class EquipMacroPacket : BaseGameNetworkPacket
 {
     public EquipMacroPacket()

@@ -1,10 +1,10 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.NetworkInformation;
 using Moongate.Network.Client;
 using Moongate.Network.Events;
 using Moongate.Network.Packets.Data.Packets;
-using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Registry;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Server;
@@ -56,27 +56,31 @@ public class NetworkService : INetworkService
         foreach (var packet in _packetRegistry.RegisteredPackets)
         {
             _logger.Debug(
-                " - OpCode: 0x{OpCode:X2}, Type: {PacketType}, Sizing: {PacketSizing}, Length: {Length}",
+                " - OpCode: 0x{OpCode:X2}, Type: {PacketType}, Sizing: {PacketSizing}, Length: {Length}, Description: {Description}",
                 packet.OpCode,
                 packet.HandlerType.Name,
                 packet.Sizing,
-                packet.Length
+                packet.Length,
+                packet.Description
             );
         }
     }
 
     public async Task StartAsync()
     {
-        var moongateTcpServer = new MoongateTCPServer(new IPEndPoint(IPAddress.Any, 2593));
+        foreach (var ipEndpoint in GetListeningAddresses(new IPEndPoint(IPAddress.Any, 2593)))
+        {
+            var moongateTcpServer = new MoongateTCPServer(new IPEndPoint(ipEndpoint.Address, 2593));
 
-        moongateTcpServer.OnClientConnect += OnClientConnected;
-        moongateTcpServer.OnClientDisconnect += OnClientDisconnected;
-        moongateTcpServer.OnDataReceived += OnClientData;
-        moongateTcpServer.OnException += OnClientException;
+            moongateTcpServer.OnClientConnect += OnClientConnected;
+            moongateTcpServer.OnClientDisconnect += OnClientDisconnected;
+            moongateTcpServer.OnDataReceived += OnClientData;
+            moongateTcpServer.OnException += OnClientException;
 
-        _tcpServers.Add(moongateTcpServer);
+            _tcpServers.Add(moongateTcpServer);
 
-        await moongateTcpServer.StartAsync(CancellationToken.None);
+            await moongateTcpServer.StartAsync(CancellationToken.None);
+        }
     }
 
     private void OnClientException(object? sender, MoongateTCPExceptionEventArgs e)
@@ -94,10 +98,11 @@ public class NetworkService : INetworkService
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
         session.WithPendingBytesLock(
             pendingBytes =>
-        {
-            pendingBytes.AddRange(e.Data.Span.ToArray());
-            ParseAvailablePackets(pendingBytes, session);
-        });
+            {
+                pendingBytes.AddRange(e.Data.Span.ToArray());
+                ParseAvailablePackets(pendingBytes, session);
+            }
+        );
     }
 
     private void OnClientDisconnected(object? sender, MoongateTCPClientEventArgs e)
@@ -129,9 +134,7 @@ public class NetworkService : INetworkService
         _connectedClients.Clear();
         _gameNetworkSessionService.Clear();
 
-        while (_parsedPackets.TryDequeue(out _))
-        {
-        }
+        while (_parsedPackets.TryDequeue(out _)) { }
     }
 
     public void Dispose()
@@ -240,4 +243,18 @@ public class NetworkService : INetworkService
         return BinaryPrimitives.ReadUInt16BigEndian(lengthBuffer);
     }
 
+    public static IEnumerable<IPEndPoint> GetListeningAddresses(IPEndPoint ipep)
+    {
+        return NetworkInterface.GetAllNetworkInterfaces()
+                               .SelectMany(
+                                   adapter =>
+                                       adapter.GetIPProperties()
+                                              .UnicastAddresses
+                                              .Where(
+                                                  uip => ipep.AddressFamily ==
+                                                         uip.Address.AddressFamily
+                                              )
+                                              .Select(uip => new IPEndPoint(uip.Address, ipep.Port))
+                               );
+    }
 }

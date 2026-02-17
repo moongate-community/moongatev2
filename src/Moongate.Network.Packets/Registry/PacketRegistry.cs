@@ -10,13 +10,15 @@ public class PacketRegistry
 {
     private readonly Dictionary<byte, PacketRegistration> _registrations = [];
 
-    public IReadOnlyList<PacketDescriptor> RegisteredPackets =>
-        _registrations.Values
-                      .Select(static registration => registration.Descriptor)
-                      .OrderBy(static descriptor => descriptor.OpCode)
-                      .ToArray();
+    public IReadOnlyList<PacketDescriptor> RegisteredPackets
+        =>
+        [
+            .. _registrations.Values
+                             .Select(static registration => registration.Descriptor)
+                             .OrderBy(static descriptor => descriptor.OpCode)
+        ];
 
-    public void RegisterFixed<TPacket>(byte opcode, int length)
+    public void RegisterFixed<TPacket>(byte opcode, int length, string? description = null)
         where TPacket : IGameNetworkPacket, new()
     {
         if (length <= 0)
@@ -24,7 +26,7 @@ public class PacketRegistry
             throw new ArgumentOutOfRangeException(nameof(length), "Fixed packet length must be greater than zero.");
         }
 
-        Register<TPacket>(opcode, PacketSizing.Fixed, length);
+        Register<TPacket>(opcode, PacketSizing.Fixed, length, description);
     }
 
     public void RegisterFromAttribute<TPacket>()
@@ -41,17 +43,17 @@ public class PacketRegistry
 
         if (attribute.Sizing == PacketSizing.Fixed)
         {
-            RegisterFixed<TPacket>(attribute.OpCode, attribute.Length);
+            RegisterFixed<TPacket>(attribute.OpCode, attribute.Length, attribute.Description);
 
             return;
         }
 
-        RegisterVariable<TPacket>(attribute.OpCode);
+        RegisterVariable<TPacket>(attribute.OpCode, attribute.Description);
     }
 
-    public void RegisterVariable<TPacket>(byte opcode)
+    public void RegisterVariable<TPacket>(byte opcode, string? description = null)
         where TPacket : IGameNetworkPacket, new()
-        => Register<TPacket>(opcode, PacketSizing.Variable, -1);
+        => Register<TPacket>(opcode, PacketSizing.Variable, -1, description);
 
     public bool TryCreatePacket(byte opcode, out IGameNetworkPacket? packet)
     {
@@ -81,7 +83,7 @@ public class PacketRegistry
         return false;
     }
 
-    private void Register<TPacket>(byte opcode, PacketSizing sizing, int length)
+    private void Register<TPacket>(byte opcode, PacketSizing sizing, int length, string? description)
         where TPacket : IGameNetworkPacket, new()
     {
         if (_registrations.ContainsKey(opcode))
@@ -89,8 +91,21 @@ public class PacketRegistry
             throw new InvalidOperationException($"Packet opcode 0x{opcode:X2} is already registered.");
         }
 
-        var descriptor = new PacketDescriptor(opcode, sizing, length, typeof(TPacket));
+        var resolvedDescription = ResolveDescription(opcode, typeof(TPacket), description);
+        var descriptor = new PacketDescriptor(opcode, sizing, length, resolvedDescription, typeof(TPacket));
         var registration = new PacketRegistration(descriptor, static () => new TPacket());
         _registrations.Add(opcode, registration);
+    }
+
+    private static string ResolveDescription(byte opcode, Type packetType, string? explicitDescription)
+    {
+        _ = opcode;
+
+        if (!string.IsNullOrWhiteSpace(explicitDescription))
+        {
+            return explicitDescription;
+        }
+
+        return packetType.Name.Replace("Packet", string.Empty, StringComparison.Ordinal);
     }
 }

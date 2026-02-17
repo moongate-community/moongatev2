@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Targeting;
 
-[PacketHandler(0x6C, PacketSizing.Fixed, Length = 19)]
+[PacketHandler(0x6C, PacketSizing.Fixed, Length = 19, Description = "Target Cursor Commands")]
 public class TargetCursorCommandsPacket : BaseGameNetworkPacket
 {
     public TargetCursorCommandsPacket()

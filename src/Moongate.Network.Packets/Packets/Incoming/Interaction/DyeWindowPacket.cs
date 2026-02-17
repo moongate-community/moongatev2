@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x95, PacketSizing.Fixed, Length = 9)]
+[PacketHandler(0x95, PacketSizing.Fixed, Length = 9, Description = "Dye Window")]
 public class DyeWindowPacket : BaseGameNetworkPacket
 {
     public DyeWindowPacket()

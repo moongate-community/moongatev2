@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0xD1, PacketSizing.Fixed, Length = 2)]
+[PacketHandler(0xD1, PacketSizing.Fixed, Length = 2, Description = "Logout Status")]
 public class LogoutStatusPacket : BaseGameNetworkPacket
 {
     public LogoutStatusPacket()

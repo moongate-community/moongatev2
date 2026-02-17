@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Books;
 
-[PacketHandler(0x93, PacketSizing.Fixed, Length = 99)]
+[PacketHandler(0x93, PacketSizing.Fixed, Length = 99, Description = "Book Header ( Old )")]
 public class BookHeaderOldPacket : BaseGameNetworkPacket
 {
     public BookHeaderOldPacket()

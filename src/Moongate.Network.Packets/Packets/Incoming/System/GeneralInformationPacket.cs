@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xBF, PacketSizing.Variable)]
+[PacketHandler(0xBF, PacketSizing.Variable, Description = "General Information Packet")]
 public class GeneralInformationPacket : BaseGameNetworkPacket
 {
     public GeneralInformationPacket()

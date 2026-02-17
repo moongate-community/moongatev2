@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0xDA, PacketSizing.Variable)]
+[PacketHandler(0xDA, PacketSizing.Variable, Description = "Mahjong")]
 public class MahjongPacket : BaseGameNetworkPacket
 {
     public MahjongPacket()

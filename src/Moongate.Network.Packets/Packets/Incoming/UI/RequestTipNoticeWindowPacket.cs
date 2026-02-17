@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.UI;
 
-[PacketHandler(0xA7, PacketSizing.Fixed, Length = 4)]
+[PacketHandler(0xA7, PacketSizing.Fixed, Length = 4, Description = "Request Tip/Notice Window")]
 public class RequestTipNoticeWindowPacket : BaseGameNetworkPacket
 {
     public RequestTipNoticeWindowPacket()

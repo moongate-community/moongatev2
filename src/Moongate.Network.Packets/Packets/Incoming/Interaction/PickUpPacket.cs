@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x07, PacketSizing.Fixed, Length = 7)]
+[PacketHandler(0x07, PacketSizing.Fixed, Length = 7, Description = "Pick Up Item")]
 public class PickUpPacket : BaseGameNetworkPacket
 {
     public PickUpPacket()

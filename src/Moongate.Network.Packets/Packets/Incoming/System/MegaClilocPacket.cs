@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xD6, PacketSizing.Variable)]
+[PacketHandler(0xD6, PacketSizing.Variable, Description = "Mega Cliloc")]
 public class MegaClilocPacket : BaseGameNetworkPacket
 {
     public MegaClilocPacket()

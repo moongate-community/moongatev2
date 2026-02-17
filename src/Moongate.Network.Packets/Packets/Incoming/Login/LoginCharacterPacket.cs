@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Login;
 
-[PacketHandler(0x5D, PacketSizing.Fixed, Length = 73)]
+[PacketHandler(0x5D, PacketSizing.Fixed, Length = 73, Description = "Login Character")]
 public class LoginCharacterPacket : BaseGameNetworkPacket
 {
     public LoginCharacterPacket()

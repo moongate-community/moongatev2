@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Speech;
 
-[PacketHandler(0xAD, PacketSizing.Variable)]
+[PacketHandler(0xAD, PacketSizing.Variable, Description = "Unicode/Ascii speech request")]
 public class UnicodeSpeechPacket : BaseGameNetworkPacket
 {
     public UnicodeSpeechPacket()

@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
-[PacketHandler(0xD7, PacketSizing.Variable)]
+[PacketHandler(0xD7, PacketSizing.Variable, Description = "Generic AOS Commands")]
 public class GenericAosCommandsPacket : BaseGameNetworkPacket
 {
     public GenericAosCommandsPacket()

@@ -20,6 +20,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <None Remove="Resources\**\*.*"/>
         <EmbeddedResource Include="Resources\**\*.*"/>
     </ItemGroup>

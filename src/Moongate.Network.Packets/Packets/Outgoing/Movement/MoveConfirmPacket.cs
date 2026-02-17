@@ -5,7 +5,7 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Outgoing.Movement;
 
-[PacketHandler(0x22, PacketSizing.Fixed, Length = 3)]
+[PacketHandler(0x22, PacketSizing.Fixed, Length = 3, Description = "Character Move ACK/ Resync Request")]
 public class MoveConfirmPacket : BaseGameNetworkPacket
 {
     public MoveConfirmPacket()
