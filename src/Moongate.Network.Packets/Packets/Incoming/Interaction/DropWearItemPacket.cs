@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x13, PacketSizing.Variable)]
+[PacketHandler(0x13, PacketSizing.Fixed, Length = 10)]
 public class DropWearItemPacket : BaseGameNetworkPacket
 {
     public DropWearItemPacket()
-        : base(0x13, -1) { }
+        : base(0x13, 10) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

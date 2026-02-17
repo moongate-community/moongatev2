@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.UI;
 
-[PacketHandler(0x2C, PacketSizing.Variable)]
+[PacketHandler(0x2C, PacketSizing.Fixed, Length = 2)]
 public class ResurrectionMenuPacket : BaseGameNetworkPacket
 {
     public ResurrectionMenuPacket()
-        : base(0x2C, -1) { }
+        : base(0x2C, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

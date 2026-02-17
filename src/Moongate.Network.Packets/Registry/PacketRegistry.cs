@@ -10,6 +10,12 @@ public class PacketRegistry
 {
     private readonly Dictionary<byte, PacketRegistration> _registrations = [];
 
+    public IReadOnlyList<PacketDescriptor> RegisteredPackets =>
+        _registrations.Values
+                      .Select(static registration => registration.Descriptor)
+                      .OrderBy(static descriptor => descriptor.OpCode)
+                      .ToArray();
+
     public void RegisterFixed<TPacket>(byte opcode, int length)
         where TPacket : IGameNetworkPacket, new()
     {

@@ -92,4 +92,20 @@ public class PacketRegistryTests
         Assert.That(descriptor.Sizing, Is.EqualTo(PacketSizing.Variable));
         Assert.That(descriptor.Length, Is.EqualTo(-1));
     }
+
+    [Test]
+    public void RegisteredPackets_ShouldReturnAllDescriptorsOrderedByOpcode()
+    {
+        var registry = new PacketRegistry();
+        registry.RegisterVariable<UnicodeSpeechPacket>(0xAD);
+        registry.RegisterFixed<MoveRequestPacket>(0x02, 7);
+        registry.RegisterFixed<DoubleClickPacket>(0x06, 5);
+
+        var packets = registry.RegisteredPackets;
+
+        Assert.That(packets.Count, Is.EqualTo(3));
+        Assert.That(packets.Select(static p => p.OpCode), Is.EqualTo(new byte[] { 0x02, 0x06, 0xAD }));
+        Assert.That(packets[0].HandlerType, Is.EqualTo(typeof(MoveRequestPacket)));
+        Assert.That(packets[0].Length, Is.EqualTo(7));
+    }
 }

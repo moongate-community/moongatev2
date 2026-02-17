@@ -1,18 +1,32 @@
 ﻿using ConsoleAppFramework;
 using Moongate.Core.Utils;
+using Moongate.Server.Bootstrap;
+using Serilog;
 
 await ConsoleApp.RunAsync(
     args,
-    (bool showHeader = true) =>
+    async (bool showHeader = true, CancellationToken cancellationToken = default) =>
     {
+        Log.Logger = new LoggerConfiguration()
+                     .MinimumLevel
+                     .Verbose()
+                     .WriteTo
+                     .Console(
+                         outputTemplate:
+                         "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} - {Message:lj}{NewLine}{Exception}"
+                     )
+                     .CreateLogger();
+
+        var bootstrap = new MoongateBootstrap();
+
         if (showHeader)
         {
             ShowHeader();
         }
+
+        await bootstrap.RunAsync(cancellationToken);
     }
 );
-
-return;
 
 static void ShowHeader()
 {

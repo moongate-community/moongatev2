@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Interaction;
 
-[PacketHandler(0x95, PacketSizing.Variable)]
+[PacketHandler(0x95, PacketSizing.Fixed, Length = 9)]
 public class DyeWindowPacket : BaseGameNetworkPacket
 {
     public DyeWindowPacket()
-        : base(0x95, -1) { }
+        : base(0x95, 9) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

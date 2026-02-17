@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0x01, PacketSizing.Variable)]
+[PacketHandler(0x01, PacketSizing.Fixed, Length = 5)]
 public class DisconnectNotificationPacket : BaseGameNetworkPacket
 {
     public DisconnectNotificationPacket()
-        : base(0x01, -1) { }
+        : base(0x01, 5) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

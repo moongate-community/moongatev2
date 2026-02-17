@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0x75, PacketSizing.Variable)]
+[PacketHandler(0x75, PacketSizing.Fixed, Length = 35)]
 public class RenameCharacterPacket : BaseGameNetworkPacket
 {
     public RenameCharacterPacket()
-        : base(0x75, -1) { }
+        : base(0x75, 35) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Login;
 
-[PacketHandler(0x5D, PacketSizing.Variable)]
+[PacketHandler(0x5D, PacketSizing.Fixed, Length = 73)]
 public class LoginCharacterPacket : BaseGameNetworkPacket
 {
     public LoginCharacterPacket()
-        : base(0x5D, -1) { }
+        : base(0x5D, 73) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

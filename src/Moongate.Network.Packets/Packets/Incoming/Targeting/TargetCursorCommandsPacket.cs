@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Targeting;
 
-[PacketHandler(0x6C, PacketSizing.Variable)]
+[PacketHandler(0x6C, PacketSizing.Fixed, Length = 19)]
 public class TargetCursorCommandsPacket : BaseGameNetworkPacket
 {
     public TargetCursorCommandsPacket()
-        : base(0x6C, -1) { }
+        : base(0x6C, 19) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Books;
 
-[PacketHandler(0x93, PacketSizing.Variable)]
+[PacketHandler(0x93, PacketSizing.Fixed, Length = 99)]
 public class BookHeaderOldPacket : BaseGameNetworkPacket
 {
     public BookHeaderOldPacket()
-        : base(0x93, -1) { }
+        : base(0x93, 99) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Player;
 
-[PacketHandler(0xD1, PacketSizing.Variable)]
+[PacketHandler(0xD1, PacketSizing.Fixed, Length = 2)]
 public class LogoutStatusPacket : BaseGameNetworkPacket
 {
     public LogoutStatusPacket()
-        : base(0xD1, -1) { }
+        : base(0xD1, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

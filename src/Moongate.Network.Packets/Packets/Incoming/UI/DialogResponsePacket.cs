@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.UI;
 
-[PacketHandler(0x7D, PacketSizing.Variable)]
+[PacketHandler(0x7D, PacketSizing.Fixed, Length = 13)]
 public class DialogResponsePacket : BaseGameNetworkPacket
 {
     public DialogResponsePacket()
-        : base(0x7D, -1) { }
+        : base(0x7D, 13) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {

@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.House;
 
-[PacketHandler(0xFB, PacketSizing.Variable)]
+[PacketHandler(0xFB, PacketSizing.Fixed, Length = 2)]
 public class UpdateViewPublicHouseContentsPacket : BaseGameNetworkPacket
 {
     public UpdateViewPublicHouseContentsPacket()
-        : base(0xFB, -1) { }
+        : base(0xFB, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
     {
