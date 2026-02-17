@@ -69,6 +69,7 @@ public class ExpansionInfo
     [JsonConverter(typeof(FlagsConverter<CharacterListFlags>))]
     public CharacterListFlags CharacterListFlags { get; set; }
 
+    [JsonConverter(typeof(ClientVersionConverter))]
     public ClientVersion RequiredClient { get; set; }
 
     [JsonConverter(typeof(FlagsConverter<HousingFlags>))]

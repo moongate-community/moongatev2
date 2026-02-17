@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DryIoc;
 using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
@@ -6,15 +7,22 @@ using Moongate.Core.Data.Directories;
 using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
 using Moongate.Core.Types;
+using Moongate.Scripting.Data.Config;
+using Moongate.Scripting.Extensions.Scripts;
+using Moongate.Scripting.Interfaces;
+using Moongate.Scripting.Modules;
+using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
+using Moongate.Server.FileLoaders;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
+using Moongate.UO.Data.Files;
 using Serilog;
 using Serilog.Filters;
 
 namespace Moongate.Server.Bootstrap;
 
-public class MoongateBootstrap
+public sealed class MoongateBootstrap : IDisposable
 {
     private readonly Container _container = new();
 
@@ -29,13 +37,54 @@ public class MoongateBootstrap
         _moongateConfig = config;
 
         CheckDirectoryConfig();
+
         CreateLogger();
+        CheckUODirectory();
+        EnsureDataAssets();
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
+
+        RegisterScriptModules();
         RegisterServices();
+        RegisterFileLoaders();
+    }
+
+    private void RegisterFileLoaders()
+    {
+        var fileLoaderService = _container.Resolve<IFileLoaderService>();
+
+        fileLoaderService.AddFileLoader<ClientVersionLoader>();
+        fileLoaderService.AddFileLoader<SkillLoader>();
+        fileLoaderService.AddFileLoader<ExpansionLoader>();
+        fileLoaderService.AddFileLoader<BodyDataLoader>();
+        fileLoaderService.AddFileLoader<ProfessionsLoader>();
+        fileLoaderService.AddFileLoader<MultiDataLoader>();
+        fileLoaderService.AddFileLoader<RaceLoader>();
+        fileLoaderService.AddFileLoader<TileDataLoader>();
+        fileLoaderService.AddFileLoader<MapLoader>();
+        fileLoaderService.AddFileLoader<CliLocLoader>();
+        fileLoaderService.AddFileLoader<ContainersDataLoader>();
+        fileLoaderService.AddFileLoader<RegionDataLoader>();
+        fileLoaderService.AddFileLoader<WeatherDataLoader>();
+        fileLoaderService.AddFileLoader<NamesLoader>();
+    }
+
+    private void CheckUODirectory()
+    {
+        if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
+        {
+            _logger.Error("UO Directory not configured.");
+
+            throw new InvalidOperationException("UO Directory not configured.");
+        }
+
+        UoFiles.RootDir = _moongateConfig.UODirectory.ResolvePathAndEnvs();
+        UoFiles.ReLoadDirectory();
+        _logger.Information("UO Directory configured in {UODirectory}", UoFiles.RootDir);
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
+        var startTime = Stopwatch.GetTimestamp();
         var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
                                              .OrderBy(s => s.Priority)
                                              .ToList();
@@ -56,6 +105,7 @@ public class MoongateBootstrap
             runningServices.Add(instance);
         }
 
+        _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
         _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
 
         try
@@ -75,7 +125,7 @@ public class MoongateBootstrap
         if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
         {
             _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
-                                            Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+                                            Path.Combine(AppContext.BaseDirectory, "moongate");
         }
 
         _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
@@ -122,16 +172,39 @@ public class MoongateBootstrap
     private void RegisterServices()
     {
         _container.RegisterInstance(_moongateConfig);
+        _container.RegisterInstance(_directoriesConfig);
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
-        _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);
-        _container.RegisterMoongateService<INetworkService, NetworkService>(99);
+        _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
+        _container.RegisterMoongateService<INetworkService, NetworkService>(150);
+        _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
+        _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
     }
 
-    private async Task StopAsync(IReadOnlyList<IMoongateService> runningServices)
+    private void RegisterScriptModules()
+    {
+        _container.RegisterInstance(
+            new LuaEngineConfig(
+                _directoriesConfig[DirectoryType.Scripts],
+                _directoriesConfig[DirectoryType.Scripts],
+                "0.1.0"
+            )
+        );
+        _container.RegisterScriptModule<LogModule>();
+    }
+
+    private void EnsureDataAssets()
+    {
+        var sourceDataDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "data");
+        var destinationDataDirectory = _directoriesConfig[DirectoryType.Data];
+
+        DataAssetsBootstrapper.EnsureDataAssets(sourceDataDirectory, destinationDataDirectory, _logger);
+    }
+
+    private async Task StopAsync(List<IMoongateService> runningServices)
     {
         for (var i = runningServices.Count - 1; i >= 0; i--)
         {
@@ -140,5 +213,11 @@ public class MoongateBootstrap
             _logger.Information("Stopping {ServiceTypeFullName}", service.GetType().Name);
             await service.StopAsync();
         }
+    }
+
+    public void Dispose()
+    {
+        _container.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,0 +1,98 @@
+[
+  {
+    "ItemId": 3701,
+    "Width": 7,
+    "Height": 4,
+    "Name": "Backpack"
+  },
+  {
+    "ItemId": 3702,
+    "Width": 7,
+    "Height": 4,
+    "Name": "Leather Backpack"
+  },
+  {
+    "ItemId": 3703,
+    "Width": 7,
+    "Height": 4,
+    "Name": "Studded Backpack"
+  },
+  {
+    "ItemId": 3650,
+    "Width": 5,
+    "Height": 3,
+    "Name": "Small Box"
+  },
+  {
+    "ItemId": 3651,
+    "Width": 6,
+    "Height": 4,
+    "Name": "Wooden Box"
+  },
+  {
+    "ItemId": 3648,
+    "Width": 5,
+    "Height": 3,
+    "Name": "Small Crate"
+  },
+  {
+    "ItemId": 3644,
+    "Width": 8,
+    "Height": 6,
+    "Name": "Wooden Crate"
+  },
+  {
+    "ItemId": 3645,
+    "Width": 8,
+    "Height": 6,
+    "Name": "Medium Crate"
+  },
+  {
+    "ItemId": 3712,
+    "Width": 9,
+    "Height": 7,
+    "Name": "Metal Chest"
+  },
+  {
+    "ItemId": 3649,
+    "Width": 12,
+    "Height": 8,
+    "Name": "Large Crate"
+  },
+  {
+    "ItemId": 3713,
+    "Width": 10,
+    "Height": 8,
+    "Name": "Large Metal Chest"
+  },
+  {
+    "ItemId": 2472,
+    "Width": 15,
+    "Height": 10,
+    "Name": "Bank Box"
+  },
+  {
+    "ItemId": 3708,
+    "Width": 6,
+    "Height": 6,
+    "Name": "Bag"
+  },
+  {
+    "ItemId": 3709,
+    "Width": 6,
+    "Height": 6,
+    "Name": "Pouch"
+  },
+  {
+    "ItemId": 4005,
+    "Width": 4,
+    "Height": 4,
+    "Name": "Reagent Bag"
+  },
+  {
+    "ItemId": 5441,
+    "Width": 12,
+    "Height": 8,
+    "Name": "Ship Hold"
+  }
+]
