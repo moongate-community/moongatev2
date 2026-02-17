@@ -5,6 +5,8 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Version>0.1.0</Version>
+        <Description>Source generator that discovers packet handlers and emits packet registry registration code for Moongate.</Description>
         <IsRoslynComponent>true</IsRoslynComponent>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsAotCompatible>false</IsAotCompatible>

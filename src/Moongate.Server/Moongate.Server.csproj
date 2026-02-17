@@ -6,6 +6,8 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version>0.1.0</Version>
+        <Description>Moongate dedicated game server host process and runtime composition root.</Description>
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
