@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class GeneralInformationPacket : BaseGameNetworkPacket
 {
     public GeneralInformationPacket()
-        : base(0xBF, -1) { }
+        : base(0xBF) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

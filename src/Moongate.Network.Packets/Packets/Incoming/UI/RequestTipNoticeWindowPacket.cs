@@ -12,7 +12,5 @@ public class RequestTipNoticeWindowPacket : BaseGameNetworkPacket
         : base(0xA7, 4) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

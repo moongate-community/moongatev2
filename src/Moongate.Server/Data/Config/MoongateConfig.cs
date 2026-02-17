@@ -9,5 +9,4 @@ public class MoongateConfig
     public LogLevelType LogLevel { get; set; }
 
     public bool LogPacketData { get; set; }
-
 }

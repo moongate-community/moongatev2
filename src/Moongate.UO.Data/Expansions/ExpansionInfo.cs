@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Moongate.UO.Data.Json.Converters;
-using Moongate.UO.Data.Maps;
 using Moongate.UO.Data.Types;
 using Moongate.UO.Data.Version;
 

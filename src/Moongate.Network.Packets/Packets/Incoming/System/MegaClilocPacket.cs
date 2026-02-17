@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class MegaClilocPacket : BaseGameNetworkPacket
 {
     public MegaClilocPacket()
-        : base(0xD6, -1) { }
+        : base(0xD6) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

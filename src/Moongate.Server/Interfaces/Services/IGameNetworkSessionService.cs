@@ -9,19 +9,16 @@ namespace Moongate.Server.Interfaces.Services;
 public interface IGameNetworkSessionService
 {
     /// <summary>
+    /// Clears all sessions.
+    /// </summary>
+    void Clear();
+
+    /// <summary>
     /// Gets an existing session or creates one for the specified client.
     /// </summary>
     /// <param name="client">Client connection.</param>
     /// <returns>Session state object.</returns>
     GameNetworkSession GetOrCreate(MoongateTCPClient client);
-
-    /// <summary>
-    /// Tries to get a session by identifier.
-    /// </summary>
-    /// <param name="sessionId">Session identifier.</param>
-    /// <param name="session">Resolved session.</param>
-    /// <returns><c>true</c> when session exists.</returns>
-    bool TryGet(long sessionId, out GameNetworkSession session);
 
     /// <summary>
     /// Removes a session from the store.
@@ -31,7 +28,10 @@ public interface IGameNetworkSessionService
     bool Remove(long sessionId);
 
     /// <summary>
-    /// Clears all sessions.
+    /// Tries to get a session by identifier.
     /// </summary>
-    void Clear();
+    /// <param name="sessionId">Session identifier.</param>
+    /// <param name="session">Resolved session.</param>
+    /// <returns><c>true</c> when session exists.</returns>
+    bool TryGet(long sessionId, out GameNetworkSession session);
 }

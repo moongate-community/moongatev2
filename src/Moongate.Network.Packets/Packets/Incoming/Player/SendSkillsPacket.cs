@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Player;
 public class SendSkillsPacket : BaseGameNetworkPacket
 {
     public SendSkillsPacket()
-        : base(0x3A, -1) { }
+        : base(0x3A) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

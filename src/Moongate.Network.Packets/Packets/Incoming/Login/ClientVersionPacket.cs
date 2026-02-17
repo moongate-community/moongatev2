@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Login;
 public class ClientVersionPacket : BaseGameNetworkPacket
 {
     public ClientVersionPacket()
-        : base(0xBD, -1) { }
+        : base(0xBD) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

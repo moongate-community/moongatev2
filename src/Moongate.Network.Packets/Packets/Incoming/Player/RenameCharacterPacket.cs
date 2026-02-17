@@ -12,7 +12,5 @@ public class RenameCharacterPacket : BaseGameNetworkPacket
         : base(0x75, 35) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

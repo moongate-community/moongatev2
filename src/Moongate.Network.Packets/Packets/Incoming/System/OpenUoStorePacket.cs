@@ -12,7 +12,5 @@ public class OpenUoStorePacket : BaseGameNetworkPacket
         : base(0xFA, 1) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

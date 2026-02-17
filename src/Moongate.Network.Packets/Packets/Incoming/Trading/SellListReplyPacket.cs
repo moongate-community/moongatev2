@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Trading;
 public class SellListReplyPacket : BaseGameNetworkPacket
 {
     public SellListReplyPacket()
-        : base(0x9F, -1) { }
+        : base(0x9F) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

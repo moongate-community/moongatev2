@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class SpyOnClientPacket : BaseGameNetworkPacket
 {
     public SpyOnClientPacket()
-        : base(0xD9, -1) { }
+        : base(0xD9) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

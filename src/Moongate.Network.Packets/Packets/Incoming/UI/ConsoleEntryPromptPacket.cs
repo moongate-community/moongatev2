@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.UI;
 public class ConsoleEntryPromptPacket : BaseGameNetworkPacket
 {
     public ConsoleEntryPromptPacket()
-        : base(0x9A, -1) { }
+        : base(0x9A) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

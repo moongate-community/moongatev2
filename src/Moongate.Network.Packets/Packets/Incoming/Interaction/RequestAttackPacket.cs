@@ -12,7 +12,5 @@ public class RequestAttackPacket : BaseGameNetworkPacket
         : base(0x05, 5) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Books;
 public class BookHeaderNewPacket : BaseGameNetworkPacket
 {
     public BookHeaderNewPacket()
-        : base(0xD4, -1) { }
+        : base(0xD4) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

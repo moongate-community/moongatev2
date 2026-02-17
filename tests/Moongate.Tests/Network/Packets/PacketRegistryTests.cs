@@ -1,5 +1,5 @@
-using Moongate.Network.Packets.Incoming.Interaction;
 using Moongate.Network.Packets.Incoming.House;
+using Moongate.Network.Packets.Incoming.Interaction;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Incoming.Movement;
 using Moongate.Network.Packets.Incoming.Speech;
@@ -49,6 +49,22 @@ public class PacketRegistryTests
     }
 
     [Test]
+    public void RegisteredPackets_ShouldReturnAllDescriptorsOrderedByOpcode()
+    {
+        var registry = new PacketRegistry();
+        registry.RegisterVariable<UnicodeSpeechPacket>(0xAD);
+        registry.RegisterFixed<MoveRequestPacket>(0x02, 7);
+        registry.RegisterFixed<DoubleClickPacket>(0x06, 5);
+
+        var packets = registry.RegisteredPackets;
+
+        Assert.That(packets.Count, Is.EqualTo(3));
+        Assert.That(packets.Select(static p => p.OpCode), Is.EqualTo(new byte[] { 0x02, 0x06, 0xAD }));
+        Assert.That(packets[0].HandlerType, Is.EqualTo(typeof(MoveRequestPacket)));
+        Assert.That(packets[0].Length, Is.EqualTo(7));
+    }
+
+    [Test]
     public void RegisterFixed_ShouldStoreDescriptorAndCreatePacket()
     {
         var registry = new PacketRegistry();
@@ -94,21 +110,5 @@ public class PacketRegistryTests
         Assert.That(descriptor.Sizing, Is.EqualTo(PacketSizing.Variable));
         Assert.That(descriptor.Length, Is.EqualTo(-1));
         Assert.That(descriptor.Description, Is.EqualTo("Unicode/Ascii speech request"));
-    }
-
-    [Test]
-    public void RegisteredPackets_ShouldReturnAllDescriptorsOrderedByOpcode()
-    {
-        var registry = new PacketRegistry();
-        registry.RegisterVariable<UnicodeSpeechPacket>(0xAD);
-        registry.RegisterFixed<MoveRequestPacket>(0x02, 7);
-        registry.RegisterFixed<DoubleClickPacket>(0x06, 5);
-
-        var packets = registry.RegisteredPackets;
-
-        Assert.That(packets.Count, Is.EqualTo(3));
-        Assert.That(packets.Select(static p => p.OpCode), Is.EqualTo(new byte[] { 0x02, 0x06, 0xAD }));
-        Assert.That(packets[0].HandlerType, Is.EqualTo(typeof(MoveRequestPacket)));
-        Assert.That(packets[0].Length, Is.EqualTo(7));
     }
 }

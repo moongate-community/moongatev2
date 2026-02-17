@@ -12,7 +12,16 @@ public struct ItemData
     private byte _value;
     private byte _height;
 
-    public ItemData(string name, UOTileFlag flags, int weight, int quality, int animation, int quantity, int value, int height)
+    public ItemData(
+        string name,
+        UOTileFlag flags,
+        int weight,
+        int quality,
+        int animation,
+        int quantity,
+        int value,
+        int height
+    )
     {
         Name = name;
         Flags = flags;

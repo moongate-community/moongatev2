@@ -12,7 +12,5 @@ public class SendHelpTipRequestPacket : BaseGameNetworkPacket
         : base(0xB6, 9) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

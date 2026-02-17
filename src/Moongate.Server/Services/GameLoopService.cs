@@ -1,6 +1,7 @@
 using System.Diagnostics;
-using System.Threading.Channels;
 using Moongate.Abstractions.Services.Base;
+using Moongate.Network.Client;
+using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Spans;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
@@ -11,7 +12,7 @@ namespace Moongate.Server.Services;
 public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly Channel<IncomingGamePacket> _inboundPackets;
+    private readonly IMessageBusService _messageBusService;
     private readonly IOutgoingPacketQueue _outgoingPacketQueue;
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
@@ -24,20 +25,15 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
 
     public GameLoopService(
         IPacketDispatchService packetDispatchService,
+        IMessageBusService messageBusService,
         IOutgoingPacketQueue outgoingPacketQueue,
         IGameNetworkSessionService gameNetworkSessionService
     )
     {
         _packetDispatchService = packetDispatchService;
+        _messageBusService = messageBusService;
         _outgoingPacketQueue = outgoingPacketQueue;
         _gameNetworkSessionService = gameNetworkSessionService;
-        _inboundPackets = Channel.CreateUnbounded<IncomingGamePacket>(
-            new()
-            {
-                SingleReader = true,
-                SingleWriter = false
-            }
-        );
 
         _logger.Information(
             "GameLoopService initialized with tick interval of {TickInterval} ms",
@@ -54,14 +50,6 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
 
         _cancellationTokenSource.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    public void EnqueueGamePacket(IncomingGamePacket gamePacket)
-    {
-        if (!_inboundPackets.Writer.TryWrite(gamePacket))
-        {
-            _logger.Warning("Failed to enqueue game packet: {IncomingGamePacket}", gamePacket);
-        }
     }
 
     public async Task StartAsync()
@@ -100,20 +88,6 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         }
     }
 
-    private void ProcessQueue()
-    {
-        DrainPacketQueue();
-        DrainOutgoingPacketQueue();
-    }
-
-    private void DrainPacketQueue()
-    {
-        while (_inboundPackets.Reader.TryRead(out var gamePacket))
-        {
-            _packetDispatchService.NotifyPacketListeners(gamePacket);
-        }
-    }
-
     private void DrainOutgoingPacketQueue()
     {
         while (_outgoingPacketQueue.TryDequeue(out var outgoingPacket))
@@ -143,25 +117,22 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         }
     }
 
-    private static byte[] SerializePacket(Moongate.Network.Packets.Interfaces.IGameNetworkPacket packet)
+    private void DrainPacketQueue()
     {
-        var initialCapacity = packet.Length > 0 ? packet.Length : 256;
-        var writer = new SpanWriter(initialCapacity, resize: true);
-
-        try
+        while (_messageBusService.TryReadIncomingPacket(out var gamePacket))
         {
-            packet.Write(ref writer);
-
-            return writer.ToArray();
-        }
-        finally
-        {
-            writer.Dispose();
+            _packetDispatchService.NotifyPacketListeners(gamePacket);
         }
     }
 
+    private void ProcessQueue()
+    {
+        DrainPacketQueue();
+        DrainOutgoingPacketQueue();
+    }
+
     private async Task SendPacketSafeAsync(
-        Moongate.Network.Client.MoongateTCPClient client,
+        MoongateTCPClient client,
         OutgoingGamePacket outgoingPacket,
         ReadOnlyMemory<byte> payload
     )
@@ -182,6 +153,23 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
                 outgoingPacket.Packet.OpCode,
                 outgoingPacket.SessionId
             );
+        }
+    }
+
+    private static byte[] SerializePacket(IGameNetworkPacket packet)
+    {
+        var initialCapacity = packet.Length > 0 ? packet.Length : 256;
+        var writer = new SpanWriter(initialCapacity, true);
+
+        try
+        {
+            packet.Write(ref writer);
+
+            return writer.ToArray();
+        }
+        finally
+        {
+            writer.Dispose();
         }
     }
 }

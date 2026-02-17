@@ -12,7 +12,5 @@ public class UpdateViewPublicHouseContentsPacket : BaseGameNetworkPacket
         : base(0xFB, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -12,7 +12,5 @@ public class TargetCursorCommandsPacket : BaseGameNetworkPacket
         : base(0x6C, 19) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

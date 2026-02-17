@@ -12,7 +12,5 @@ public class RequestHelpPacket : BaseGameNetworkPacket
         : base(0x9B, 258) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

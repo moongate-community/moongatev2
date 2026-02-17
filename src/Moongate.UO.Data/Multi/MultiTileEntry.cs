@@ -1,4 +1,3 @@
-using Moongate.UO.Data.Tiles;
 using Moongate.UO.Data.Types;
 
 namespace Moongate.UO.Data.Multi;

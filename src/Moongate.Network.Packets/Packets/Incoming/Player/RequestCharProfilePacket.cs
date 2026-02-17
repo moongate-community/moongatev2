@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Player;
 public class RequestCharProfilePacket : BaseGameNetworkPacket
 {
     public RequestCharProfilePacket()
-        : base(0xB8, -1) { }
+        : base(0xB8) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

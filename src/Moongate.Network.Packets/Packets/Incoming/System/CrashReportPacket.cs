@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class CrashReportPacket : BaseGameNetworkPacket
 {
     public CrashReportPacket()
-        : base(0xF4, -1) { }
+        : base(0xF4) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

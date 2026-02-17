@@ -12,7 +12,5 @@ public class ClientViewRangePacket : BaseGameNetworkPacket
         : base(0xC8, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

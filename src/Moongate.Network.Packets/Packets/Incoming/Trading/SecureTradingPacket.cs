@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Trading;
 public class SecureTradingPacket : BaseGameNetworkPacket
 {
     public SecureTradingPacket()
-        : base(0x6F, -1) { }
+        : base(0x6F) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

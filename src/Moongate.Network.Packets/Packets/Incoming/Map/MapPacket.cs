@@ -12,7 +12,5 @@ public class MapPacket : BaseGameNetworkPacket
         : base(0x56, 11) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -1,7 +1,6 @@
-namespace Moongate.Core.Random;
-
 using System.Runtime.CompilerServices;
 
+namespace Moongate.Core.Random;
 
 public static class BuiltInRng
 {

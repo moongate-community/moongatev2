@@ -12,7 +12,5 @@ public class ClientSpyPacket : BaseGameNetworkPacket
         : base(0xA4, 149) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Speech;
 public class ChatTextPacket : BaseGameNetworkPacket
 {
     public ChatTextPacket()
-        : base(0xB3, -1) { }
+        : base(0xB3) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

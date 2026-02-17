@@ -34,19 +34,53 @@ public class MoongateBootstrap
         RegisterServices();
     }
 
+    public async Task RunAsync(CancellationToken cancellationToken)
+    {
+        var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
+                                             .OrderBy(s => s.Priority)
+                                             .ToList();
+
+        var runningServices = new List<IMoongateService>(serviceRegistrations.Count);
+
+        foreach (var serviceRegistration in serviceRegistrations)
+        {
+            if (_container.Resolve(serviceRegistration.ServiceType) is not IMoongateService instance)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to resolve service of type {serviceRegistration.ServiceType.FullName}"
+                );
+            }
+
+            _logger.Information("Starting {ServiceTypeFullName}", serviceRegistration.ServiceType.Name);
+            await instance.StartAsync();
+            runningServices.Add(instance);
+        }
+
+        _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
+
+        try
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.Information("Shutdown requested.");
+        }
+
+        await StopAsync(runningServices);
+    }
+
     private void CheckDirectoryConfig()
     {
         if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
         {
             _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
                                             Path.Combine(Directory.GetCurrentDirectory(), "moongate");
-
-
         }
 
         _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
 
-        _directoriesConfig = new DirectoriesConfig(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
+        _directoriesConfig = new(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
     }
 
     private void CreateLogger()
@@ -88,51 +122,13 @@ public class MoongateBootstrap
     private void RegisterServices()
     {
         _container.RegisterInstance(_moongateConfig);
+        _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
+        _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(100);
         _container.RegisterMoongateService<INetworkService, NetworkService>(99);
-        _container.RegisterDelegate<IGamePacketIngress>(
-            static resolver => resolver.Resolve<IGameLoopService>(),
-            Reuse.Singleton
-        );
-    }
-
-    public async Task RunAsync(CancellationToken cancellationToken)
-    {
-        var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
-                                             .OrderBy(s => s.Priority)
-                                             .ToList();
-
-        var runningServices = new List<IMoongateService>(serviceRegistrations.Count);
-
-        foreach (var serviceRegistration in serviceRegistrations)
-        {
-            if (_container.Resolve(serviceRegistration.ServiceType) is not IMoongateService instance)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to resolve service of type {serviceRegistration.ServiceType.FullName}"
-                );
-            }
-
-            _logger.Information("Starting {ServiceTypeFullName}", serviceRegistration.ServiceType.Name);
-            await instance.StartAsync();
-            runningServices.Add(instance);
-        }
-
-        _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
-
-        try
-        {
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.Information("Shutdown requested.");
-        }
-
-        await StopAsync(runningServices);
     }
 
     private async Task StopAsync(IReadOnlyList<IMoongateService> runningServices)

@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Movement;
 public class NewMovementRequestPacket : BaseGameNetworkPacket
 {
     public NewMovementRequestPacket()
-        : base(0xF0, -1) { }
+        : base(0xF0) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

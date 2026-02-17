@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Player;
 public class AllNamesPacket : BaseGameNetworkPacket
 {
     public AllNamesPacket()
-        : base(0x98, -1) { }
+        : base(0x98) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

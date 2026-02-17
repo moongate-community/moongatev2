@@ -5,7 +5,6 @@ using Moongate.Network.Packets.Interfaces;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
-using Moongate.Server.Listeners;
 using Moongate.Server.Listeners.Base;
 
 namespace Moongate.Tests.Server;
@@ -17,7 +16,7 @@ public class BasePacketListenerTests
         private readonly Queue<OutgoingGamePacket> _items = new();
 
         public void Enqueue(long sessionId, IGameNetworkPacket packet)
-            => _items.Enqueue(new OutgoingGamePacket(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+            => _items.Enqueue(new(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
 
         public bool TryDequeue(out OutgoingGamePacket gamePacket)
         {

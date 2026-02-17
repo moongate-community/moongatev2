@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.UI;
 public class GumpMenuSelectionPacket : BaseGameNetworkPacket
 {
     public GumpMenuSelectionPacket()
-        : base(0xB1, -1) { }
+        : base(0xB1) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

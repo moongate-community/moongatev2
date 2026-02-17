@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Interaction;
 public class BulletinBoardMessagesPacket : BaseGameNetworkPacket
 {
     public BulletinBoardMessagesPacket()
-        : base(0x71, -1) { }
+        : base(0x71) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

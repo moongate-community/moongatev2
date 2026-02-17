@@ -66,7 +66,7 @@ public class SpanReadWriteTests
     public void SpanWriter_WhenResizeDisabledAndCapacityExceeded_ShouldThrowInvalidOperationException()
     {
         Span<byte> fixedBuffer = stackalloc byte[2];
-        using var writer = new SpanWriter(fixedBuffer, false);
+        using var writer = new SpanWriter(fixedBuffer);
         writer.Write((ushort)1);
         var didThrow = false;
 

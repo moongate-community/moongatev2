@@ -11,7 +11,7 @@ public sealed class OutgoingPacketQueue : IOutgoingPacketQueue
 
     public void Enqueue(long sessionId, IGameNetworkPacket packet)
     {
-        _queue.Enqueue(new OutgoingGamePacket(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        _queue.Enqueue(new(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
     }
 
     public bool TryDequeue(out OutgoingGamePacket gamePacket)

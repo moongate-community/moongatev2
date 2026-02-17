@@ -12,7 +12,5 @@ public class DropWearItemPacket : BaseGameNetworkPacket
         : base(0x13, 10) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

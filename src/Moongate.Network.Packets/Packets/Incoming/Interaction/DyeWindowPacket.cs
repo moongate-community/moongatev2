@@ -12,7 +12,5 @@ public class DyeWindowPacket : BaseGameNetworkPacket
         : base(0x95, 9) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

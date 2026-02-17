@@ -64,16 +64,6 @@ public sealed class GameNetworkSession
     public uint? CharacterSerial { get; private set; }
 
     /// <summary>
-    /// Updates endpoint information from current client state.
-    /// </summary>
-    /// <param name="client">Source TCP client.</param>
-    public void Refresh(MoongateTCPClient client)
-    {
-        _client = client;
-        RemoteEndPoint = client.RemoteEndPoint?.ToString();
-    }
-
-    /// <summary>
     /// Detaches the underlying TCP client from this session.
     /// </summary>
     public void DetachClient()
@@ -83,14 +73,59 @@ public sealed class GameNetworkSession
     }
 
     /// <summary>
-    /// Updates the protocol state for this session.
+    /// Disables compression for this session.
     /// </summary>
-    /// <param name="state">New session state.</param>
-    public void SetState(NetworkSessionState state)
+    public void DisableCompression()
     {
         lock (_stateSync)
         {
-            State = state;
+            CompressionEnabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Disables encryption for this session.
+    /// </summary>
+    public void DisableEncryption()
+    {
+        lock (_stateSync)
+        {
+            EncryptionEnabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Enables compression for this session.
+    /// </summary>
+    public void EnableCompression()
+    {
+        lock (_stateSync)
+        {
+            CompressionEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Enables encryption for this session.
+    /// </summary>
+    public void EnableEncryption()
+    {
+        lock (_stateSync)
+        {
+            EncryptionEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Marks the session as in-game and stores selected character serial.
+    /// </summary>
+    /// <param name="characterSerial">Character serial.</param>
+    public void EnterGame(uint characterSerial)
+    {
+        lock (_stateSync)
+        {
+            CharacterSerial = characterSerial;
+            State = NetworkSessionState.InGame;
         }
     }
 
@@ -110,59 +145,24 @@ public sealed class GameNetworkSession
     }
 
     /// <summary>
-    /// Marks the session as in-game and stores selected character serial.
+    /// Updates endpoint information from current client state.
     /// </summary>
-    /// <param name="characterSerial">Character serial.</param>
-    public void EnterGame(uint characterSerial)
+    /// <param name="client">Source TCP client.</param>
+    public void Refresh(MoongateTCPClient client)
     {
-        lock (_stateSync)
-        {
-            CharacterSerial = characterSerial;
-            State = NetworkSessionState.InGame;
-        }
+        _client = client;
+        RemoteEndPoint = client.RemoteEndPoint?.ToString();
     }
 
     /// <summary>
-    /// Enables compression for this session.
+    /// Updates the protocol state for this session.
     /// </summary>
-    public void EnableCompression()
+    /// <param name="state">New session state.</param>
+    public void SetState(NetworkSessionState state)
     {
         lock (_stateSync)
         {
-            CompressionEnabled = true;
-        }
-    }
-
-    /// <summary>
-    /// Disables compression for this session.
-    /// </summary>
-    public void DisableCompression()
-    {
-        lock (_stateSync)
-        {
-            CompressionEnabled = false;
-        }
-    }
-
-    /// <summary>
-    /// Enables encryption for this session.
-    /// </summary>
-    public void EnableEncryption()
-    {
-        lock (_stateSync)
-        {
-            EncryptionEnabled = true;
-        }
-    }
-
-    /// <summary>
-    /// Disables encryption for this session.
-    /// </summary>
-    public void DisableEncryption()
-    {
-        lock (_stateSync)
-        {
-            EncryptionEnabled = false;
+            State = state;
         }
     }
 

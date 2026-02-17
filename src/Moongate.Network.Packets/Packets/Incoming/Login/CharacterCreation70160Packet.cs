@@ -12,7 +12,5 @@ public class CharacterCreation70160Packet : BaseGameNetworkPacket
         : base(0xF8, 106) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

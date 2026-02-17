@@ -12,7 +12,5 @@ public class LogoutStatusPacket : BaseGameNetworkPacket
         : base(0xD1, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

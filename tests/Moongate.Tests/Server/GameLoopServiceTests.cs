@@ -11,6 +11,7 @@ public class GameLoopServiceTests
     {
         _service = new(
             new PacketDispatchService(),
+            new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService()
         );
@@ -30,6 +31,7 @@ public class GameLoopServiceTests
     {
         _service = new(
             new PacketDispatchService(),
+            new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService()
         );
@@ -54,6 +56,7 @@ public class GameLoopServiceTests
     {
         _service = new(
             new PacketDispatchService(),
+            new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService()
         );

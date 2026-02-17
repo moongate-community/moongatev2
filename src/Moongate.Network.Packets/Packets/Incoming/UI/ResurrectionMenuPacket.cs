@@ -12,7 +12,5 @@ public class ResurrectionMenuPacket : BaseGameNetworkPacket
         : base(0x2C, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

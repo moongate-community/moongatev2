@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Interaction;
 public class MahjongPacket : BaseGameNetworkPacket
 {
     public MahjongPacket()
-        : base(0xDA, -1) { }
+        : base(0xDA) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

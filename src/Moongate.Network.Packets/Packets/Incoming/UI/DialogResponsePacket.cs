@@ -12,7 +12,5 @@ public class DialogResponsePacket : BaseGameNetworkPacket
         : base(0x7D, 13) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

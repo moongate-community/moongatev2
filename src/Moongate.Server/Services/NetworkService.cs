@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
-using Moongate.Network.Client;
 using Moongate.Network.Events;
 using Moongate.Network.Packets.Data.Packets;
 using Moongate.Network.Packets.Registry;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Server;
 using Moongate.Server.Data.Config;
+using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Listener;
@@ -22,7 +22,8 @@ public class NetworkService : INetworkService
 {
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
     private readonly ILogger _packetDataLogger = Log.ForContext<NetworkService>().ForContext("PacketData", true);
-    private readonly IGamePacketIngress _gamePacketIngress;
+    private readonly IMessageBusService _messageBusService;
+    private readonly IGameEventBusService _gameEventBusService;
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
     private readonly bool _logPacketData;
@@ -35,13 +36,15 @@ public class NetworkService : INetworkService
     public IReadOnlyCollection<IncomingGamePacket> ParsedPackets => _parsedPackets.ToArray();
 
     public NetworkService(
-        IGamePacketIngress gamePacketIngress,
+        IMessageBusService messageBusService,
+        IGameEventBusService gameEventBusService,
         IPacketDispatchService packetDispatchService,
         IGameNetworkSessionService gameNetworkSessionService,
         MoongateConfig moongateConfig
     )
     {
-        _gamePacketIngress = gamePacketIngress;
+        _messageBusService = messageBusService;
+        _gameEventBusService = gameEventBusService;
         _packetDispatchService = packetDispatchService;
         _gameNetworkSessionService = gameNetworkSessionService;
         _logPacketData = moongateConfig.LogPacketData;
@@ -53,28 +56,32 @@ public class NetworkService : INetworkService
     public void AddPacketListener(byte OpCode, IPacketListener packetListener)
         => _packetDispatchService.AddPacketListener(OpCode, packetListener);
 
-    private void ShowRegisteredPackets()
+    public void Dispose()
     {
-        _logger.Information("Registered packets: {Count}", _packetRegistry.RegisteredPackets.Count);
+        StopAsync().GetAwaiter().GetResult();
+        GC.SuppressFinalize(this);
+    }
 
-        foreach (var packet in _packetRegistry.RegisteredPackets)
-        {
-            _logger.Verbose(
-                " - OpCode: 0x{OpCode:X2}, Type: {PacketType}, Sizing: {PacketSizing}, Length: {Length}, Description: {Description}",
-                packet.OpCode,
-                packet.HandlerType.Name,
-                packet.Sizing,
-                packet.Length,
-                packet.Description
-            );
-        }
+    public static IEnumerable<IPEndPoint> GetListeningAddresses(IPEndPoint ipep)
+    {
+        return NetworkInterface.GetAllNetworkInterfaces()
+                               .SelectMany(
+                                   adapter =>
+                                       adapter.GetIPProperties()
+                                              .UnicastAddresses
+                                              .Where(
+                                                  uip => ipep.AddressFamily ==
+                                                         uip.Address.AddressFamily
+                                              )
+                                              .Select(uip => new IPEndPoint(uip.Address, ipep.Port))
+                               );
     }
 
     public async Task StartAsync()
     {
-        foreach (var ipEndpoint in GetListeningAddresses(new IPEndPoint(IPAddress.Any, 2593)))
+        foreach (var ipEndpoint in GetListeningAddresses(new(IPAddress.Any, 2593)))
         {
-            var moongateTcpServer = new MoongateTCPServer(new IPEndPoint(ipEndpoint.Address, 2593));
+            var moongateTcpServer = new MoongateTCPServer(new(ipEndpoint.Address, 2593));
 
             moongateTcpServer.OnClientConnect += OnClientConnected;
             moongateTcpServer.OnClientDisconnect += OnClientDisconnected;
@@ -87,9 +94,88 @@ public class NetworkService : INetworkService
         }
     }
 
-    private void OnClientException(object? sender, MoongateTCPExceptionEventArgs e)
+    public async Task StopAsync()
     {
-        _logger.Error(e.Exception, "Client exception: {Message}", e.Exception.Message);
+        for (var i = _tcpServers.Count - 1; i >= 0; i--)
+        {
+            var server = _tcpServers[i];
+            await server.StopAsync(CancellationToken.None);
+            await server.DisposeAsync();
+        }
+
+        _tcpServers.Clear();
+        _gameNetworkSessionService.Clear();
+
+        while (_parsedPackets.TryDequeue(out _)) { }
+    }
+
+    public bool TryDequeueParsedPacket(out IncomingGamePacket gamePacket)
+        => _parsedPackets.TryDequeue(out gamePacket);
+
+    private static string BuildHexDump(ReadOnlySpan<byte> data)
+    {
+        if (data.IsEmpty)
+        {
+            return "<empty>";
+        }
+
+        var sb = new StringBuilder((data.Length / 16 + 1) * 80);
+
+        for (var i = 0; i < data.Length; i += 16)
+        {
+            var lineLength = Math.Min(16, data.Length - i);
+            sb.Append(i.ToString("X4"));
+            sb.Append("  ");
+
+            for (var j = 0; j < 16; j++)
+            {
+                if (j < lineLength)
+                {
+                    sb.Append(data[i + j].ToString("X2"));
+                }
+                else
+                {
+                    sb.Append("  ");
+                }
+
+                if (j != 15)
+                {
+                    sb.Append(' ');
+                }
+            }
+
+            sb.Append("  |");
+
+            for (var j = 0; j < lineLength; j++)
+            {
+                var b = data[i + j];
+                sb.Append(b is >= 32 and <= 126 ? (char)b : '.');
+            }
+
+            sb.Append('|');
+
+            if (i + lineLength < data.Length)
+            {
+                sb.AppendLine();
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private void OnClientConnected(object? sender, MoongateTCPClientEventArgs e)
+    {
+        _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
+
+        var session = _gameNetworkSessionService.GetOrCreate(e.Client);
+        session.SetState(NetworkSessionState.Login);
+        _ = PublishEventSafeAsync(
+            new PlayerConnectedEvent(
+                e.Client.SessionId,
+                e.Client.RemoteEndPoint?.ToString(),
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            )
+        );
     }
 
     private void OnClientData(object? sender, MoongateTCPDataReceivedEventArgs e)
@@ -120,39 +206,19 @@ public class NetworkService : INetworkService
         }
 
         _gameNetworkSessionService.Remove(e.Client.SessionId);
+        _ = PublishEventSafeAsync(
+            new PlayerDisconnectedEvent(
+                e.Client.SessionId,
+                e.Client.RemoteEndPoint?.ToString(),
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            )
+        );
     }
 
-    private void OnClientConnected(object? sender, MoongateTCPClientEventArgs e)
+    private void OnClientException(object? sender, MoongateTCPExceptionEventArgs e)
     {
-        _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
-
-        var session = _gameNetworkSessionService.GetOrCreate(e.Client);
-        session.SetState(NetworkSessionState.Login);
+        _logger.Error(e.Exception, "Client exception: {Message}", e.Exception.Message);
     }
-
-    public async Task StopAsync()
-    {
-        for (var i = _tcpServers.Count - 1; i >= 0; i--)
-        {
-            var server = _tcpServers[i];
-            await server.StopAsync(CancellationToken.None);
-            await server.DisposeAsync();
-        }
-
-        _tcpServers.Clear();
-        _gameNetworkSessionService.Clear();
-
-        while (_parsedPackets.TryDequeue(out _)) { }
-    }
-
-    public void Dispose()
-    {
-        StopAsync().GetAwaiter().GetResult();
-        GC.SuppressFinalize(this);
-    }
-
-    public bool TryDequeueParsedPacket(out IncomingGamePacket gamePacket)
-        => _parsedPackets.TryDequeue(out gamePacket);
 
     private void ParseAvailablePackets(
         List<byte> pendingBytes,
@@ -240,8 +306,20 @@ public class NetworkService : INetworkService
             );
 
             _parsedPackets.Enqueue(gamePacket);
-            _gamePacketIngress.EnqueueGamePacket(gamePacket);
+            _messageBusService.PublishIncomingPacket(gamePacket);
             _logger.Information("Received packet 0x{OpCode:X2} from session {SessionId}", opCode, session.SessionId);
+        }
+    }
+
+    private async Task PublishEventSafeAsync<TEvent>(TEvent gameEvent) where TEvent : IGameEvent
+    {
+        try
+        {
+            await _gameEventBusService.PublishAsync(gameEvent);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to publish game event {EventType}", typeof(TEvent).Name);
         }
     }
 
@@ -264,69 +342,20 @@ public class NetworkService : INetworkService
         return BinaryPrimitives.ReadUInt16BigEndian(lengthBuffer);
     }
 
-    public static IEnumerable<IPEndPoint> GetListeningAddresses(IPEndPoint ipep)
+    private void ShowRegisteredPackets()
     {
-        return NetworkInterface.GetAllNetworkInterfaces()
-                               .SelectMany(
-                                   adapter =>
-                                       adapter.GetIPProperties()
-                                              .UnicastAddresses
-                                              .Where(
-                                                  uip => ipep.AddressFamily ==
-                                                         uip.Address.AddressFamily
-                                              )
-                                              .Select(uip => new IPEndPoint(uip.Address, ipep.Port))
-                               );
-    }
+        _logger.Information("Registered packets: {Count}", _packetRegistry.RegisteredPackets.Count);
 
-    private static string BuildHexDump(ReadOnlySpan<byte> data)
-    {
-        if (data.IsEmpty)
+        foreach (var packet in _packetRegistry.RegisteredPackets)
         {
-            return "<empty>";
+            _logger.Verbose(
+                " - OpCode: 0x{OpCode:X2}, Type: {PacketType}, Sizing: {PacketSizing}, Length: {Length}, Description: {Description}",
+                packet.OpCode,
+                packet.HandlerType.Name,
+                packet.Sizing,
+                packet.Length,
+                packet.Description
+            );
         }
-
-        var sb = new StringBuilder((data.Length / 16 + 1) * 80);
-
-        for (var i = 0; i < data.Length; i += 16)
-        {
-            var lineLength = Math.Min(16, data.Length - i);
-            sb.Append(i.ToString("X4"));
-            sb.Append("  ");
-
-            for (var j = 0; j < 16; j++)
-            {
-                if (j < lineLength)
-                {
-                    sb.Append(data[i + j].ToString("X2"));
-                }
-                else
-                {
-                    sb.Append("  ");
-                }
-
-                if (j != 15)
-                {
-                    sb.Append(' ');
-                }
-            }
-
-            sb.Append("  |");
-
-            for (var j = 0; j < lineLength; j++)
-            {
-                var b = data[i + j];
-                sb.Append(b is >= 32 and <= 126 ? (char)b : '.');
-            }
-
-            sb.Append('|');
-
-            if (i + lineLength < data.Length)
-            {
-                sb.AppendLine();
-            }
-        }
-
-        return sb.ToString();
     }
 }

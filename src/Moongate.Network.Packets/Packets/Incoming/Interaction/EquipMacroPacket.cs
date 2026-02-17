@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.Interaction;
 public class EquipMacroPacket : BaseGameNetworkPacket
 {
     public EquipMacroPacket()
-        : base(0xEC, -1) { }
+        : base(0xEC) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -12,7 +12,5 @@ public class LoginCharacterPacket : BaseGameNetworkPacket
         : base(0x5D, 73) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

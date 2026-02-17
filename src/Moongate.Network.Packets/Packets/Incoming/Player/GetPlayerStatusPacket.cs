@@ -12,7 +12,5 @@ public class GetPlayerStatusPacket : BaseGameNetworkPacket
         : base(0x34, 10) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

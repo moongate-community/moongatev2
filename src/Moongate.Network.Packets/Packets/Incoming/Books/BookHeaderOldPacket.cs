@@ -12,7 +12,5 @@ public class BookHeaderOldPacket : BaseGameNetworkPacket
         : base(0x93, 99) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

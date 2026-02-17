@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class FreeshardListPacket : BaseGameNetworkPacket
 {
     public FreeshardListPacket()
-        : base(0xF1, -1) { }
+        : base(0xF1) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

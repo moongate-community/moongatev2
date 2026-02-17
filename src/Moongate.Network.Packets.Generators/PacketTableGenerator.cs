@@ -84,6 +84,7 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
                 sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
                 sb.Append(", ");
                 sb.Append(model.Length.ToString(CultureInfo.InvariantCulture));
+
                 if (!string.IsNullOrWhiteSpace(model.Description))
                 {
                     sb.Append(", \"");
@@ -98,6 +99,7 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
                 sb.Append(model.TypeName);
                 sb.Append(">(0x");
                 sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
+
                 if (!string.IsNullOrWhiteSpace(model.Description))
                 {
                     sb.Append(", \"");
@@ -171,9 +173,7 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
     }
 
     private static string EscapeStringLiteral(string value)
-    {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal);
-    }
+        => value
+           .Replace("\\", "\\\\", StringComparison.Ordinal)
+           .Replace("\"", "\\\"", StringComparison.Ordinal);
 }

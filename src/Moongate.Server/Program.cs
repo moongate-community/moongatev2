@@ -2,8 +2,6 @@
 using Moongate.Core.Types;
 using Moongate.Core.Utils;
 using Moongate.Server.Bootstrap;
-using Moongate.Server.Data.Config;
-using Serilog;
 
 await ConsoleApp.RunAsync(
     args,
@@ -15,7 +13,7 @@ await ConsoleApp.RunAsync(
     ) =>
     {
         var bootstrap = new MoongateBootstrap(
-            new MoongateConfig()
+            new()
             {
                 RootDirectory = rootDirectory,
                 LogLevel = loglevel,

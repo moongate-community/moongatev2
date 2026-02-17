@@ -12,7 +12,5 @@ public class DeleteCharacterPacket : BaseGameNetworkPacket
         : base(0x83, 39) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

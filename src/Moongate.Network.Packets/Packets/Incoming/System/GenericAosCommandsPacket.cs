@@ -9,10 +9,8 @@ namespace Moongate.Network.Packets.Incoming.System;
 public class GenericAosCommandsPacket : BaseGameNetworkPacket
 {
     public GenericAosCommandsPacket()
-        : base(0xD7, -1) { }
+        : base(0xD7) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }

@@ -9,6 +9,9 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
 {
     private readonly ConcurrentDictionary<long, GameNetworkSession> _sessions = new();
 
+    public void Clear()
+        => _sessions.Clear();
+
     public GameNetworkSession GetOrCreate(MoongateTCPClient client)
     {
         var session = _sessions.GetOrAdd(client.SessionId, _ => new(client));
@@ -17,12 +20,9 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
         return session;
     }
 
-    public bool TryGet(long sessionId, out GameNetworkSession session)
-        => _sessions.TryGetValue(sessionId, out session!);
-
     public bool Remove(long sessionId)
         => _sessions.TryRemove(sessionId, out _);
 
-    public void Clear()
-        => _sessions.Clear();
+    public bool TryGet(long sessionId, out GameNetworkSession session)
+        => _sessions.TryGetValue(sessionId, out session!);
 }

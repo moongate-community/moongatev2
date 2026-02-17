@@ -12,7 +12,5 @@ public class PingMessagePacket : BaseGameNetworkPacket
         : base(0x73, 2) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
-    {
-        return true;
-    }
+        => true;
 }
