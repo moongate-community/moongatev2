@@ -1,3 +1,4 @@
+using Moongate.Network.Packets.Interfaces;
 using Moongate.Server.Data.Session;
 
 namespace Moongate.Server.Data.Packets;
@@ -8,6 +9,6 @@ namespace Moongate.Server.Data.Packets;
 public readonly record struct GamePacket(
     ClientSession Session,
     byte PacketId,
-    ReadOnlyMemory<byte> Data,
+    IGameNetworkPacket Packet,
     long Timestamp
 );

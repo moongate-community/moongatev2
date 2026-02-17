@@ -12,20 +12,29 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Channel<GamePacket> _inboundPackets;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
+    private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
 
     public long TickCount { get; private set; }
     public TimeSpan Uptime { get; private set; }
     public double AverageTickMs { get; private set; }
 
-    public GameLoopService()
-        => _inboundPackets = Channel.CreateUnbounded<GamePacket>(
-               new()
-               {
-                   SingleReader = true,
-                   SingleWriter = false
-               }
-           );
+    public GameLoopService(IPacketDispatchService packetDispatchService)
+    {
+        _packetDispatchService = packetDispatchService;
+        _inboundPackets = Channel.CreateUnbounded<GamePacket>(
+            new()
+            {
+                SingleReader = true,
+                SingleWriter = false
+            }
+        );
+
+        _logger.Information(
+            "GameLoopService initialized with tick interval of {TickInterval} ms",
+            _tickInterval.TotalMilliseconds
+        );
+    }
 
     public void Dispose()
     {
@@ -82,5 +91,16 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         }
     }
 
-    private void ProcessQueue() { }
+    private void ProcessQueue()
+    {
+        DrainPacketQueue();
+    }
+
+    private void DrainPacketQueue()
+    {
+        while (_inboundPackets.Reader.TryRead(out var gamePacket))
+        {
+            _packetDispatchService.NotifyPacketListeners(gamePacket.PacketId, gamePacket.Packet);
+        }
+    }
 }

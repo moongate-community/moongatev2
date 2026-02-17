@@ -137,7 +137,9 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 csharp_style_namespace_declarations = file_scoped:error
+csharp_style_prefer_primary_constructors = false:none
 dotnet_diagnostic.IDE0161.severity = error
+dotnet_diagnostic.IDE0290.severity = none
 
 # ReSharper properties
 resharper_apply_auto_detected_rules = false
@@ -261,6 +263,5 @@ end_of_line = crlf
 end_of_line = lf
 indent_size = 2
 tab_width = 2
-
 
 

@@ -1,9 +1,14 @@
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using Moongate.Network.Client;
 using Moongate.Network.Events;
+using Moongate.Network.Packets.Data.Packets;
+using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Registry;
+using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Server;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
@@ -13,34 +18,33 @@ namespace Moongate.Server.Services;
 public class NetworkService : INetworkService
 {
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
-
-    private readonly Dictionary<byte, List<IPacketListener>> _packetListeners = new();
+    private readonly IGamePacketIngress _gamePacketIngress;
+    private readonly IPacketDispatchService _packetDispatchService;
 
     private readonly ConcurrentDictionary<long, MoongateTCPClient> _connectedClients = new();
 
     private readonly List<MoongateTCPServer> _tcpServers = new();
 
     private readonly PacketRegistry _packetRegistry = new();
+    private readonly ConcurrentQueue<GamePacket> _parsedPackets = new();
+    private readonly ConcurrentDictionary<long, List<byte>> _pendingBytesBySession = new();
 
-    public void AddPacketListener(byte OpCode, IPacketListener packetListener)
+    public IReadOnlyCollection<GamePacket> ParsedPackets => _parsedPackets.ToArray();
+
+    public NetworkService(
+        IGamePacketIngress gamePacketIngress,
+        IPacketDispatchService packetDispatchService
+    )
     {
-        if (!_packetListeners.TryGetValue(OpCode, out var value))
-        {
-            value = new();
-            _packetListeners[OpCode] = value;
-        }
-
-        _logger.Information("Adding packet listener for {OpCode}", OpCode);
-
-        value.Add(packetListener);
-    }
-
-    public NetworkService()
-    {
+        _gamePacketIngress = gamePacketIngress;
+        _packetDispatchService = packetDispatchService;
         PacketTable.Register(_packetRegistry);
 
         ShowRegisteredPackets();
     }
+
+    public void AddPacketListener(byte OpCode, IPacketListener packetListener)
+        => _packetDispatchService.AddPacketListener(OpCode, packetListener);
 
     private void ShowRegisteredPackets()
     {
@@ -77,13 +81,28 @@ public class NetworkService : INetworkService
         _logger.Error(e.Exception, "Client exception: {Message}", e.Exception.Message);
     }
 
-    private void OnClientData(object? sender, MoongateTCPDataReceivedEventArgs e) { }
+    private void OnClientData(object? sender, MoongateTCPDataReceivedEventArgs e)
+    {
+        if (e.Data.IsEmpty)
+        {
+            return;
+        }
+
+        var pendingBytes = _pendingBytesBySession.GetOrAdd(e.Client.SessionId, static _ => []);
+
+        lock (pendingBytes)
+        {
+            pendingBytes.AddRange(e.Data.Span.ToArray());
+            ParseAvailablePackets(pendingBytes, e.Client);
+        }
+    }
 
     private void OnClientDisconnected(object? sender, MoongateTCPClientEventArgs e)
     {
         _logger.Information("Client disconnected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
         _connectedClients.TryRemove(e.Client.SessionId, out _);
+        _pendingBytesBySession.TryRemove(e.Client.SessionId, out _);
     }
 
     private void OnClientConnected(object? sender, MoongateTCPClientEventArgs e)
@@ -103,6 +122,12 @@ public class NetworkService : INetworkService
         }
 
         _tcpServers.Clear();
+        _connectedClients.Clear();
+        _pendingBytesBySession.Clear();
+
+        while (_parsedPackets.TryDequeue(out _))
+        {
+        }
     }
 
     public void Dispose()
@@ -110,4 +135,105 @@ public class NetworkService : INetworkService
         StopAsync().GetAwaiter().GetResult();
         GC.SuppressFinalize(this);
     }
+
+    public bool TryDequeueParsedPacket(out GamePacket gamePacket)
+        => _parsedPackets.TryDequeue(out gamePacket);
+
+    private void ParseAvailablePackets(
+        List<byte> pendingBytes,
+        MoongateTCPClient client
+    )
+    {
+        while (pendingBytes.Count > 0)
+        {
+            var opCode = pendingBytes[0];
+
+            if (!_packetRegistry.TryGetDescriptor(opCode, out var descriptor))
+            {
+                _logger.Warning(
+                    "Unknown packet opcode 0x{OpCode:X2} for session {SessionId}. Dropping 1 byte.",
+                    opCode,
+                    client.SessionId
+                );
+                pendingBytes.RemoveAt(0);
+
+                continue;
+            }
+
+            var expectedLength = ResolvePacketLength(pendingBytes, descriptor);
+
+            if (expectedLength is null)
+            {
+                break;
+            }
+
+            if (expectedLength <= 0)
+            {
+                _logger.Warning(
+                    "Invalid packet length {Length} for opcode 0x{OpCode:X2}. Dropping 1 byte.",
+                    expectedLength,
+                    opCode
+                );
+                pendingBytes.RemoveAt(0);
+
+                continue;
+            }
+
+            if (pendingBytes.Count < expectedLength)
+            {
+                break;
+            }
+
+            var rawPacket = new byte[expectedLength.Value];
+            pendingBytes.CopyTo(0, rawPacket, 0, expectedLength.Value);
+            pendingBytes.RemoveRange(0, expectedLength.Value);
+
+            if (!_packetRegistry.TryCreatePacket(opCode, out var packet) || packet is null)
+            {
+                continue;
+            }
+
+            if (!packet.TryParse(rawPacket))
+            {
+                _logger.Warning(
+                    "Failed to parse packet 0x{OpCode:X2} for session {SessionId}.",
+                    opCode,
+                    client.SessionId
+                );
+
+                continue;
+            }
+
+            var gamePacket = new GamePacket(
+                new(client.SessionId, client.RemoteEndPoint?.ToString()),
+                opCode,
+                packet,
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            );
+
+            _parsedPackets.Enqueue(gamePacket);
+            _gamePacketIngress.EnqueueGamePacket(gamePacket);
+            _logger.Information("Received packet 0x{OpCode:X2} from session {SessionId}", opCode, client.SessionId);
+        }
+    }
+
+    private static int? ResolvePacketLength(List<byte> pendingBytes, PacketDescriptor descriptor)
+    {
+        if (descriptor.Sizing == PacketSizing.Fixed)
+        {
+            return descriptor.Length;
+        }
+
+        if (pendingBytes.Count < 3)
+        {
+            return null;
+        }
+
+        Span<byte> lengthBuffer = stackalloc byte[2];
+        lengthBuffer[0] = pendingBytes[1];
+        lengthBuffer[1] = pendingBytes[2];
+
+        return BinaryPrimitives.ReadUInt16BigEndian(lengthBuffer);
+    }
+
 }

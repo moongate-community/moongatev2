@@ -1,3 +1,6 @@
 namespace Moongate.Server.Data.Session;
 
-public class ClientSession { }
+public readonly record struct ClientSession(
+    long SessionId,
+    string? RemoteEndPoint
+);
