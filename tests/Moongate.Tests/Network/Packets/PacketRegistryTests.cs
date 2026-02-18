@@ -3,6 +3,8 @@ using Moongate.Network.Packets.Incoming.Interaction;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Incoming.Movement;
 using Moongate.Network.Packets.Incoming.Speech;
+using Moongate.Network.Packets.Attributes;
+using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Entity;
 using Moongate.Network.Packets.Outgoing.Movement;
 using Moongate.Network.Packets.Registry;
@@ -110,5 +112,63 @@ public class PacketRegistryTests
         Assert.That(descriptor.Sizing, Is.EqualTo(PacketSizing.Variable));
         Assert.That(descriptor.Length, Is.EqualTo(-1));
         Assert.That(descriptor.Description, Is.EqualTo("Unicode/Ascii speech request"));
+    }
+
+    [Test]
+    public void PacketTable_Register_ShouldMatchAllPacketHandlerAttributes()
+    {
+        var registry = new PacketRegistry();
+        PacketTable.Register(registry);
+
+        var packetTypes = typeof(PacketTable).Assembly
+                                             .GetTypes()
+                                             .Where(
+                                                 static type =>
+                                                     !type.IsAbstract &&
+                                                     typeof(IGameNetworkPacket).IsAssignableFrom(type)
+                                             )
+                                             .Select(
+                                                 static type =>
+                                                     (
+                                                         Type: type,
+                                                         Attribute: type.GetCustomAttributes(
+                                                                             typeof(PacketHandlerAttribute),
+                                                                             false
+                                                                         )
+                                                                        .OfType<PacketHandlerAttribute>()
+                                                                        .SingleOrDefault()
+                                                     )
+                                             )
+                                             .Where(static x => x.Attribute is not null)
+                                             .Select(static x => (x.Type, Attribute: x.Attribute!))
+                                             .ToArray();
+
+        var duplicateOpcodes = packetTypes.GroupBy(static x => x.Attribute.OpCode)
+                                          .Where(static group => group.Count() > 1)
+                                          .Select(static group => $"0x{group.Key:X2}")
+                                          .ToArray();
+
+        Assert.That(duplicateOpcodes, Is.Empty, "Duplicate opcode attributes found.");
+        Assert.That(registry.RegisteredPackets.Count, Is.EqualTo(packetTypes.Length));
+
+        foreach (var (packetType, attribute) in packetTypes)
+        {
+            var hasDescriptor = registry.TryGetDescriptor(attribute.OpCode, out var descriptor);
+            var expectedLength = attribute.Sizing == PacketSizing.Fixed ? attribute.Length : -1;
+            var expectedDescription = string.IsNullOrWhiteSpace(attribute.Description)
+                ? packetType.Name.Replace("Packet", string.Empty, StringComparison.Ordinal)
+                : attribute.Description!;
+
+            Assert.Multiple(
+                () =>
+                {
+                    Assert.That(hasDescriptor, Is.True, $"Missing descriptor for opcode 0x{attribute.OpCode:X2}");
+                    Assert.That(descriptor.HandlerType, Is.EqualTo(packetType));
+                    Assert.That(descriptor.Sizing, Is.EqualTo(attribute.Sizing));
+                    Assert.That(descriptor.Length, Is.EqualTo(expectedLength));
+                    Assert.That(descriptor.Description, Is.EqualTo(expectedDescription));
+                }
+            );
+        }
     }
 }

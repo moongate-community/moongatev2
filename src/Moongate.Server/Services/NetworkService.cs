@@ -260,12 +260,14 @@ public class NetworkService : INetworkService
 
             if (expectedLength <= 0)
             {
+                var bytesToDrop = descriptor.Sizing == PacketSizing.Variable && pendingBytes.Count >= 3 ? 3 : 1;
                 _logger.Warning(
-                    "Invalid packet length {Length} for opcode 0x{OpCode:X2}. Dropping 1 byte.",
+                    "Invalid packet length {Length} for opcode 0x{OpCode:X2}. Dropping {BytesToDrop} byte(s).",
                     expectedLength,
-                    opCode
+                    opCode,
+                    bytesToDrop
                 );
-                pendingBytes.RemoveAt(0);
+                pendingBytes.RemoveRange(0, bytesToDrop);
 
                 continue;
             }
