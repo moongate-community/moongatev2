@@ -2,10 +2,11 @@
 
 ## Navigation
 - [[plans/moongate-v2-development-plan|Moongate v2 - Development Plan]]
-- [[plans/status-2026-02-17|Current Status (2026-02-17)]]
+- [[plans/status-2026-02-18|Current Status (2026-02-18)]]
 - [[sprints/README|Sprints]]
 - [[sprints/sprint-001|Sprint 001 - M0 Skeleton]]
 - [[sprints/sprint-001-kanban|Sprint 001 - Kanban]]
+- [[sprints/sprint-001-closeout-2026-02-18|Sprint 001 - Closeout (2026-02-18)]]
 - [[protocol/README|Protocol Notes]]
 - [[journal/README|Dev Journal]]
 - [[OBSIDIAN_SETUP|Obsidian Setup]]

@@ -7,7 +7,7 @@
 
 ---
 
-## Current Snapshot (2026-02-17)
+## Current Snapshot (2026-02-18)
 
 - M0 skeleton is functionally in place (server run loop + network listener).
 - Packet pipeline is beyond M0/M1 baseline:
@@ -23,7 +23,7 @@
 - Local verification is stable (`dotnet build`, test suite pass).
 - Remaining M0 backlog: top-level run `README.md` and CI AOT publish gate.
 
-Detailed status note: [[status-2026-02-17|Current Status (2026-02-17)]]
+Detailed status note: [[status-2026-02-18|Current Status (2026-02-18)]]
 
 ---
 

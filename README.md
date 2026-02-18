@@ -40,7 +40,7 @@ The project is actively in development and already includes:
 - Embedded HTTP host (`Moongate.Server.Http`) for health/admin endpoints and OpenAPI/Scalar docs.
 - Dedicated HTTP rolling logs in the shared logs directory (`moongate_http-*.log`).
 
-For a detailed internal status snapshot, see `docs/plans/status-2026-02-17.md`.
+For a detailed internal status snapshot, see `docs/plans/status-2026-02-18.md`.
 
 ## Solution Structure
 
@@ -95,21 +95,40 @@ Current automated coverage includes:
 - `LuaScriptEngineService` constants, callbacks, module calls, error path, and naming conversions.
 - `ScriptResultBuilder` success/error contract behavior.
 
+Example script callback (`scripts/init.lua`):
+
+```lua
+function on_player_connected(p)
+	log.info("Anvedi che s'e connesson un client")
+end
+```
+
 ## Docker
 
 Build the image:
 
 ```bash
-docker build -t moongatev2 .
+./scripts/build_image.sh -t moongate-server:local
 ```
 
 Run the container:
 
 ```bash
-docker run --rm -it -p 2593:2593 moongatev2
+docker run --rm -it \
+  -p 2593:2593 \
+  -v /path/host/moongate-root:/app \
+  -v /path/host/uo-client:/uo:ro \
+  --name moongate \
+  moongate-server:local
 ```
 
-The Dockerfile publishes a NativeAOT binary and runs it on Alpine (`linux-musl` runtime).
+The Docker image publishes a NativeAOT binary and runs it on Alpine (`linux-musl` runtime).
+Container defaults:
+
+- `MOONGATE_ROOT_DIRECTORY=/app`
+- `MOONGATE_UO_DIRECTORY=/uo`
+
+`/path/host/uo-client` must contain required UO client files (e.g. `client.exe`).
 
 ## Documentation
 
@@ -117,14 +136,15 @@ Project documentation (Obsidian vault) is in `docs/`.
 
 - Docs home: `docs/Home.md`
 - Development plan: `docs/plans/moongate-v2-development-plan.md`
-- Current status snapshot: `docs/plans/status-2026-02-17.md`
+- Current status snapshot: `docs/plans/status-2026-02-18.md`
 - Sprint tracking: `docs/sprints/sprint-001.md`
+- Sprint closeout: `docs/sprints/sprint-001-closeout-2026-02-18.md`
 - Protocol notes index: `docs/protocol/README.md`
 
 ## Development Notes
 
 - Shared build/analyzer/version settings are centralized in `Directory.Build.props`.
-- Current global version baseline: `0.1.0`.
+- Current global version baseline: `0.2.0`.
 - CI currently validates build and tests; AOT publish gate is planned.
 
 ## License
