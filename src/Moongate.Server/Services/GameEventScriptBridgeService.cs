@@ -30,7 +30,7 @@ public class GameEventScriptBridgeService : IGameEventScriptBridgeService, IGame
         _logger.Debug("Received game event: {EventType}", gameEvent.GetType().Name);
         var scriptFunctionName = GetScriptFunctionNameForEvent(gameEvent);
         _logger.Debug("Looking for script function: {FunctionName}", scriptFunctionName);
-        _scriptEngineService.ExecuteCallback(scriptFunctionName, gameEvent);
+        _scriptEngineService.CallFunction(scriptFunctionName, gameEvent);
     }
 
     private static string GetScriptFunctionNameForEvent(IGameEvent gameEvent)

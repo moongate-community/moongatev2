@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Moongate.Server.Data.Internal.Timers;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
 
@@ -9,24 +10,10 @@ namespace Moongate.Server.Services;
 /// </summary>
 public sealed class TimerWheelService : ITimerService
 {
-    private sealed class TimerEntry
-    {
-        public required string Id { get; init; }
-        public required string Name { get; init; }
-        public required Action Callback { get; init; }
-        public required TimeSpan Interval { get; init; }
-        public required bool Repeat { get; init; }
-
-        public int SlotIndex { get; set; }
-        public long RemainingRounds { get; set; }
-        public LinkedListNode<TimerEntry>? Node { get; set; }
-        public bool Cancelled { get; set; }
-    }
-
     private readonly ILogger _logger = Log.ForContext<TimerWheelService>();
     private readonly TimeSpan _tickDuration;
     private readonly LinkedList<TimerEntry>[] _wheel;
-    private readonly object _syncRoot = new();
+    private readonly Lock _syncRoot = new();
     private readonly Dictionary<string, TimerEntry> _timersById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, HashSet<string>> _timerIdsByName = new(StringComparer.Ordinal);
 

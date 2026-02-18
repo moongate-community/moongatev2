@@ -197,7 +197,7 @@ public class NetworkService : INetworkService
 
     private void OnClientDisconnected(object? sender, MoongateTCPClientEventArgs e)
     {
-        _logger.Information("Client disconnected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
+        _logger.Information("Client disconnected: {SessionId}", e.Client.SessionId);
 
         if (_gameNetworkSessionService.TryGet(e.Client.SessionId, out var session))
         {

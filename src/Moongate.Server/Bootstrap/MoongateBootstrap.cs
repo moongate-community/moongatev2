@@ -15,6 +15,7 @@ using Moongate.Scripting.Interfaces;
 using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
+using Moongate.Server.Data.Events;
 using Moongate.Server.FileLoaders;
 using Moongate.Server.Handlers;
 using Moongate.Server.Http;
@@ -24,6 +25,7 @@ using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services;
 using Moongate.UO.Data.Files;
+using Moongate.UO.Data.Version;
 using Serilog;
 using Serilog.Filters;
 
@@ -52,11 +54,19 @@ public sealed class MoongateBootstrap : IDisposable
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
 
         RegisterHttpServer();
+        RegisterScriptUserData();
         RegisterScriptModules();
         RegisterServices();
         RegisterFileLoaders();
 
         RegisterPacketHandlers();
+    }
+
+    private void RegisterScriptUserData()
+    {
+        _container.RegisterLuaUserData<PlayerConnectedEvent>();
+        _container.RegisterLuaUserData<PlayerDisconnectedEvent>();
+        _container.RegisterLuaUserData<ClientVersion>();
     }
 
     private void RegisterPacketHandlers()

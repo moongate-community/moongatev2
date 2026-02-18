@@ -100,6 +100,12 @@ public class GameEventScriptBridgeServiceTests
             LastCallbackArgs = args;
         }
 
+        public void CallFunction(string functionName, params object[] args)
+        {
+            LastCallbackName = functionName;
+            LastCallbackArgs = args;
+        }
+
         public void ExecuteEngineReady() { }
 
         public ScriptResult ExecuteFunction(string command) => new() { Success = true };

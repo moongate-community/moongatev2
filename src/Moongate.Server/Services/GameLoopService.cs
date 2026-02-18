@@ -15,7 +15,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private readonly IOutboundPacketSender _outboundPacketSender;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
-    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
+    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(150);
 
     public long TickCount { get; private set; }
     public TimeSpan Uptime { get; private set; }

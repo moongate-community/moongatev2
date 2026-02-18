@@ -18,6 +18,13 @@ await ConsoleApp.RunAsync(
         CancellationToken cancellationToken = default
     ) =>
     {
+
+        if (showHeader)
+        {
+            ShowHeader();
+        }
+
+
         JsonUtils.AddJsonConverter(new ClientVersionConverter());
         JsonUtils.AddJsonConverter(new MapConverter());
         JsonUtils.AddJsonConverter(new Point2DConverter());
@@ -40,10 +47,6 @@ await ConsoleApp.RunAsync(
             }
         );
 
-        if (showHeader)
-        {
-            ShowHeader();
-        }
 
         await bootstrap.RunAsync(cancellationToken);
 
