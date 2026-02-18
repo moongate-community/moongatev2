@@ -74,6 +74,7 @@ public sealed class MoongateBootstrap : IDisposable
         RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
         RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
         RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.GameLoginPacket);
     }
 
     private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener

@@ -6,7 +6,6 @@ using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Listeners.Base;
 using Moongate.UO.Data.Packets.Data;
-using Moongate.UO.Data.Types;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -46,6 +45,22 @@ public class LoginHandler : BasePacketListener
         {
             return await HandleServerSelectPacketAsync(session, serverSelectPacket);
         }
+
+        if (packet is GameLoginPacket gameLoginPacket)
+        {
+            return await HandleGameLoginPacketAsync(session, gameLoginPacket);
+        }
+
+        return true;
+    }
+
+    private async Task<bool> HandleGameLoginPacketAsync(GameSession session, GameLoginPacket gameLoginPacket)
+    {
+        _logger.Information(
+            "Received GameLoginPacket from session {SessionId} with account name {AccountName}",
+            session.SessionId,
+            gameLoginPacket.AccountName
+        );
 
         return true;
     }
