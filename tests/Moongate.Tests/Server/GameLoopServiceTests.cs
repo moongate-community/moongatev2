@@ -1,4 +1,7 @@
 using Moongate.Server.Services;
+using Moongate.Network.Client;
+using Moongate.Server.Data.Packets;
+using Moongate.Server.Interfaces.Services;
 
 namespace Moongate.Tests.Server;
 
@@ -13,7 +16,9 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
 
         Assert.Multiple(
@@ -33,7 +38,9 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -58,7 +65,9 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
         await _service.StartAsync();
 
@@ -71,6 +80,30 @@ public class GameLoopServiceTests
         await Task.Delay(500);
 
         Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+    }
+
+    [Test]
+    public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
+    {
+        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
+        var fired = 0;
+
+        timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
+
+        _service = new(
+            new PacketDispatchService(),
+            new MessageBusService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            timerService,
+            new TestOutboundPacketSender()
+        );
+
+        await _service.StartAsync();
+
+        var timerFired = await WaitUntilAsync(() => Volatile.Read(ref fired) > 0, TimeSpan.FromSeconds(2));
+
+        Assert.That(timerFired, Is.True, "Timer callback was not executed by game loop processing.");
     }
 
     [TearDown]
@@ -100,5 +133,17 @@ public class GameLoopServiceTests
         }
 
         return condition();
+    }
+
+    private sealed class TestOutboundPacketSender : IOutboundPacketSender
+    {
+        public Task<bool> SendAsync(
+            MoongateTCPClient client,
+            OutgoingGamePacket outgoingPacket,
+            CancellationToken cancellationToken
+        )
+        {
+            return Task.FromResult(true);
+        }
     }
 }

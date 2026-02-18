@@ -17,4 +17,6 @@ public class MoongateConfig
     public bool IsDeveloperMode { get; set; }
 
     public MoongateHttpConfig Http { get; set; } = new();
+
+    public MoongateGameConfig Game { get; set; } = new();
 }

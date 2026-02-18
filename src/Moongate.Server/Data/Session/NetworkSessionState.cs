@@ -6,9 +6,10 @@ namespace Moongate.Server.Data.Session;
 public enum NetworkSessionState : byte
 {
     Connected = 0,
-    Login = 1,
-    Authenticated = 2,
-    InGame = 3,
-    Disconnecting = 4,
-    Disconnected = 5
+    AwaitingSeed = 1,
+    Login = 2,
+    Authenticated = 3,
+    InGame = 4,
+    Disconnecting = 5,
+    Disconnected = 6
 }

@@ -6,6 +6,17 @@ namespace Moongate.Tests.Server;
 
 public class GameEventBusServiceTests
 {
+    private sealed class TrackingAllEventsListener : IGameEventListener<IGameEvent>
+    {
+        public List<IGameEvent> Received { get; } = [];
+
+        public Task HandleAsync(IGameEvent gameEvent, CancellationToken cancellationToken = default)
+        {
+            Received.Add(gameEvent);
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class TrackingConnectedListener : IGameEventListener<PlayerConnectedEvent>
     {
         public List<PlayerConnectedEvent> Received { get; } = [];
@@ -52,5 +63,24 @@ public class GameEventBusServiceTests
 
         Assert.That(tracking.Received.Count, Is.EqualTo(1));
         Assert.That(tracking.Received[0].SessionId, Is.EqualTo(7));
+    }
+
+    [Test]
+    public async Task PublishAsync_WhenGlobalListenerRegistered_ShouldReceiveAllEvents()
+    {
+        var bus = new GameEventBusService();
+        var allEventsListener = new TrackingAllEventsListener();
+
+        bus.RegisterListener<IGameEvent>(allEventsListener);
+
+        var connected = new PlayerConnectedEvent(10, "127.0.0.1:2593", 100);
+        var disconnected = new PlayerDisconnectedEvent(10, "127.0.0.1:2593", 101);
+
+        await bus.PublishAsync(connected);
+        await bus.PublishAsync(disconnected);
+
+        Assert.That(allEventsListener.Received.Count, Is.EqualTo(2));
+        Assert.That(allEventsListener.Received[0], Is.EqualTo(connected));
+        Assert.That(allEventsListener.Received[1], Is.EqualTo(disconnected));
     }
 }

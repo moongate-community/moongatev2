@@ -36,7 +36,7 @@ public sealed class GameNetworkSession
     /// <summary>
     /// Gets the current protocol state of the session.
     /// </summary>
-    public NetworkSessionState State { get; private set; } = NetworkSessionState.Connected;
+    public NetworkSessionState State { get; private set; } = NetworkSessionState.AwaitingSeed;
 
     /// <summary>
     /// Gets whether outbound/inbound compression is enabled for this session.
@@ -52,6 +52,11 @@ public sealed class GameNetworkSession
     /// Gets the authenticated account id, when available.
     /// </summary>
     public long? AccountId { get; private set; }
+
+    /// <summary>
+    /// Gets the 4-byte connection seed received during protocol handshake.
+    /// </summary>
+    public uint? Seed { get; private set; }
 
     /// <summary>
     /// Gets the authenticated account name, when available.
@@ -141,6 +146,18 @@ public sealed class GameNetworkSession
             AccountId = accountId;
             AccountName = accountName;
             State = NetworkSessionState.Authenticated;
+        }
+    }
+
+    /// <summary>
+    /// Stores the protocol seed received during initial handshake.
+    /// </summary>
+    /// <param name="seed">4-byte seed value.</param>
+    public void SetSeed(uint seed)
+    {
+        lock (_stateSync)
+        {
+            Seed = seed;
         }
     }
 

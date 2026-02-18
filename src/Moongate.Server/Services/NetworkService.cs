@@ -168,7 +168,7 @@ public class NetworkService : INetworkService
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
-        session.NetworkSession.SetState(NetworkSessionState.Login);
+        session.NetworkSession.SetState(NetworkSessionState.AwaitingSeed);
         _ = PublishEventSafeAsync(
             new PlayerConnectedEvent(
                 e.Client.SessionId,
@@ -197,7 +197,7 @@ public class NetworkService : INetworkService
 
     private void OnClientDisconnected(object? sender, MoongateTCPClientEventArgs e)
     {
-        _logger.Information("Client disconnected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
+        _logger.Information("Client disconnected: {SessionId}", e.Client.SessionId);
 
         if (_gameNetworkSessionService.TryGet(e.Client.SessionId, out var session))
         {
@@ -227,6 +227,16 @@ public class NetworkService : INetworkService
     {
         while (pendingBytes.Count > 0)
         {
+            if (!TryProcessInitialHandshake(pendingBytes, session))
+            {
+                break;
+            }
+
+            if (pendingBytes.Count == 0)
+            {
+                break;
+            }
+
             var opCode = pendingBytes[0];
 
             if (!_packetRegistry.TryGetDescriptor(opCode, out var descriptor))
@@ -309,6 +319,52 @@ public class NetworkService : INetworkService
             _messageBusService.PublishIncomingPacket(gamePacket);
             _logger.Information("Received packet 0x{OpCode:X2} from session {SessionId}", opCode, session.SessionId);
         }
+    }
+
+    private bool TryProcessInitialHandshake(List<byte> pendingBytes, GameSession session)
+    {
+        var networkSession = session.NetworkSession;
+
+        if (networkSession.State != NetworkSessionState.AwaitingSeed)
+        {
+            return true;
+        }
+
+        var firstByte = pendingBytes[0];
+
+        // 0xEF means this connection starts with the login-seed packet format.
+        if (firstByte == PacketDefinition.LoginSeedPacket)
+        {
+            networkSession.SetState(NetworkSessionState.Login);
+            return true;
+        }
+
+        // Game-server reconnect path: client can send a raw 4-byte seed first.
+        if (pendingBytes.Count < 4)
+        {
+            return false;
+        }
+
+        Span<byte> seedBytes = stackalloc byte[4];
+        seedBytes[0] = pendingBytes[0];
+        seedBytes[1] = pendingBytes[1];
+        seedBytes[2] = pendingBytes[2];
+        seedBytes[3] = pendingBytes[3];
+        var seed = BinaryPrimitives.ReadUInt32BigEndian(seedBytes);
+        if (seed == 0)
+        {
+            _logger.Warning("Received invalid zero seed from session {SessionId}.", session.SessionId);
+            pendingBytes.Clear();
+            return false;
+        }
+
+        networkSession.SetSeed(seed);
+        networkSession.SetState(NetworkSessionState.Login);
+        pendingBytes.RemoveRange(0, 4);
+
+        _logger.Information("Session {SessionId} completed seed handshake with 0x{Seed:X8}.", session.SessionId, seed);
+
+        return true;
     }
 
     private async Task PublishEventSafeAsync<TEvent>(TEvent gameEvent) where TEvent : IGameEvent

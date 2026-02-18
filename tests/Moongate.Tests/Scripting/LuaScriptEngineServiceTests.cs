@@ -4,6 +4,7 @@ using Moongate.Core.Types;
 using Moongate.Scripting.Data.Config;
 using Moongate.Scripting.Data.Internal;
 using Moongate.Scripting.Data.Scripts;
+using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
 
 namespace Moongate.Tests.Scripting;
@@ -101,6 +102,39 @@ public class LuaScriptEngineServiceTests
         var name = service.ToScriptEngineFunctionName("HelloWorldMethod");
 
         Assert.That(name, Is.EqualTo("hello_world_method"));
+    }
+
+    [Test]
+    public async Task StartAsync_WithLogModule_ShouldKeepLogAsTable()
+    {
+        using var temp = new TempDirectory();
+        var dirs = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+        var scriptsDir = dirs[DirectoryType.Scripts];
+        var luarcDir = System.IO.Path.Combine(temp.Path, ".luarc");
+        Directory.CreateDirectory(scriptsDir);
+        Directory.CreateDirectory(luarcDir);
+
+        var service = new LuaScriptEngineService(
+            dirs,
+            [new ScriptModuleData(typeof(LogModule))],
+            new Container(),
+            new LuaEngineConfig(luarcDir, scriptsDir, "0.1.0"),
+            []
+        );
+
+        await service.StartAsync();
+
+        var typeResult = service.ExecuteFunction("type(log)");
+        var callResult = service.ExecuteFunction("log.info('hello')");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(typeResult.Success, Is.True);
+                Assert.That(typeResult.Data, Is.EqualTo("table"));
+                Assert.That(callResult.Success, Is.True);
+            }
+        );
     }
 
     private static LuaScriptEngineService CreateService(string rootPath)

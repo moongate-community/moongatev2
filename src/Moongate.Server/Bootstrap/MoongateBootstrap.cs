@@ -8,19 +8,24 @@ using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
 using Moongate.Core.Json;
 using Moongate.Core.Types;
+using Moongate.Network.Packets.Data.Packets;
 using Moongate.Scripting.Data.Config;
 using Moongate.Scripting.Extensions.Scripts;
 using Moongate.Scripting.Interfaces;
 using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
+using Moongate.Server.Data.Events;
 using Moongate.Server.FileLoaders;
+using Moongate.Server.Handlers;
 using Moongate.Server.Http;
 using Moongate.Server.Http.Interfaces;
+using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services;
 using Moongate.UO.Data.Files;
+using Moongate.UO.Data.Version;
 using Serilog;
 using Serilog.Filters;
 
@@ -28,7 +33,7 @@ namespace Moongate.Server.Bootstrap;
 
 public sealed class MoongateBootstrap : IDisposable
 {
-    private readonly Container _container = new();
+    private readonly Container _container = new(Rules.Default.WithUseInterpretation());
 
     private ILogger _logger;
 
@@ -49,9 +54,39 @@ public sealed class MoongateBootstrap : IDisposable
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
 
         RegisterHttpServer();
+        RegisterScriptUserData();
         RegisterScriptModules();
         RegisterServices();
         RegisterFileLoaders();
+
+        RegisterPacketHandlers();
+    }
+
+    private void RegisterScriptUserData()
+    {
+        _container.RegisterLuaUserData<PlayerConnectedEvent>();
+        _container.RegisterLuaUserData<PlayerDisconnectedEvent>();
+        _container.RegisterLuaUserData<ClientVersion>();
+    }
+
+    private void RegisterPacketHandlers()
+    {
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.GameLoginPacket);
+    }
+
+    private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener
+    {
+        if (!_container.IsRegistered<T>())
+        {
+            _container.Register<T>();
+        }
+
+        var handler = _container.Resolve<T>();
+        var packetListenerService = _container.Resolve<IPacketDispatchService>();
+        packetListenerService.AddPacketListener(opCode, handler);
     }
 
     private void RegisterHttpServer()
@@ -146,8 +181,12 @@ public sealed class MoongateBootstrap : IDisposable
     {
         if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
         {
-            _logger.Error("UO Directory not configured.");
+            _moongateConfig.UODirectory = Environment.GetEnvironmentVariable("MOONGATE_UO_DIRECTORY");
+        }
 
+        if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
+        {
+            _logger.Error("UO Directory not configured. Set --uoDirectory or MOONGATE_UO_DIRECTORY.");
             throw new InvalidOperationException("UO Directory not configured.");
         }
 
@@ -174,7 +213,7 @@ public sealed class MoongateBootstrap : IDisposable
                 );
             }
 
-            _logger.Information("Starting {ServiceTypeFullName}", serviceRegistration.ServiceType.Name);
+            _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
             await instance.StartAsync();
             runningServices.Add(instance);
         }
@@ -250,11 +289,14 @@ public sealed class MoongateBootstrap : IDisposable
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
+        _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
+        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);
         _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
+        _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
         _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
     }
 
