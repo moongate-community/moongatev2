@@ -1,3 +1,4 @@
+using Humanizer;
 using Serilog;
 
 namespace Moongate.UO.Data.Files;
@@ -85,7 +86,7 @@ public class UoFiles
                 if (filePath != null)
                 {
                     MulPath[fileName.ToLower()] = Path.Combine(filePath, fileName);
-                    _logger.Debug("Found UO {File} ({FileLength} bytes)", fileName.ToLower(), fileLength);
+                    _logger.Debug("Found UO {File} ({FileLength} bytes)", fileName.ToLower(), fileLength.Bytes());
                 }
             }
         }

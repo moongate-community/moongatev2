@@ -612,6 +612,39 @@ public static class JsonUtils
     }
 
     /// <summary>
+    /// Serializes an object to a JSON file with directory creation using a JsonSerializerContext.
+    /// </summary>
+    /// <typeparam name="T">The type to serialize.</typeparam>
+    /// <param name="obj">The object to serialize.</param>
+    /// <param name="filePath">Path to the output JSON file.</param>
+    /// <param name="context">The JsonSerializerContext to use for serialization.</param>
+    public static void SerializeToFile<T>(T obj, string filePath, JsonSerializerContext context)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentNullException.ThrowIfNull(context);
+
+        var normalizedPath = Path.GetFullPath(filePath);
+        var directory = Path.GetDirectoryName(normalizedPath);
+
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        try
+        {
+            var typeInfo = context.GetTypeInfo(typeof(T));
+            var json = JsonSerializer.Serialize(obj, typeInfo);
+            File.WriteAllText(normalizedPath, json);
+        }
+        catch (Exception ex) when (ex is not JsonException)
+        {
+            throw new JsonException($"Failed to serialize or write file '{normalizedPath}': {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Serializes an object to a JSON file asynchronously with directory creation.
     /// </summary>
     /// <typeparam name="T">The type to serialize.</typeparam>

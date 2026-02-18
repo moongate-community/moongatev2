@@ -6,6 +6,7 @@ using Moongate.Abstractions.Interfaces.Services.Base;
 using Moongate.Core.Data.Directories;
 using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
+using Moongate.Core.Json;
 using Moongate.Core.Types;
 using Moongate.Scripting.Data.Config;
 using Moongate.Scripting.Extensions.Scripts;
@@ -14,7 +15,10 @@ using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
 using Moongate.Server.FileLoaders;
+using Moongate.Server.Http;
+using Moongate.Server.Http.Interfaces;
 using Moongate.Server.Interfaces.Services;
+using Moongate.Server.Json;
 using Moongate.Server.Services;
 using Moongate.UO.Data.Files;
 using Serilog;
@@ -39,13 +43,83 @@ public sealed class MoongateBootstrap : IDisposable
         CheckDirectoryConfig();
 
         CreateLogger();
+        CheckConfig();
         CheckUODirectory();
         EnsureDataAssets();
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
 
+        RegisterHttpServer();
         RegisterScriptModules();
         RegisterServices();
         RegisterFileLoaders();
+    }
+
+    private void RegisterHttpServer()
+    {
+        if (_moongateConfig.Http.IsEnabled)
+        {
+            _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
+            _logger.Information("HTTP Server enabled.");
+
+            var httpServiceOptions = new MoongateHttpServiceOptions()
+            {
+                DirectoriesConfig = _directoriesConfig,
+                IsOpenApiEnabled = _moongateConfig.Http.IsOpenApiEnabled,
+                Port = _moongateConfig.Http.Port,
+                ServiceMappings = null,
+                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel()
+            };
+
+            _container.RegisterInstance(httpServiceOptions);
+        }
+        else
+        {
+            _logger.Information("HTTP Server disabled.");
+        }
+    }
+
+    private void CheckConfig()
+    {
+        if (!File.Exists(Path.Combine(_directoriesConfig.Root, "moongate.json")))
+        {
+            _logger.Warning(
+                "No moongate.json configuration file found in root directory. Using default configuration values."
+            );
+
+            JsonUtils.SerializeToFile(
+                _moongateConfig,
+                Path.Combine(_directoriesConfig.Root, "moongate.json"),
+                MoongateServerJsonContext.Default
+            );
+        }
+
+        else
+        {
+            var fileConfig = JsonUtils.DeserializeFromFile<MoongateConfig>(
+                Path.Combine(_directoriesConfig.Root, "moongate.json"),
+                MoongateServerJsonContext.Default
+            );
+
+            _logger.Information("Loaded configuration from moongate.json in root directory.");
+
+            // Override properties with values from the file if they are not null or default
+            if (!string.IsNullOrWhiteSpace(fileConfig.RootDirectory))
+            {
+                _moongateConfig.RootDirectory = fileConfig.RootDirectory;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fileConfig.UODirectory))
+            {
+                _moongateConfig.UODirectory = fileConfig.UODirectory;
+            }
+
+            if (fileConfig.LogLevel != LogLevelType.Information)
+            {
+                _moongateConfig.LogLevel = fileConfig.LogLevel;
+            }
+
+            _moongateConfig.LogPacketData = fileConfig.LogPacketData;
+        }
     }
 
     private void RegisterFileLoaders()

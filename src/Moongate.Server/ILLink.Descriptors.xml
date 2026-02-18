@@ -35,6 +35,10 @@
         <type fullname="Moongate.Core.Persistence.*" preserve="all"/>
     </assembly>
 
+    <assembly fullname="Moongate.Server.Http">
+        <type fullname="Moongate.Server.Http.*" preserve="all"/>
+    </assembly>
+
 
     <assembly fullname="MoonSharp">
         <type fullname="MoonSharp.Interpreter.*" preserve="all"/>

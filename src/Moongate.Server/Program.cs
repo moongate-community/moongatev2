@@ -4,6 +4,7 @@ using Moongate.Core.Types;
 using Moongate.Core.Utils;
 using Moongate.Scripting.Context;
 using Moongate.Server.Bootstrap;
+using Moongate.Server.Json;
 using Moongate.UO.Data.Json.Converters;
 using Moongate.UO.Data.Json.Context;
 
@@ -26,6 +27,7 @@ await ConsoleApp.RunAsync(
         JsonUtils.AddJsonConverter(new SerialConverter());
 
         JsonUtils.RegisterJsonContext(MoongateUOJsonSerializationContext.Default);
+        JsonUtils.RegisterJsonContext(MoongateServerJsonContext.Default);
         JsonUtils.RegisterJsonContext(MoongateLuaScriptJsonContext.Default);
 
         var bootstrap = new MoongateBootstrap(
