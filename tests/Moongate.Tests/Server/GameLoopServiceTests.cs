@@ -1,4 +1,7 @@
 using Moongate.Server.Services;
+using Moongate.Network.Client;
+using Moongate.Server.Data.Packets;
+using Moongate.Server.Interfaces.Services;
 
 namespace Moongate.Tests.Server;
 
@@ -14,7 +17,8 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService()
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
 
         Assert.Multiple(
@@ -35,7 +39,8 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService()
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -61,7 +66,8 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService()
+            new TimerWheelService(),
+            new TestOutboundPacketSender()
         );
         await _service.StartAsync();
 
@@ -89,7 +95,8 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            timerService
+            timerService,
+            new TestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -126,5 +133,17 @@ public class GameLoopServiceTests
         }
 
         return condition();
+    }
+
+    private sealed class TestOutboundPacketSender : IOutboundPacketSender
+    {
+        public Task<bool> SendAsync(
+            MoongateTCPClient client,
+            OutgoingGamePacket outgoingPacket,
+            CancellationToken cancellationToken
+        )
+        {
+            return Task.FromResult(true);
+        }
     }
 }

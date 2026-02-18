@@ -1,9 +1,5 @@
 using System.Diagnostics;
 using Moongate.Abstractions.Services.Base;
-using Moongate.Network.Client;
-using Moongate.Network.Packets.Interfaces;
-using Moongate.Network.Spans;
-using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
 
@@ -16,6 +12,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private readonly IOutgoingPacketQueue _outgoingPacketQueue;
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
     private readonly ITimerService _timerService;
+    private readonly IOutboundPacketSender _outboundPacketSender;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
@@ -29,7 +26,8 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         IMessageBusService messageBusService,
         IOutgoingPacketQueue outgoingPacketQueue,
         IGameNetworkSessionService gameNetworkSessionService,
-        ITimerService timerService
+        ITimerService timerService,
+        IOutboundPacketSender outboundPacketSender
     )
     {
         _packetDispatchService = packetDispatchService;
@@ -37,6 +35,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         _outgoingPacketQueue = outgoingPacketQueue;
         _gameNetworkSessionService = gameNetworkSessionService;
         _timerService = timerService;
+        _outboundPacketSender = outboundPacketSender;
 
         _logger.Information(
             "GameLoopService initialized with tick interval of {TickInterval} ms",
@@ -109,14 +108,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
                 continue;
             }
 
-            var payload = SerializePacket(outgoingPacket.Packet);
-
-            if (payload.Length == 0)
-            {
-                continue;
-            }
-
-            _ = SendPacketSafeAsync(client, outgoingPacket, payload);
+            _ = _outboundPacketSender.SendAsync(client, outgoingPacket, _cancellationTokenSource.Token);
         }
     }
 
@@ -131,49 +123,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private void ProcessQueue()
     {
         DrainPacketQueue();
-        DrainOutgoingPacketQueue();
         _timerService.ProcessTick();
-    }
-
-    private async Task SendPacketSafeAsync(
-        MoongateTCPClient client,
-        OutgoingGamePacket outgoingPacket,
-        ReadOnlyMemory<byte> payload
-    )
-    {
-        try
-        {
-            await client.SendAsync(payload, _cancellationTokenSource.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected during shutdown.
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(
-                ex,
-                "Failed sending outbound packet 0x{OpCode:X2} to session {SessionId}.",
-                outgoingPacket.Packet.OpCode,
-                outgoingPacket.SessionId
-            );
-        }
-    }
-
-    private static byte[] SerializePacket(IGameNetworkPacket packet)
-    {
-        var initialCapacity = packet.Length > 0 ? packet.Length : 256;
-        var writer = new SpanWriter(initialCapacity, true);
-
-        try
-        {
-            packet.Write(ref writer);
-
-            return writer.ToArray();
-        }
-        finally
-        {
-            writer.Dispose();
-        }
+        DrainOutgoingPacketQueue();
     }
 }
