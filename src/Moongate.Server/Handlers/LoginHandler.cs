@@ -54,16 +54,7 @@ public class LoginHandler : BasePacketListener
         return true;
     }
 
-    private async Task<bool> HandleGameLoginPacketAsync(GameSession session, GameLoginPacket gameLoginPacket)
-    {
-        _logger.Information(
-            "Received GameLoginPacket from session {SessionId} with account name {AccountName}",
-            session.SessionId,
-            gameLoginPacket.AccountName
-        );
 
-        return true;
-    }
 
     private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
     {
@@ -109,6 +100,19 @@ public class LoginHandler : BasePacketListener
         //Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
 
         Enqueue(session, _serverListPacket);
+
+        return true;
+    }
+
+    private async Task<bool> HandleGameLoginPacketAsync(GameSession session, GameLoginPacket gameLoginPacket)
+    {
+        _logger.Information(
+            "Received GameLoginPacket from session {SessionId} with account name {AccountName}",
+            session.SessionId,
+            gameLoginPacket.AccountName
+        );
+
+        session.NetworkSession.EnableCompression();
 
         return true;
     }

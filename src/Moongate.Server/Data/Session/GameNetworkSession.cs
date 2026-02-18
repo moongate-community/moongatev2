@@ -1,4 +1,5 @@
 using Moongate.Network.Client;
+using Moongate.UO.Data.Middlewares;
 
 namespace Moongate.Server.Data.Session;
 
@@ -85,6 +86,7 @@ public sealed class GameNetworkSession
         lock (_stateSync)
         {
             CompressionEnabled = false;
+            Client.RemoveMiddleware<CompressionMiddleware>();
         }
     }
 
@@ -107,6 +109,11 @@ public sealed class GameNetworkSession
         lock (_stateSync)
         {
             CompressionEnabled = true;
+
+            if (!Client.ContainsMiddleware<CompressionMiddleware>())
+            {
+                Client.AddMiddleware(new CompressionMiddleware());
+            }
         }
     }
 
