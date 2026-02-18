@@ -2,7 +2,7 @@ namespace Moongate.Server.Data.Config;
 
 public class MoongateHttpConfig
 {
-    public bool IsHttpEnabled { get; set; } = true;
+    public bool IsEnabled { get; set; } = true;
 
     public int Port { get; set; } = 8088;
 

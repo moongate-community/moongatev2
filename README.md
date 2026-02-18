@@ -37,6 +37,8 @@ The project is actively in development and already includes:
 - Session split between transport (`GameNetworkSession`) and gameplay/protocol context (`GameSession`).
 - Unit tests for core server behaviors and packet infrastructure.
 - Lua scripting runtime with module/function binding and `.luarc` generation support.
+- Embedded HTTP host (`Moongate.Server.Http`) for health/admin endpoints and OpenAPI/Scalar docs.
+- Dedicated HTTP rolling logs in the shared logs directory (`moongate_http-*.log`).
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-17.md`.
 
@@ -49,6 +51,7 @@ For a detailed internal status snapshot, see `docs/plans/status-2026-02-17.md`.
 - `src/Moongate.Core`: shared low-level utilities.
 - `src/Moongate.Network`: TCP/network primitives.
 - `src/Moongate.Scripting`: Lua engine service, script modules, script loaders, and scripting helpers.
+- `src/Moongate.Server.Http`: embedded ASP.NET Core host service used by the server bootstrap.
 - `tests/Moongate.Tests`: unit tests.
 - `docs/`: Obsidian knowledge base (plans, sprints, protocol notes, journal).
 
@@ -66,6 +69,16 @@ dotnet run --project src/Moongate.Server
 ```
 
 By default, the server starts with packet data logging enabled in `Program.cs`.
+
+HTTP service defaults:
+
+- `Http.IsEnabled = true`
+- `Http.Port = 8088`
+- `Http.IsOpenApiEnabled = true`
+- Base endpoint: `/`
+- Health endpoint: `/health`
+- OpenAPI JSON: `/openapi/v1.json`
+- Scalar UI: `/scalar`
 
 ## Scripting
 

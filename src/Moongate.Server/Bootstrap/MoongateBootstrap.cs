@@ -15,6 +15,8 @@ using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
 using Moongate.Server.Data.Config;
 using Moongate.Server.FileLoaders;
+using Moongate.Server.Http;
+using Moongate.Server.Http.Interfaces;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services;
@@ -46,9 +48,34 @@ public sealed class MoongateBootstrap : IDisposable
         EnsureDataAssets();
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
 
+        RegisterHttpServer();
         RegisterScriptModules();
         RegisterServices();
         RegisterFileLoaders();
+    }
+
+    private void RegisterHttpServer()
+    {
+        if (_moongateConfig.Http.IsEnabled)
+        {
+            _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
+            _logger.Information("HTTP Server enabled.");
+
+            var httpServiceOptions = new MoongateHttpServiceOptions()
+            {
+                DirectoriesConfig = _directoriesConfig,
+                IsOpenApiEnabled = _moongateConfig.Http.IsOpenApiEnabled,
+                Port = _moongateConfig.Http.Port,
+                ServiceMappings = null,
+                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel()
+            };
+
+            _container.RegisterInstance(httpServiceOptions);
+        }
+        else
+        {
+            _logger.Information("HTTP Server disabled.");
+        }
     }
 
     private void CheckConfig()
