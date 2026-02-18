@@ -4,7 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <Description>Core abstractions and contracts used across Moongate services.</Description>
     </PropertyGroup>
 
