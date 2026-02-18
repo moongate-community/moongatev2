@@ -13,7 +13,8 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService()
         );
 
         Assert.Multiple(
@@ -33,7 +34,8 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService()
         );
 
         await _service.StartAsync();
@@ -58,7 +60,8 @@ public class GameLoopServiceTests
             new PacketDispatchService(),
             new MessageBusService(),
             new OutgoingPacketQueue(),
-            new GameNetworkSessionService()
+            new GameNetworkSessionService(),
+            new TimerWheelService()
         );
         await _service.StartAsync();
 
@@ -71,6 +74,29 @@ public class GameLoopServiceTests
         await Task.Delay(500);
 
         Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+    }
+
+    [Test]
+    public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
+    {
+        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
+        var fired = 0;
+
+        timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
+
+        _service = new(
+            new PacketDispatchService(),
+            new MessageBusService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            timerService
+        );
+
+        await _service.StartAsync();
+
+        var timerFired = await WaitUntilAsync(() => Volatile.Read(ref fired) > 0, TimeSpan.FromSeconds(2));
+
+        Assert.That(timerFired, Is.True, "Timer callback was not executed by game loop processing.");
     }
 
     [TearDown]

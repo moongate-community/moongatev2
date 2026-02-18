@@ -15,6 +15,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private readonly IMessageBusService _messageBusService;
     private readonly IOutgoingPacketQueue _outgoingPacketQueue;
     private readonly IGameNetworkSessionService _gameNetworkSessionService;
+    private readonly ITimerService _timerService;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(250);
@@ -27,13 +28,15 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         IPacketDispatchService packetDispatchService,
         IMessageBusService messageBusService,
         IOutgoingPacketQueue outgoingPacketQueue,
-        IGameNetworkSessionService gameNetworkSessionService
+        IGameNetworkSessionService gameNetworkSessionService,
+        ITimerService timerService
     )
     {
         _packetDispatchService = packetDispatchService;
         _messageBusService = messageBusService;
         _outgoingPacketQueue = outgoingPacketQueue;
         _gameNetworkSessionService = gameNetworkSessionService;
+        _timerService = timerService;
 
         _logger.Information(
             "GameLoopService initialized with tick interval of {TickInterval} ms",
@@ -129,6 +132,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     {
         DrainPacketQueue();
         DrainOutgoingPacketQueue();
+        _timerService.ProcessTick();
     }
 
     private async Task SendPacketSafeAsync(

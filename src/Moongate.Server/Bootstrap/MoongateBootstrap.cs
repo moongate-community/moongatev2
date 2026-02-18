@@ -174,7 +174,7 @@ public sealed class MoongateBootstrap : IDisposable
                 );
             }
 
-            _logger.Information("Starting {ServiceTypeFullName}", serviceRegistration.ServiceType.Name);
+            _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
             await instance.StartAsync();
             runningServices.Add(instance);
         }
@@ -252,9 +252,11 @@ public sealed class MoongateBootstrap : IDisposable
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
+        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);
         _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
+        _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
         _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
     }
 
