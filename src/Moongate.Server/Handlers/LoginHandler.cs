@@ -1,9 +1,11 @@
+using System.Net;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Listeners.Base;
+using Moongate.UO.Data.Packets.Data;
 using Moongate.UO.Data.Types;
 using Serilog;
 
@@ -13,7 +15,20 @@ public class LoginHandler : BasePacketListener
 {
     private readonly ILogger _logger = Log.ForContext<LoginHandler>();
 
-    public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue) : base(outgoingPacketQueue) { }
+    private readonly ServerListPacket _serverListPacket;
+
+    public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue) : base(outgoingPacketQueue)
+    {
+        _serverListPacket = new ServerListPacket();
+        _serverListPacket.Shards.Add(
+            new GameServerEntry()
+            {
+                Index = 0,
+                IpAddress = IPAddress.Parse("127.0.0.1"),
+                ServerName = "Moongate",
+            }
+        );
+    }
 
     protected override async Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet)
     {
@@ -26,6 +41,32 @@ public class LoginHandler : BasePacketListener
         {
             return await HandleAccountLoginPacketAsync(session, accountLoginPacket);
         }
+
+        if (packet is ServerSelectPacket serverSelectPacket)
+        {
+            return await HandleServerSelectPacketAsync(session, serverSelectPacket);
+        }
+
+        return true;
+    }
+
+    private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
+    {
+        var selectedIndex = serverSelectPacket.SelectedServerIndex;
+        var selectedShard = _serverListPacket.Shards[selectedIndex];
+
+        var sessionKey = new Random().Next();
+
+        var connectToServer = new ServerRedirectPacket()
+        {
+            IPAddress = selectedShard.IpAddress,
+            Port = 2593,
+            SessionKey = (uint)sessionKey
+        };
+
+        session.NetworkSession.SetSeed((uint)sessionKey);
+
+        Enqueue(session, connectToServer);
 
         return true;
     }
@@ -50,7 +91,9 @@ public class LoginHandler : BasePacketListener
             accountLoginPacket.Account
         );
 
-        Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+        //Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+
+        Enqueue(session, _serverListPacket);
 
         return true;
     }

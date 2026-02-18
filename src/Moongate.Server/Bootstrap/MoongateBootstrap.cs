@@ -73,6 +73,7 @@ public sealed class MoongateBootstrap : IDisposable
     {
         RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
         RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
     }
 
     private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener
@@ -179,8 +180,12 @@ public sealed class MoongateBootstrap : IDisposable
     {
         if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
         {
-            _logger.Error("UO Directory not configured.");
+            _moongateConfig.UODirectory = Environment.GetEnvironmentVariable("MOONGATE_UO_DIRECTORY");
+        }
 
+        if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
+        {
+            _logger.Error("UO Directory not configured. Set --uoDirectory or MOONGATE_UO_DIRECTORY.");
             throw new InvalidOperationException("UO Directory not configured.");
         }
 

@@ -133,11 +133,12 @@ public class NetworkServiceTests
     {
         var messageBus = new TestMessageBusService();
         var eventBus = new TestGameEventBusService();
+        var sessions = new GameNetworkSessionService();
         using var service = new NetworkService(
             messageBus,
             eventBus,
             new PacketDispatchService(),
-            new GameNetworkSessionService(),
+            sessions,
             new()
             {
                 RootDirectory = Path.GetTempPath(),
@@ -146,6 +147,13 @@ public class NetworkServiceTests
             }
         );
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+
+        // Seed can arrive fragmented on reconnect (4 bytes).
+        InvokeOnClientData(service, client, [0x12, 0x34]);
+        Assert.That(service.TryDequeueParsedPacket(out _), Is.False);
+
+        InvokeOnClientData(service, client, [0x56, 0x78]);
+        Assert.That(service.TryDequeueParsedPacket(out _), Is.False);
 
         InvokeOnClientData(service, client, [0xAD, 0x00]);
 
@@ -163,6 +171,51 @@ public class NetworkServiceTests
                 Assert.That(packet.Packet, Is.TypeOf<UnicodeSpeechPacket>());
                 Assert.That(messageBus.Packets.Count, Is.EqualTo(1));
                 Assert.That(messageBus.Packets[0].Packet, Is.TypeOf<UnicodeSpeechPacket>());
+                Assert.That(sessions.TryGet(client.SessionId, out var session), Is.True);
+                Assert.That(session.NetworkSession.Seed, Is.EqualTo(0x12345678u));
+            }
+        );
+    }
+
+    [Test]
+    public void OnClientData_WhenReconnectSeedAndGameLoginAreInSameBuffer_ShouldParseGameLoginPacket()
+    {
+        var messageBus = new TestMessageBusService();
+        var eventBus = new TestGameEventBusService();
+        var sessions = new GameNetworkSessionService();
+        using var service = new NetworkService(
+            messageBus,
+            eventBus,
+            new PacketDispatchService(),
+            sessions,
+            new()
+            {
+                RootDirectory = Path.GetTempPath(),
+                LogLevel = LogLevelType.Debug,
+                LogPacketData = false
+            }
+        );
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+
+        var payload = new byte[69];
+        payload[0] = 0x11;
+        payload[1] = 0x22;
+        payload[2] = 0x33;
+        payload[3] = 0x44;
+        payload[4] = 0x91;
+
+        InvokeOnClientData(service, client, payload);
+
+        var dequeued = service.TryDequeueParsedPacket(out var packet);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(dequeued, Is.True);
+                Assert.That(packet.PacketId, Is.EqualTo(0x91));
+                Assert.That(packet.Packet, Is.TypeOf<GameLoginPacket>());
+                Assert.That(sessions.TryGet(client.SessionId, out var session), Is.True);
+                Assert.That(session.NetworkSession.Seed, Is.EqualTo(0x11223344u));
             }
         );
     }
