@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.2.0"></a>
+## [0.2.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.2.0) (2026-02-17)
+
+### Features
+
+* **server:** bootstrap bundled data assets into data directory ([2929ce1](https://www.github.com/moongate-community/moongatev2/commit/2929ce1f1a62a64947733a8312f04b150d2a6efc))
+* **server:** wire UO file loaders and typed json context ([07551a2](https://www.github.com/moongate-community/moongatev2/commit/07551a2f200a882169af7e588d558a34358da63b))
+
+### Bug Fixes
+
+* **server:** resolve default root directory from app base path ([7aaa217](https://www.github.com/moongate-community/moongatev2/commit/7aaa21719dc5b834476369d2ef827de71b9a1487))
+
 <a name="0.1.0"></a>
 ## [0.1.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.1.0) (2026-02-17)
 
