@@ -8,7 +8,7 @@ public struct Tile : IComparable
     internal ushort m_ID;
     internal sbyte m_Z;
 
-    public ushort ID => m_ID;
+    public readonly ushort ID => m_ID;
 
     public int Z
     {
@@ -28,7 +28,7 @@ public struct Tile : IComparable
         m_Z = z;
     }
 
-    public int CompareTo(object x)
+    public readonly int CompareTo(object x)
     {
         if (x == null)
         {

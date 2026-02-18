@@ -6,6 +6,7 @@ using Moongate.Scripting.Data.Internal;
 using Moongate.Scripting.Data.Scripts;
 using Moongate.Scripting.Modules;
 using Moongate.Scripting.Services;
+using Moongate.Tests.TestSupport;
 
 namespace Moongate.Tests.Scripting;
 
@@ -152,28 +153,5 @@ public class LuaScriptEngineServiceTests
             new LuaEngineConfig(luarcDir, scriptsDir, "0.1.0"),
             []
         );
-    }
-
-    private sealed class TempDirectory : IDisposable
-    {
-        public TempDirectory()
-        {
-            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "moongate-tests-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Path);
-        }
-
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(Path, true);
-            }
-            catch
-            {
-                // best-effort temp cleanup
-            }
-        }
     }
 }

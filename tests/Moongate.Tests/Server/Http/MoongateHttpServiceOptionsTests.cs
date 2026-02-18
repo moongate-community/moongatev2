@@ -1,6 +1,8 @@
 using Moongate.Core.Data.Directories;
 using Moongate.Core.Types;
 using Moongate.Server.Http;
+using Moongate.Tests.Server.Http.Support;
+using Moongate.Tests.TestSupport;
 
 namespace Moongate.Tests.Server.Http;
 
@@ -51,7 +53,10 @@ public class MoongateHttpServiceOptionsTests
             () => _ = new MoongateHttpService(
                 new MoongateHttpServiceOptions
                 {
-                    ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } }
+                    ServiceMappings = new Dictionary<Type, Type>
+                    {
+                        { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                    }
                 }
             )
         );
@@ -69,7 +74,10 @@ public class MoongateHttpServiceOptionsTests
             () => _ = new MoongateHttpService(
                 new MoongateHttpServiceOptions
                 {
-                    ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
+                    ServiceMappings = new Dictionary<Type, Type>
+                    {
+                        { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                    },
                     DirectoriesConfig = directories,
                     Port = 0
                 }
@@ -88,7 +96,10 @@ public class MoongateHttpServiceOptionsTests
         var instance = new MoongateHttpService(
             new MoongateHttpServiceOptions
             {
-                ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
+                ServiceMappings = new Dictionary<Type, Type>
+                {
+                    { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                },
                 DirectoriesConfig = directories,
                 Port = 8088
             }
@@ -106,7 +117,10 @@ public class MoongateHttpServiceOptionsTests
         var instance = new MoongateHttpService(
             new MoongateHttpServiceOptions
             {
-                ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
+                ServiceMappings = new Dictionary<Type, Type>
+                {
+                    { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                },
                 DirectoriesConfig = directories,
                 ConfigureApp = null
             }
@@ -115,30 +129,4 @@ public class MoongateHttpServiceOptionsTests
         Assert.That(instance, Is.Not.Null);
     }
 
-    private interface IDummyService;
-
-    private sealed class DummyService : IDummyService;
-
-    private sealed class TempDirectory : IDisposable
-    {
-        public TempDirectory()
-        {
-            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "moongate-tests-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Path);
-        }
-
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(Path, true);
-            }
-            catch
-            {
-                // best-effort temp cleanup
-            }
-        }
-    }
 }

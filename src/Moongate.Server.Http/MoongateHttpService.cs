@@ -69,9 +69,23 @@ public sealed class MoongateHttpService : IMoongateHttpService
         var app = builder.Build();
         app.UseSerilogRequestLogging();
 
-        app.MapGet("/", () => "Moongate HTTP Service is running.");
+        app.MapGet(
+            "/",
+            static async context =>
+            {
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync("Moongate HTTP Service is running.");
+            }
+        );
 
-        app.MapGet("/health", () => Results.Ok("ok"));
+        app.MapGet(
+            "/health",
+            static async context =>
+            {
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync("ok");
+            }
+        );
 
         if (_isOpenApiEnabled)
         {

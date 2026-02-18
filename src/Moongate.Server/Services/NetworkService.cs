@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using Moongate.Network.Client;
 using Moongate.Network.Events;
 using Moongate.Network.Packets.Data.Packets;
 using Moongate.Network.Packets.Registry;
@@ -10,6 +11,7 @@ using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Server;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Events;
+using Moongate.Server.Data.Internal.Network;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Listener;
@@ -20,6 +22,10 @@ namespace Moongate.Server.Services;
 
 public class NetworkService : INetworkService
 {
+    private const int MaxPendingBufferBytes = 64 * 1024;
+    private const int MaxDeclaredPacketLength = 16 * 1024;
+    private const int MaxProtocolViolationsPerSession = 32;
+
     private readonly ILogger _logger = Log.ForContext<NetworkService>();
     private readonly ILogger _packetDataLogger = Log.ForContext<NetworkService>().ForContext("PacketData", true);
     private readonly IMessageBusService _messageBusService;
@@ -32,6 +38,7 @@ public class NetworkService : INetworkService
 
     private readonly PacketRegistry _packetRegistry = new();
     private readonly ConcurrentQueue<IncomingGamePacket> _parsedPackets = new();
+    private readonly ConcurrentDictionary<long, NetworkParserSessionMetrics> _parserMetrics = new();
 
     public IReadOnlyCollection<IncomingGamePacket> ParsedPackets => _parsedPackets.ToArray();
 
@@ -168,6 +175,7 @@ public class NetworkService : INetworkService
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
 
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
+        _parserMetrics.TryAdd(session.SessionId, new());
         session.NetworkSession.SetState(NetworkSessionState.AwaitingSeed);
         _ = PublishEventSafeAsync(
             new PlayerConnectedEvent(
@@ -186,11 +194,27 @@ public class NetworkService : INetworkService
         }
 
         var session = _gameNetworkSessionService.GetOrCreate(e.Client);
+        var metrics = _parserMetrics.GetOrAdd(session.SessionId, _ => new());
+        metrics.AddReceivedBytes(e.Data.Length);
         session.NetworkSession.WithPendingBytesLock(
             pendingBytes =>
             {
                 pendingBytes.AddRange(e.Data.Span.ToArray());
-                ParseAvailablePackets(pendingBytes, session);
+
+                if (pendingBytes.Count > MaxPendingBufferBytes)
+                {
+                    metrics.IncrementPendingBufferOverflows();
+                    DisconnectSession(
+                        session,
+                        $"Pending buffer exceeded limit ({pendingBytes.Count} > {MaxPendingBufferBytes}).",
+                        metrics,
+                        pendingBytes
+                    );
+
+                    return;
+                }
+
+                ParseAvailablePackets(pendingBytes, session, metrics);
             }
         );
     }
@@ -206,6 +230,21 @@ public class NetworkService : INetworkService
         }
 
         _gameNetworkSessionService.Remove(e.Client.SessionId);
+        if (_parserMetrics.TryRemove(e.Client.SessionId, out var metrics))
+        {
+            _logger.Information(
+                "Session {SessionId} parser metrics: ReceivedBytes={ReceivedBytes}, ParsedPackets={ParsedPackets}, UnknownOpcodeDrops={UnknownOpcodeDrops}, InvalidLengthDrops={InvalidLengthDrops}, ParseFailures={ParseFailures}, ProtocolViolations={ProtocolViolations}, PendingBufferOverflows={PendingBufferOverflows}",
+                e.Client.SessionId,
+                metrics.ReceivedBytes,
+                metrics.ParsedPackets,
+                metrics.UnknownOpcodeDrops,
+                metrics.InvalidLengthDrops,
+                metrics.ParseFailures,
+                metrics.ProtocolViolations,
+                metrics.PendingBufferOverflows
+            );
+        }
+
         _ = PublishEventSafeAsync(
             new PlayerDisconnectedEvent(
                 e.Client.SessionId,
@@ -222,7 +261,8 @@ public class NetworkService : INetworkService
 
     private void ParseAvailablePackets(
         List<byte> pendingBytes,
-        GameSession session
+        GameSession session,
+        NetworkParserSessionMetrics metrics
     )
     {
         while (pendingBytes.Count > 0)
@@ -241,12 +281,22 @@ public class NetworkService : INetworkService
 
             if (!_packetRegistry.TryGetDescriptor(opCode, out var descriptor))
             {
+                metrics.IncrementUnknownOpcodeDrops();
                 _logger.Warning(
                     "Unknown packet opcode 0x{OpCode:X2} for session {SessionId}. Dropping 1 byte.",
                     opCode,
                     session.SessionId
                 );
                 pendingBytes.RemoveAt(0);
+                if (HandleProtocolViolation(
+                        session,
+                        $"Unknown opcode 0x{opCode:X2}.",
+                        metrics,
+                        pendingBytes
+                    ))
+                {
+                    break;
+                }
 
                 continue;
             }
@@ -261,6 +311,7 @@ public class NetworkService : INetworkService
             if (expectedLength <= 0)
             {
                 var bytesToDrop = descriptor.Sizing == PacketSizing.Variable && pendingBytes.Count >= 3 ? 3 : 1;
+                metrics.IncrementInvalidLengthDrops();
                 _logger.Warning(
                     "Invalid packet length {Length} for opcode 0x{OpCode:X2}. Dropping {BytesToDrop} byte(s).",
                     expectedLength,
@@ -268,6 +319,40 @@ public class NetworkService : INetworkService
                     bytesToDrop
                 );
                 pendingBytes.RemoveRange(0, bytesToDrop);
+                if (HandleProtocolViolation(
+                        session,
+                        $"Invalid packet length {expectedLength} for opcode 0x{opCode:X2}.",
+                        metrics,
+                        pendingBytes
+                    ))
+                {
+                    break;
+                }
+
+                continue;
+            }
+
+            if (expectedLength > MaxDeclaredPacketLength)
+            {
+                var bytesToDrop = descriptor.Sizing == PacketSizing.Variable && pendingBytes.Count >= 3 ? 3 : 1;
+                metrics.IncrementInvalidLengthDrops();
+                _logger.Warning(
+                    "Packet length {Length} exceeds limit {Limit} for opcode 0x{OpCode:X2}. Dropping {BytesToDrop} byte(s).",
+                    expectedLength,
+                    MaxDeclaredPacketLength,
+                    opCode,
+                    bytesToDrop
+                );
+                pendingBytes.RemoveRange(0, bytesToDrop);
+                if (HandleProtocolViolation(
+                        session,
+                        $"Packet length {expectedLength} exceeds limit {MaxDeclaredPacketLength}.",
+                        metrics,
+                        pendingBytes
+                    ))
+                {
+                    break;
+                }
 
                 continue;
             }
@@ -301,11 +386,21 @@ public class NetworkService : INetworkService
 
             if (!packet.TryParse(rawPacket))
             {
+                metrics.IncrementParseFailures();
                 _logger.Warning(
                     "Failed to parse packet 0x{OpCode:X2} for session {SessionId}.",
                     opCode,
                     session.SessionId
                 );
+                if (HandleProtocolViolation(
+                        session,
+                        $"Parse failure for opcode 0x{opCode:X2}.",
+                        metrics,
+                        pendingBytes
+                    ))
+                {
+                    break;
+                }
 
                 continue;
             }
@@ -319,6 +414,7 @@ public class NetworkService : INetworkService
 
             _parsedPackets.Enqueue(gamePacket);
             _messageBusService.PublishIncomingPacket(gamePacket);
+            metrics.IncrementParsedPackets();
             _logger.Information("Received packet 0x{OpCode:X2} from session {SessionId}", opCode, session.SessionId);
         }
     }
@@ -400,6 +496,78 @@ public class NetworkService : INetworkService
         return BinaryPrimitives.ReadUInt16BigEndian(lengthBuffer);
     }
 
+    private bool HandleProtocolViolation(
+        GameSession session,
+        string reason,
+        NetworkParserSessionMetrics metrics,
+        List<byte>? pendingBytes = null
+    )
+    {
+        var violations = metrics.IncrementProtocolViolations();
+        _logger.Warning(
+            "Protocol violation for session {SessionId}: {Reason} ({Violations}/{Limit}).",
+            session.SessionId,
+            reason,
+            violations,
+            MaxProtocolViolationsPerSession
+        );
+
+        if (violations < MaxProtocolViolationsPerSession)
+        {
+            return false;
+        }
+
+        DisconnectSession(
+            session,
+            $"Protocol violations limit reached ({violations}/{MaxProtocolViolationsPerSession}).",
+            metrics,
+            pendingBytes
+        );
+
+        return true;
+    }
+
+    private void DisconnectSession(
+        GameSession session,
+        string reason,
+        NetworkParserSessionMetrics metrics,
+        List<byte>? pendingBytes = null
+    )
+    {
+        _logger.Warning(
+            "Disconnecting session {SessionId}. Reason: {Reason}. Metrics: ReceivedBytes={ReceivedBytes}, ParsedPackets={ParsedPackets}, UnknownOpcodeDrops={UnknownOpcodeDrops}, InvalidLengthDrops={InvalidLengthDrops}, ParseFailures={ParseFailures}, ProtocolViolations={ProtocolViolations}, PendingBufferOverflows={PendingBufferOverflows}",
+            session.SessionId,
+            reason,
+            metrics.ReceivedBytes,
+            metrics.ParsedPackets,
+            metrics.UnknownOpcodeDrops,
+            metrics.InvalidLengthDrops,
+            metrics.ParseFailures,
+            metrics.ProtocolViolations,
+            metrics.PendingBufferOverflows
+        );
+
+        pendingBytes?.Clear();
+        session.NetworkSession.SetState(NetworkSessionState.Disconnecting);
+
+        if (session.NetworkSession.Client is { } client)
+        {
+            _ = CloseClientSafeAsync(client, session.SessionId);
+        }
+    }
+
+    private async Task CloseClientSafeAsync(MoongateTCPClient client, long sessionId)
+    {
+        try
+        {
+            await client.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to close client for session {SessionId}", sessionId);
+        }
+    }
+
     private void ShowRegisteredPackets()
     {
         _logger.Information("Registered packets: {Count}", _packetRegistry.RegisteredPackets.Count);
@@ -416,4 +584,5 @@ public class NetworkService : INetworkService
             );
         }
     }
+
 }

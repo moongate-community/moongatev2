@@ -2,16 +2,16 @@ using System.Net.Sockets;
 using Moongate.Server.Services;
 using Moongate.Network.Client;
 using Moongate.Network.Packets.Interfaces;
-using Moongate.Network.Spans;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
-using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class GameLoopServiceTests
 {
+    private static readonly int[] ExpectedDispatchSequence = [1, 2, 3];
     private GameLoopService? _service;
 
     [Test]
@@ -23,7 +23,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             new TimerWheelService(),
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
 
         Assert.Multiple(
@@ -45,7 +45,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             new TimerWheelService(),
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -72,7 +72,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             new TimerWheelService(),
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
         await _service.StartAsync();
 
@@ -101,7 +101,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             timerService,
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -116,14 +116,14 @@ public class GameLoopServiceTests
     {
         var messageBus = new MessageBusService();
         var packetDispatch = new PacketDispatchService();
-        var listener = new RecordingPacketListener();
+        var listener = new GameLoopRecordingPacketListener();
         packetDispatch.AddPacketListener(0xAA, listener);
 
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = new GameSession(new GameNetworkSession(client));
-        messageBus.PublishIncomingPacket(new(session, 0xAA, new TestPacket(0xAA, 1), 1));
-        messageBus.PublishIncomingPacket(new(session, 0xAA, new TestPacket(0xAA, 2), 2));
-        messageBus.PublishIncomingPacket(new(session, 0xAA, new TestPacket(0xAA, 3), 3));
+        messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 1), 1));
+        messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 2), 2));
+        messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 3), 3));
 
         _service = new(
             packetDispatch,
@@ -131,7 +131,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             new TimerWheelService(),
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -141,7 +141,7 @@ public class GameLoopServiceTests
             () =>
             {
                 Assert.That(drained, Is.True, "Packet queue was not drained in time.");
-                Assert.That(listener.Sequences, Is.EqualTo(new[] { 1, 2, 3 }));
+                Assert.That(listener.Sequences, Is.EqualTo(ExpectedDispatchSequence));
             }
         );
     }
@@ -151,13 +151,13 @@ public class GameLoopServiceTests
     {
         var messageBus = new MessageBusService();
         var packetDispatch = new PacketDispatchService();
-        var successfulListener = new RecordingPacketListener();
-        packetDispatch.AddPacketListener(0xAB, new ThrowingPacketListener());
+        var successfulListener = new GameLoopRecordingPacketListener();
+        packetDispatch.AddPacketListener(0xAB, new GameLoopThrowingPacketListener());
         packetDispatch.AddPacketListener(0xAB, successfulListener);
 
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = new GameSession(new GameNetworkSession(client));
-        messageBus.PublishIncomingPacket(new(session, 0xAB, new TestPacket(0xAB, 42), 1));
+        messageBus.PublishIncomingPacket(new(session, 0xAB, new GameLoopTestPacket(0xAB, 42), 1));
 
         _service = new(
             packetDispatch,
@@ -165,7 +165,7 @@ public class GameLoopServiceTests
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
             new TimerWheelService(),
-            new TestOutboundPacketSender()
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -187,8 +187,8 @@ public class GameLoopServiceTests
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = sessions.GetOrCreate(client);
         var outgoingQueue = new OutgoingPacketQueue();
-        var sender = new TestOutboundPacketSender();
-        outgoingQueue.Enqueue(session.SessionId, new TestPacket(0x20, 0));
+        var sender = new GameLoopTestOutboundPacketSender();
+        outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x20, 0));
 
         _service = new(
             new PacketDispatchService(),
@@ -241,57 +241,4 @@ public class GameLoopServiceTests
         return condition();
     }
 
-    private sealed class TestPacket : IGameNetworkPacket
-    {
-        public TestPacket(byte opCode, int sequence)
-        {
-            OpCode = opCode;
-            Sequence = sequence;
-        }
-
-        public int Sequence { get; }
-        public byte OpCode { get; }
-        public int Length => 1;
-
-        public bool TryParse(ReadOnlySpan<byte> data)
-            => true;
-
-        public void Write(ref SpanWriter writer) { }
-    }
-
-    private sealed class RecordingPacketListener : IPacketListener
-    {
-        public List<int> Sequences { get; } = [];
-
-        public Task<bool> HandlePacketAsync(GameSession session, IGameNetworkPacket packet)
-        {
-            if (packet is TestPacket testPacket)
-            {
-                Sequences.Add(testPacket.Sequence);
-            }
-
-            return Task.FromResult(true);
-        }
-    }
-
-    private sealed class ThrowingPacketListener : IPacketListener
-    {
-        public Task<bool> HandlePacketAsync(GameSession session, IGameNetworkPacket packet)
-            => throw new InvalidOperationException("listener failure");
-    }
-
-    private sealed class TestOutboundPacketSender : IOutboundPacketSender
-    {
-        public List<OutgoingGamePacket> SentPackets { get; } = [];
-
-        public Task<bool> SendAsync(
-            MoongateTCPClient client,
-            OutgoingGamePacket outgoingPacket,
-            CancellationToken cancellationToken
-        )
-        {
-            SentPackets.Add(outgoingPacket);
-            return Task.FromResult(true);
-        }
-    }
 }

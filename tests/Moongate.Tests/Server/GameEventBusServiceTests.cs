@@ -1,45 +1,17 @@
 using Moongate.Server.Data.Events;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class GameEventBusServiceTests
 {
-    private sealed class TrackingAllEventsListener : IGameEventListener<IGameEvent>
-    {
-        public List<IGameEvent> Received { get; } = [];
-
-        public Task HandleAsync(IGameEvent gameEvent, CancellationToken cancellationToken = default)
-        {
-            Received.Add(gameEvent);
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class TrackingConnectedListener : IGameEventListener<PlayerConnectedEvent>
-    {
-        public List<PlayerConnectedEvent> Received { get; } = [];
-
-        public Task HandleAsync(PlayerConnectedEvent gameEvent, CancellationToken cancellationToken = default)
-        {
-            Received.Add(gameEvent);
-
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class FailingConnectedListener : IGameEventListener<PlayerConnectedEvent>
-    {
-        public Task HandleAsync(PlayerConnectedEvent gameEvent, CancellationToken cancellationToken = default)
-            => Task.FromException(new InvalidOperationException("listener failure"));
-    }
-
     [Test]
     public async Task PublishAsync_ShouldNotifyRegisteredListeners()
     {
         var bus = new GameEventBusService();
-        var listener = new TrackingConnectedListener();
+        var listener = new GameEventBusTrackingConnectedListener();
         var gameEvent = new PlayerConnectedEvent(42, "127.0.0.1:2593", 123);
 
         bus.RegisterListener(listener);
@@ -53,8 +25,8 @@ public class GameEventBusServiceTests
     public async Task PublishAsync_WhenOneListenerFails_ShouldContinueOtherListeners()
     {
         var bus = new GameEventBusService();
-        var failing = new FailingConnectedListener();
-        var tracking = new TrackingConnectedListener();
+        var failing = new GameEventBusFailingConnectedListener();
+        var tracking = new GameEventBusTrackingConnectedListener();
 
         bus.RegisterListener(failing);
         bus.RegisterListener(tracking);
@@ -69,7 +41,7 @@ public class GameEventBusServiceTests
     public async Task PublishAsync_WhenGlobalListenerRegistered_ShouldReceiveAllEvents()
     {
         var bus = new GameEventBusService();
-        var allEventsListener = new TrackingAllEventsListener();
+        var allEventsListener = new GameEventBusTrackingAllEventsListener();
 
         bus.RegisterListener<IGameEvent>(allEventsListener);
 

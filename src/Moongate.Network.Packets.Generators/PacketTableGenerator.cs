@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Moongate.Network.Packets.Generators.Data.Internal;
 
 namespace Moongate.Network.Packets.Generators;
 
@@ -11,26 +12,6 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
 {
     private const string PacketHandlerAttributeName = "Moongate.Network.Packets.Attributes.PacketHandlerAttribute";
     private const string PacketSizingTypeName = "Moongate.Network.Packets.Types.Packets.PacketSizing";
-
-    private sealed class PacketModel
-    {
-        public string TypeName { get; }
-        public string PacketName { get; }
-        public byte OpCode { get; }
-        public bool IsFixed { get; }
-        public int Length { get; }
-        public string? Description { get; }
-
-        public PacketModel(string typeName, string packetName, byte opCode, bool isFixed, int length, string? description)
-        {
-            TypeName = typeName;
-            PacketName = packetName;
-            OpCode = opCode;
-            IsFixed = isFixed;
-            Length = length;
-            Description = description;
-        }
-    }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {

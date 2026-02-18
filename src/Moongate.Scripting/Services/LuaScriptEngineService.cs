@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using DryIoc;
 using Moongate.Core.Data.Directories;
@@ -780,7 +781,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     /// Creates a factory function that dynamically invokes the correct constructor.
     /// Uses reflection to find the constructor matching the number of arguments passed from Lua.
     /// </summary>
-    private Func<dynamic, dynamic, dynamic, dynamic, dynamic> CreateConstructorWrapper(
+    private Func<object?, object?, object?, object?, object?> CreateConstructorWrapper(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
     )
     {
@@ -797,7 +798,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         return (arg1, arg2, arg3, arg4) =>
                {
                    // Collect arguments
-                   var rawArgs = new List<object>();
+                   var rawArgs = new List<object?>();
 
                    if (arg1 != null)
                    {
@@ -828,7 +829,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
                        {
                            // Convert arguments to match constructor parameter types
                            var parameters = ctor.GetParameters();
-                           var convertedArgs = new object[argCount];
+                           var convertedArgs = new object?[argCount];
 
                            for (var i = 0; i < argCount; i++)
                            {
@@ -947,6 +948,11 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         return errorInfo;
     }
 
+    [UnconditionalSuppressMessage(
+        "Aot",
+        "IL3050",
+        Justification = "Lua params-array conversion requires runtime element type resolution by reflection."
+    )]
     private DynValue CreateMethodClosure(object instance, MethodInfo method)
     {
         return DynValue.NewCallback(
@@ -1261,7 +1267,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             }
         };
 
-        return JsonUtils.Serialize(luarcConfig);
+        return JsonSerializer.Serialize(luarcConfig, MoongateLuaScriptJsonContext.Default.LuarcConfig);
     }
 
     /// <summary>

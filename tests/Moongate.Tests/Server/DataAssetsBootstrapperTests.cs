@@ -1,4 +1,5 @@
 using Moongate.Server.Bootstrap;
+using Moongate.Tests.TestSupport;
 using Serilog;
 
 namespace Moongate.Tests.Server;
@@ -52,24 +53,5 @@ public class DataAssetsBootstrapperTests
 
         Assert.That(copied, Is.EqualTo(0));
         Assert.That(File.ReadAllText(destinationFile), Is.EqualTo("existing"));
-    }
-
-    private sealed class TempDirectory : IDisposable
-    {
-        public TempDirectory()
-        {
-            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "moongate-tests-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Path);
-        }
-
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            if (Directory.Exists(Path))
-            {
-                Directory.Delete(Path, true);
-            }
-        }
     }
 }

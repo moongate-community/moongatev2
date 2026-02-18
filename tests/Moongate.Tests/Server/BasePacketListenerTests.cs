@@ -6,54 +6,17 @@ using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Listeners.Base;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class BasePacketListenerTests
 {
-    private sealed class TestOutgoingPacketQueue : IOutgoingPacketQueue
-    {
-        private readonly Queue<OutgoingGamePacket> _items = new();
-
-        public void Enqueue(long sessionId, IGameNetworkPacket packet)
-            => _items.Enqueue(new(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
-
-        public bool TryDequeue(out OutgoingGamePacket gamePacket)
-        {
-            if (_items.Count == 0)
-            {
-                gamePacket = default;
-
-                return false;
-            }
-
-            gamePacket = _items.Dequeue();
-
-            return true;
-        }
-    }
-
-    private sealed class TestListener : BasePacketListener
-    {
-        public bool Called { get; private set; }
-
-        public TestListener(IOutgoingPacketQueue outgoingPacketQueue)
-            : base(outgoingPacketQueue) { }
-
-        protected override Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet)
-        {
-            Called = true;
-            Enqueue(session, packet);
-
-            return Task.FromResult(true);
-        }
-    }
-
     [Test]
     public async Task HandlePacketAsync_ShouldDelegateToCoreAndEnqueueOutboundPacket()
     {
-        var queue = new TestOutgoingPacketQueue();
-        var listener = new TestListener(queue);
+        var queue = new BasePacketListenerTestOutgoingPacketQueue();
+        var listener = new BasePacketListenerTestListener(queue);
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = new GameSession(new GameNetworkSession(client));
         var packet = new LoginSeedPacket();

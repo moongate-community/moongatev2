@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Moongate.Scripting.Proxies;
 using MoonSharp.Interpreter;
@@ -12,6 +13,7 @@ public static class TableExtensions
     /// <summary>
     /// Converts a MoonSharp Table to a proxy implementing the specified interface.
     /// </summary>
+    [RequiresDynamicCode("DispatchProxy-based Lua table proxy requires runtime code generation.")]
     public static TInterface ToProxy<TInterface>(this Table table)
         where TInterface : class
     {

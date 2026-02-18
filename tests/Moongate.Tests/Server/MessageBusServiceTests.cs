@@ -1,37 +1,22 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
 using Moongate.Network.Packets.Interfaces;
-using Moongate.Network.Spans;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class MessageBusServiceTests
 {
-    private sealed class TestPacket : IGameNetworkPacket
-    {
-        public TestPacket(byte opCode)
-            => OpCode = opCode;
-
-        public byte OpCode { get; }
-
-        public int Length => 1;
-
-        public bool TryParse(ReadOnlySpan<byte> data)
-            => true;
-
-        public void Write(ref SpanWriter writer) { }
-    }
-
     [Test]
     public void PublishIncomingPacket_ShouldBeReadable()
     {
         var bus = new MessageBusService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = new GameSession(new GameNetworkSession(client));
-        var packet = new IncomingGamePacket(session, 0xEF, new TestPacket(0xEF), 123);
+        var packet = new IncomingGamePacket(session, 0xEF, new MessageBusTestPacket(0xEF), 123);
 
         bus.PublishIncomingPacket(packet);
 
@@ -55,9 +40,9 @@ public class MessageBusServiceTests
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = new GameSession(new GameNetworkSession(client));
 
-        bus.PublishIncomingPacket(new(session, 0x01, new TestPacket(0x01), 1));
-        bus.PublishIncomingPacket(new(session, 0x02, new TestPacket(0x02), 2));
-        bus.PublishIncomingPacket(new(session, 0x03, new TestPacket(0x03), 3));
+        bus.PublishIncomingPacket(new(session, 0x01, new MessageBusTestPacket(0x01), 1));
+        bus.PublishIncomingPacket(new(session, 0x02, new MessageBusTestPacket(0x02), 2));
+        bus.PublishIncomingPacket(new(session, 0x03, new MessageBusTestPacket(0x03), 3));
 
         var read1 = bus.TryReadIncomingPacket(out var packet1);
         var read2 = bus.TryReadIncomingPacket(out var packet2);

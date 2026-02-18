@@ -7,56 +7,20 @@ using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Incoming.Speech;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Packets;
+using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class NetworkServiceTests
 {
-    private sealed class TestMessageBusService : IMessageBusService
-    {
-        public List<IncomingGamePacket> Packets { get; } = [];
-
-        public void PublishIncomingPacket(IncomingGamePacket packet)
-            => Packets.Add(packet);
-
-        public bool TryReadIncomingPacket(out IncomingGamePacket packet)
-        {
-            if (Packets.Count == 0)
-            {
-                packet = default;
-
-                return false;
-            }
-
-            packet = Packets[0];
-            Packets.RemoveAt(0);
-
-            return true;
-        }
-    }
-
-    private sealed class TestGameEventBusService : IGameEventBusService
-    {
-        public List<object> Events { get; } = [];
-
-        public ValueTask PublishAsync<TEvent>(TEvent gameEvent, CancellationToken cancellationToken = default)
-            where TEvent : IGameEvent
-        {
-            Events.Add(gameEvent!);
-
-            return ValueTask.CompletedTask;
-        }
-
-        public void RegisterListener<TEvent>(IGameEventListener<TEvent> listener) where TEvent : IGameEvent { }
-    }
-
     [Test]
     public void OnClientConnected_ShouldPublishPlayerConnectedEvent()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         using var service = new NetworkService(
             messageBus,
             eventBus,
@@ -92,8 +56,8 @@ public class NetworkServiceTests
     [Test]
     public void OnClientData_WhenFixedPacketArrives_ShouldEnqueueTypedGamePacket()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         using var service = new NetworkService(
             messageBus,
             eventBus,
@@ -131,8 +95,8 @@ public class NetworkServiceTests
     [Test]
     public void OnClientData_WhenVariablePacketIsFragmented_ShouldParseAfterLengthIsComplete()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         var sessions = new GameNetworkSessionService();
         using var service = new NetworkService(
             messageBus,
@@ -180,8 +144,8 @@ public class NetworkServiceTests
     [Test]
     public void OnClientData_WhenReconnectSeedAndGameLoginAreInSameBuffer_ShouldParseGameLoginPacket()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         var sessions = new GameNetworkSessionService();
         using var service = new NetworkService(
             messageBus,
@@ -223,8 +187,8 @@ public class NetworkServiceTests
     [Test]
     public void OnClientData_WhenMultiplePacketsArriveInSingleBuffer_ShouldParseAllInOrder()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         using var service = new NetworkService(
             messageBus,
             eventBus,
@@ -267,8 +231,8 @@ public class NetworkServiceTests
     [Test]
     public void OnClientData_WhenMalformedVariablePacketLengthIsZero_ShouldRecoverAndParseNextPacket()
     {
-        var messageBus = new TestMessageBusService();
-        var eventBus = new TestGameEventBusService();
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
         var sessions = new GameNetworkSessionService();
         using var service = new NetworkService(
             messageBus,
@@ -310,6 +274,82 @@ public class NetworkServiceTests
                 Assert.That(messageBus.Packets[0].PacketId, Is.EqualTo(0x91));
                 Assert.That(sessions.TryGet(client.SessionId, out var session), Is.True);
                 Assert.That(session.NetworkSession.Seed, Is.EqualTo(0x12345678u));
+            }
+        );
+    }
+
+    [Test]
+    public void OnClientData_WhenProtocolViolationsExceedLimit_ShouldDisconnectSession()
+    {
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
+        var sessions = new GameNetworkSessionService();
+        using var service = new NetworkService(
+            messageBus,
+            eventBus,
+            new PacketDispatchService(),
+            sessions,
+            new()
+            {
+                RootDirectory = Path.GetTempPath(),
+                LogLevel = LogLevelType.Debug,
+                LogPacketData = false
+            }
+        );
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+
+        var payload = new byte[4 + 40];
+        payload[0] = 0x11;
+        payload[1] = 0x22;
+        payload[2] = 0x33;
+        payload[3] = 0x44;
+        Array.Fill(payload, (byte)0xFF, 4, 40);
+
+        InvokeOnClientData(service, client, payload);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(sessions.TryGet(client.SessionId, out var session), Is.True);
+                Assert.That(session.NetworkSession.State, Is.EqualTo(NetworkSessionState.Disconnecting));
+                Assert.That(service.TryDequeueParsedPacket(out _), Is.False);
+                Assert.That(messageBus.Packets.Count, Is.Zero);
+            }
+        );
+    }
+
+    [Test]
+    public void OnClientData_WhenPendingBufferExceedsLimit_ShouldDisconnectSession()
+    {
+        var messageBus = new NetworkServiceTestMessageBusService();
+        var eventBus = new NetworkServiceTestGameEventBusService();
+        var sessions = new GameNetworkSessionService();
+        using var service = new NetworkService(
+            messageBus,
+            eventBus,
+            new PacketDispatchService(),
+            sessions,
+            new()
+            {
+                RootDirectory = Path.GetTempPath(),
+                LogLevel = LogLevelType.Debug,
+                LogPacketData = false
+            }
+        );
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+
+        var floodPayload = new byte[70_000];
+        Array.Fill(floodPayload, (byte)0xAA);
+
+        InvokeOnClientData(service, client, floodPayload);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(sessions.TryGet(client.SessionId, out var session), Is.True);
+                Assert.That(session.NetworkSession.State, Is.EqualTo(NetworkSessionState.Disconnecting));
+                Assert.That(service.TryDequeueParsedPacket(out _), Is.False);
+                Assert.That(messageBus.Packets.Count, Is.Zero);
             }
         );
     }
