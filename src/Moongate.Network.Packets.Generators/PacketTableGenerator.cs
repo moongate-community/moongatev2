@@ -174,6 +174,6 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
 
     private static string EscapeStringLiteral(string value)
         => value
-           .Replace("\\", "\\\\", StringComparison.Ordinal)
-           .Replace("\"", "\\\"", StringComparison.Ordinal);
+           .Replace("\\", "\\\\")
+           .Replace("\"", "\\\"");
 }
