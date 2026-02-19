@@ -51,6 +51,7 @@ public sealed class MoongateBootstrap : IDisposable
         CheckConfig();
         CheckUODirectory();
         EnsureDataAssets();
+
         Console.WriteLine("Root Directory: " + _directoriesConfig.Root);
 
         RegisterHttpServer();
