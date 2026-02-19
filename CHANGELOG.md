@@ -5,11 +5,12 @@
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
 <a name="0.3.0"></a>
-## [0.3.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.3.0) (2026-02-18)
+## [0.3.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.3.0) (2026-02-19)
 
 ### Features
 
 * **http:** add embedded HTTP host service with options and dedicated logging ([033cd6d](https://www.github.com/moongate-community/moongatev2/commit/033cd6df52360aec8d72ae08192baccc942fe507))
+* **network:** add client middleware management and support features packet ([6c8f0fa](https://www.github.com/moongate-community/moongatev2/commit/6c8f0fa74a2545f09d4a62d9d4d3e735c6424d66))
 * **network:** handle reconnect seed handshake and refine login packet flow ([529dc79](https://www.github.com/moongate-community/moongatev2/commit/529dc79a70d384f2d5bac02e8db82f994d6f0747))
 * **packets,scripting:** generate packet definitions and fix Lua log module interop ([71f3658](https://www.github.com/moongate-community/moongatev2/commit/71f3658df446e641ca5139d2c66b5373a35503dc))
 * **server:** add http config and json context plumbing ([a94ea67](https://www.github.com/moongate-community/moongatev2/commit/a94ea674dacdeb0398e6e4a16c151ce8bd5c946a))
