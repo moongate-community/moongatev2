@@ -69,7 +69,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
                 {
                     var tickStart = Stopwatch.GetTimestamp();
 
-                    ProcessQueue();
+                    await ProcessQueueAsync();
 
                     var elapsed = Stopwatch.GetElapsedTime(tickStart);
 
@@ -99,7 +99,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
     }
 
-    private void DrainOutgoingPacketQueue()
+    private async Task DrainOutgoingPacketQueueAsync()
     {
         while (_outgoingPacketQueue.TryDequeue(out var outgoingPacket))
         {
@@ -117,7 +117,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
                 continue;
             }
 
-            _ = _outboundPacketSender.SendAsync(client, outgoingPacket, _cancellationTokenSource.Token);
+            await _outboundPacketSender.SendAsync(client, outgoingPacket, _cancellationTokenSource.Token);
         }
     }
 
@@ -129,11 +129,11 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
     }
 
-    private void ProcessQueue()
+    private async Task ProcessQueueAsync()
     {
         DrainPacketQueue();
         _timerService.ProcessTick();
-        DrainOutgoingPacketQueue();
+        await DrainOutgoingPacketQueueAsync();
     }
 
     public GameLoopMetricsSnapshot GetMetricsSnapshot()
