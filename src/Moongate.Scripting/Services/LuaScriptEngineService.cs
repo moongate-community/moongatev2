@@ -271,6 +271,38 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         _scriptModules.Add(new(type));
     }
 
+    public void CallFunction(string functionName, params object[] args)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(functionName);
+
+        var luaFunction = LuaScript.Globals.Get(functionName);
+
+        if (luaFunction.Type == DataType.Function)
+        {
+            try
+            {
+                var dynArgs = new DynValue[args.Length];
+
+                for (var i = 0; i < args.Length; i++)
+                {
+                    dynArgs[i] = ConvertToLua(args[i]);
+                }
+
+                LuaScript.Call(luaFunction, dynArgs);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error calling Lua function {FunctionName}", functionName);
+
+                throw;
+            }
+        }
+        else
+        {
+            _logger.Warning("Lua function {FunctionName} not found or is not a function", functionName);
+        }
+    }
+
     /// <summary>
     /// Clears the script cache
     /// </summary>
@@ -360,7 +392,6 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     {
         try
         {
-
             var result = LuaScript.DoString($"return {command}");
 
             return ScriptResultBuilder.CreateSuccess().WithData(result.ToObject()).Build();
@@ -409,38 +440,6 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             _logger.Error(ex, "Failed to execute function: {Command}", command);
 
             return ScriptResultBuilder.CreateError().WithMessage(ex.Message).Build();
-        }
-    }
-
-    public void CallFunction(string functionName, params object[] args)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(functionName);
-
-        var luaFunction = LuaScript.Globals.Get(functionName);
-
-        if (luaFunction.Type == DataType.Function)
-        {
-            try
-            {
-                var dynArgs = new DynValue[args.Length];
-
-                for (var i = 0; i < args.Length; i++)
-                {
-                    dynArgs[i] = ConvertToLua(args[i]);
-                }
-
-                LuaScript.Call(luaFunction, dynArgs);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error calling Lua function {FunctionName}", functionName);
-
-                throw;
-            }
-        }
-        else
-        {
-            _logger.Warning("Lua function {FunctionName} not found or is not a function", functionName);
         }
     }
 
@@ -1530,6 +1529,7 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
                                                        });
 
         var existingLog = LuaScript.Globals.Get("log");
+
         if (existingLog.Type == DataType.Nil)
         {
             LuaScript.Globals["log"] = (Action<object>)(message => { _logger.Information("Lua: {Message}", message); });
@@ -1537,7 +1537,8 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         else
         {
             // Keep script module "log" intact (e.g. log.info/log.error) and provide a fallback function alias.
-            LuaScript.Globals["log_message"] = (Action<object>)(message => { _logger.Information("Lua: {Message}", message); });
+            LuaScript.Globals["log_message"] =
+                (Action<object>)(message => { _logger.Information("Lua: {Message}", message); });
         }
 
         LuaScript.Globals["toString"] = (Func<object, string>)(obj => obj?.ToString() ?? "nil");

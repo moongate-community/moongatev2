@@ -5,7 +5,7 @@ using Serilog.Events;
 namespace Moongate.Server.Http;
 
 /// <summary>
-/// Configuration options for <see cref="MoongateHttpService"/>.
+/// Configuration options for <see cref="MoongateHttpService" />.
 /// </summary>
 public sealed class MoongateHttpServiceOptions
 {

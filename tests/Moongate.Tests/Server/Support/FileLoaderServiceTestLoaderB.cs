@@ -7,6 +7,7 @@ public sealed class FileLoaderServiceTestLoaderB : IFileLoader
     public Task LoadAsync()
     {
         FileLoaderServiceTests.ExecutionLog.Add("B");
+
         return Task.CompletedTask;
     }
 }

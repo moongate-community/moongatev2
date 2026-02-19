@@ -15,11 +15,13 @@ public sealed class NetworkServiceTestMessageBusService : IMessageBusService
         if (Packets.Count == 0)
         {
             packet = default;
+
             return false;
         }
 
         packet = Packets[0];
         Packets.RemoveAt(0);
+
         return true;
     }
 }

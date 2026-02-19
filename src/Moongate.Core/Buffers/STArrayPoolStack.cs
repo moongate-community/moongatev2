@@ -10,9 +10,7 @@ internal sealed class STArrayPoolStack<T>
     private long _ticks;
 
     public STArrayPoolStack(int stackArraySize)
-    {
-        _arrays = new T[]?[stackArraySize];
-    }
+        => _arrays = new T[]?[stackArraySize];
 
     public void Trim(long now, STArrayPoolMemoryPressureType pressure, int bucketSize)
     {
@@ -26,6 +24,7 @@ internal sealed class STArrayPoolStack<T>
         if (_ticks == 0)
         {
             _ticks = now;
+
             return;
         }
 
@@ -40,6 +39,7 @@ internal sealed class STArrayPoolStack<T>
         {
             case STArrayPoolMemoryPressureType.Medium:
                 trimCount = 2;
+
                 break;
             case STArrayPoolMemoryPressureType.High:
                 if (bucketSize > 16384)

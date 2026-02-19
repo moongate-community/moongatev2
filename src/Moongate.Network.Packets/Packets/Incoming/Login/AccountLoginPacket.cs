@@ -22,7 +22,6 @@ public class AccountLoginPacket : BaseGameNetworkPacket
         Password = reader.ReadAscii(30);
         NextLoginKey = reader.ReadByte();
 
-
         return true;
     }
 }

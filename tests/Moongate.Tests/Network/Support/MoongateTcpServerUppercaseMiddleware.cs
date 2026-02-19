@@ -13,6 +13,7 @@ public sealed class MoongateTcpServerUppercaseMiddleware : INetMiddleware
     )
     {
         var value = Encoding.UTF8.GetString(data.Span).ToUpperInvariant();
+
         return ValueTask.FromResult<ReadOnlyMemory<byte>>(Encoding.UTF8.GetBytes(value));
     }
 }

@@ -13,6 +13,7 @@ public sealed class BaseGameNetworkTestPacket : BaseGameNetworkPacket
     protected override bool ParsePayload(ref SpanReader reader)
     {
         ParsedValue = reader.ReadUInt16();
+
         return true;
     }
 }

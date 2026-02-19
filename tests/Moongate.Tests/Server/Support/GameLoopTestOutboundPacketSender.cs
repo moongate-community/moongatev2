@@ -15,6 +15,7 @@ public sealed class GameLoopTestOutboundPacketSender : IOutboundPacketSender
     )
     {
         SentPackets.Add(outgoingPacket);
+
         return Task.FromResult(true);
     }
 }

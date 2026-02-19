@@ -1,0 +1,32 @@
+namespace Moongate.Persistence.Interfaces.Persistence;
+
+/// <summary>
+/// Coordinates repositories and persistence lifecycle for world state.
+/// </summary>
+public interface IPersistenceUnitOfWork
+{
+    /// <summary>
+    /// Gets the account repository.
+    /// </summary>
+    IAccountRepository Accounts { get; }
+
+    /// <summary>
+    /// Gets the mobile repository.
+    /// </summary>
+    IMobileRepository Mobiles { get; }
+
+    /// <summary>
+    /// Gets the item repository.
+    /// </summary>
+    IItemRepository Items { get; }
+
+    /// <summary>
+    /// Loads state from snapshot and replays journal entries.
+    /// </summary>
+    ValueTask InitializeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Writes a new snapshot and resets the journal.
+    /// </summary>
+    ValueTask SaveSnapshotAsync(CancellationToken cancellationToken = default);
+}

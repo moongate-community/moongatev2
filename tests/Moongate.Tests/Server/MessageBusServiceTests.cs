@@ -1,6 +1,5 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
-using Moongate.Network.Packets.Interfaces;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
@@ -15,7 +14,7 @@ public class MessageBusServiceTests
     {
         var bus = new MessageBusService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameSession(new GameNetworkSession(client));
+        var session = new GameSession(new(client));
         var packet = new IncomingGamePacket(session, 0xEF, new MessageBusTestPacket(0xEF), 123);
 
         bus.PublishIncomingPacket(packet);
@@ -38,7 +37,7 @@ public class MessageBusServiceTests
     {
         var bus = new MessageBusService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameSession(new GameNetworkSession(client));
+        var session = new GameSession(new(client));
 
         bus.PublishIncomingPacket(new(session, 0x01, new MessageBusTestPacket(0x01), 1));
         bus.PublishIncomingPacket(new(session, 0x02, new MessageBusTestPacket(0x02), 2));

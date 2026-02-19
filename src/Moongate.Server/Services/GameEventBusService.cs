@@ -14,6 +14,7 @@ public sealed class GameEventBusService : IGameEventBusService
         where TEvent : IGameEvent
     {
         var listeners = GetListenersSnapshot<TEvent>();
+
         if (listeners.Length == 0)
         {
             return;
@@ -26,6 +27,7 @@ public sealed class GameEventBusService : IGameEventBusService
                 if (listenerObject is IGameEventListener<TEvent> typedListener)
                 {
                     await typedListener.HandleAsync(gameEvent, cancellationToken);
+
                     continue;
                 }
 
@@ -51,15 +53,30 @@ public sealed class GameEventBusService : IGameEventBusService
         }
     }
 
+    private object[] CopyListeners(Type eventType)
+    {
+        if (!_listeners.TryGetValue(eventType, out var listeners))
+        {
+            return [];
+        }
+
+        lock (listeners)
+        {
+            return listeners.Count == 0 ? [] : listeners.ToArray();
+        }
+    }
+
     private object[] GetListenersSnapshot<TEvent>() where TEvent : IGameEvent
     {
         var typedListeners = CopyListeners(typeof(TEvent));
+
         if (typeof(TEvent) == typeof(IGameEvent))
         {
             return typedListeners;
         }
 
         var globalListeners = CopyListeners(typeof(IGameEvent));
+
         if (typedListeners.Length == 0)
         {
             return globalListeners;
@@ -73,19 +90,7 @@ public sealed class GameEventBusService : IGameEventBusService
         var snapshot = new object[typedListeners.Length + globalListeners.Length];
         typedListeners.CopyTo(snapshot, 0);
         globalListeners.CopyTo(snapshot, typedListeners.Length);
+
         return snapshot;
-    }
-
-    private object[] CopyListeners(Type eventType)
-    {
-        if (!_listeners.TryGetValue(eventType, out var listeners))
-        {
-            return [];
-        }
-
-        lock (listeners)
-        {
-            return listeners.Count == 0 ? [] : listeners.ToArray();
-        }
     }
 }

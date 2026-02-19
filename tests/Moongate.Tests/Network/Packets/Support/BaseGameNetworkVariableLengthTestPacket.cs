@@ -11,6 +11,7 @@ public sealed class BaseGameNetworkVariableLengthTestPacket : BaseGameNetworkPac
     protected override bool ParsePayload(ref SpanReader reader)
     {
         _ = reader.ReadUInt16();
+
         return true;
     }
 }

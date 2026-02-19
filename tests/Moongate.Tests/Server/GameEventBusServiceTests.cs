@@ -1,5 +1,4 @@
 using Moongate.Server.Data.Events;
-using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
 using Moongate.Tests.Server.Support;
 
@@ -22,6 +21,25 @@ public class GameEventBusServiceTests
     }
 
     [Test]
+    public async Task PublishAsync_WhenGlobalListenerRegistered_ShouldReceiveAllEvents()
+    {
+        var bus = new GameEventBusService();
+        var allEventsListener = new GameEventBusTrackingAllEventsListener();
+
+        bus.RegisterListener(allEventsListener);
+
+        var connected = new PlayerConnectedEvent(10, "127.0.0.1:2593", 100);
+        var disconnected = new PlayerDisconnectedEvent(10, "127.0.0.1:2593", 101);
+
+        await bus.PublishAsync(connected);
+        await bus.PublishAsync(disconnected);
+
+        Assert.That(allEventsListener.Received.Count, Is.EqualTo(2));
+        Assert.That(allEventsListener.Received[0], Is.EqualTo(connected));
+        Assert.That(allEventsListener.Received[1], Is.EqualTo(disconnected));
+    }
+
+    [Test]
     public async Task PublishAsync_WhenOneListenerFails_ShouldContinueOtherListeners()
     {
         var bus = new GameEventBusService();
@@ -35,24 +53,5 @@ public class GameEventBusServiceTests
 
         Assert.That(tracking.Received.Count, Is.EqualTo(1));
         Assert.That(tracking.Received[0].SessionId, Is.EqualTo(7));
-    }
-
-    [Test]
-    public async Task PublishAsync_WhenGlobalListenerRegistered_ShouldReceiveAllEvents()
-    {
-        var bus = new GameEventBusService();
-        var allEventsListener = new GameEventBusTrackingAllEventsListener();
-
-        bus.RegisterListener<IGameEvent>(allEventsListener);
-
-        var connected = new PlayerConnectedEvent(10, "127.0.0.1:2593", 100);
-        var disconnected = new PlayerDisconnectedEvent(10, "127.0.0.1:2593", 101);
-
-        await bus.PublishAsync(connected);
-        await bus.PublishAsync(disconnected);
-
-        Assert.That(allEventsListener.Received.Count, Is.EqualTo(2));
-        Assert.That(allEventsListener.Received[0], Is.EqualTo(connected));
-        Assert.That(allEventsListener.Received[1], Is.EqualTo(disconnected));
     }
 }

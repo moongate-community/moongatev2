@@ -17,18 +17,16 @@ public class SupportFeaturesPacket : BaseGameNetworkPacket
 
     public SupportFeaturesPacket(FeatureFlags flags)
         : base(0xB9, 5)
-    {
-        Flags = flags;
-    }
-
-    protected override bool ParsePayload(ref SpanReader reader)
-        => true;
+        => Flags = flags;
 
     public override void Write(ref SpanWriter writer)
     {
         writer.Write(OpCode);
         writer.Write((uint)Flags);
     }
+
+    protected override bool ParsePayload(ref SpanReader reader)
+        => true;
 
     private static FeatureFlags GetDefaultFlags()
     {

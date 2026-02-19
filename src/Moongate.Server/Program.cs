@@ -5,8 +5,8 @@ using Moongate.Core.Utils;
 using Moongate.Scripting.Context;
 using Moongate.Server.Bootstrap;
 using Moongate.Server.Json;
-using Moongate.UO.Data.Json.Converters;
 using Moongate.UO.Data.Json.Context;
+using Moongate.UO.Data.Json.Converters;
 
 await ConsoleApp.RunAsync(
     args,
@@ -18,12 +18,10 @@ await ConsoleApp.RunAsync(
         CancellationToken cancellationToken = default
     ) =>
     {
-
         if (showHeader)
         {
             ShowHeader();
         }
-
 
         JsonUtils.AddJsonConverter(new ClientVersionConverter());
         JsonUtils.AddJsonConverter(new MapConverter());
@@ -46,7 +44,6 @@ await ConsoleApp.RunAsync(
                 UODirectory = uoDirectory
             }
         );
-
 
         await bootstrap.RunAsync(cancellationToken);
 

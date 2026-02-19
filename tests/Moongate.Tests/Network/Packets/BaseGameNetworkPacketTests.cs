@@ -1,4 +1,3 @@
-using Moongate.Network.Packets.Base;
 using Moongate.Network.Spans;
 using Moongate.Tests.Network.Packets.Support;
 

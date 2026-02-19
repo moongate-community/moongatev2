@@ -1,6 +1,5 @@
 using Moongate.Core.Types;
 using Moongate.Server.Bootstrap;
-using Moongate.Server.Data.Config;
 using Moongate.Tests.TestSupport;
 using Moongate.UO.Data.Files;
 
@@ -15,14 +14,14 @@ public class MoongateBootstrapConfigTests
 
         var ex = Assert.Throws<InvalidOperationException>(
             () => _ = new MoongateBootstrap(
-                new MoongateConfig
-                {
-                    RootDirectory = root.Path,
-                    UODirectory = string.Empty,
-                    LogLevel = LogLevelType.Debug,
-                    LogPacketData = false
-                }
-            )
+                      new()
+                      {
+                          RootDirectory = root.Path,
+                          UODirectory = string.Empty,
+                          LogLevel = LogLevelType.Debug,
+                          LogPacketData = false
+                      }
+                  )
         );
 
         Assert.That(ex!.Message, Is.EqualTo("UO Directory not configured."));
@@ -35,7 +34,7 @@ public class MoongateBootstrapConfigTests
         using var uo = new TempDirectory();
 
         using var bootstrap = new MoongateBootstrap(
-            new MoongateConfig
+            new()
             {
                 RootDirectory = root.Path,
                 UODirectory = uo.Path,

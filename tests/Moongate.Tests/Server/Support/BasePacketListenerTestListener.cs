@@ -16,6 +16,7 @@ public sealed class BasePacketListenerTestListener : BasePacketListener
     {
         Called = true;
         Enqueue(session, packet);
+
         return Task.FromResult(true);
     }
 }

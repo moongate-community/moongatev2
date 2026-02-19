@@ -5,7 +5,6 @@ using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Listeners.Base;
-using Moongate.UO.Data.Packets.Data;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -18,13 +17,13 @@ public class LoginHandler : BasePacketListener
 
     public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue) : base(outgoingPacketQueue)
     {
-        _serverListPacket = new ServerListPacket();
+        _serverListPacket = new();
         _serverListPacket.Shards.Add(
-            new GameServerEntry()
+            new()
             {
                 Index = 0,
                 IpAddress = IPAddress.Parse("127.0.0.1"),
-                ServerName = "Moongate",
+                ServerName = "Moongate"
             }
         );
     }
@@ -54,41 +53,6 @@ public class LoginHandler : BasePacketListener
         return true;
     }
 
-
-
-    private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
-    {
-        var selectedIndex = serverSelectPacket.SelectedServerIndex;
-        var selectedShard = _serverListPacket.Shards[selectedIndex];
-
-        var sessionKey = new Random().Next();
-
-        var connectToServer = new ServerRedirectPacket()
-        {
-            IPAddress = selectedShard.IpAddress,
-            Port = 2593,
-            SessionKey = (uint)sessionKey
-        };
-
-        session.NetworkSession.SetSeed((uint)sessionKey);
-
-        Enqueue(session, connectToServer);
-
-        return true;
-    }
-
-    private Task<bool> HandleLoginSeedPacketAsync(GameSession session, LoginSeedPacket packet)
-    {
-        _logger.Information(
-            "Received LoginSeedPacket from session {SessionId} with seed {Seed} and client version {ClientVersion}",
-            session.SessionId,
-            packet.Seed,
-            packet.ClientVersion
-        );
-
-        return Task.FromResult(true);
-    }
-
     private async Task<bool> HandleAccountLoginPacketAsync(GameSession session, AccountLoginPacket accountLoginPacket)
     {
         _logger.Information(
@@ -113,6 +77,39 @@ public class LoginHandler : BasePacketListener
         );
 
         session.NetworkSession.EnableCompression();
+
+        return true;
+    }
+
+    private Task<bool> HandleLoginSeedPacketAsync(GameSession session, LoginSeedPacket packet)
+    {
+        _logger.Information(
+            "Received LoginSeedPacket from session {SessionId} with seed {Seed} and client version {ClientVersion}",
+            session.SessionId,
+            packet.Seed,
+            packet.ClientVersion
+        );
+
+        return Task.FromResult(true);
+    }
+
+    private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
+    {
+        var selectedIndex = serverSelectPacket.SelectedServerIndex;
+        var selectedShard = _serverListPacket.Shards[selectedIndex];
+
+        var sessionKey = new Random().Next();
+
+        var connectToServer = new ServerRedirectPacket
+        {
+            IPAddress = selectedShard.IpAddress,
+            Port = 2593,
+            SessionKey = (uint)sessionKey
+        };
+
+        session.NetworkSession.SetSeed((uint)sessionKey);
+
+        Enqueue(session, connectToServer);
 
         return true;
     }

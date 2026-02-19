@@ -180,7 +180,7 @@ public class STArrayPool<T> : ArrayPool<T>
             uint threshold = pressure switch
             {
                 STArrayPoolMemoryPressureType.Medium => 10000,
-                _                     => 30000
+                _                                    => 30000
             };
 
             var cacheBuckets = _cacheBuckets;

@@ -16,10 +16,12 @@ public sealed class BasePacketListenerTestOutgoingPacketQueue : IOutgoingPacketQ
         if (_items.Count == 0)
         {
             gamePacket = default;
+
             return false;
         }
 
         gamePacket = _items.Dequeue();
+
         return true;
     }
 }

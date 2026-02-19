@@ -1,11 +1,7 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
 using Moongate.Network.Packets.Incoming.Login;
-using Moongate.Network.Packets.Interfaces;
-using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
-using Moongate.Server.Interfaces.Services;
-using Moongate.Server.Listeners.Base;
 using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
@@ -18,7 +14,7 @@ public class BasePacketListenerTests
         var queue = new BasePacketListenerTestOutgoingPacketQueue();
         var listener = new BasePacketListenerTestListener(queue);
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameSession(new GameNetworkSession(client));
+        var session = new GameSession(new(client));
         var packet = new LoginSeedPacket();
 
         var handled = await listener.HandlePacketAsync(session, packet);

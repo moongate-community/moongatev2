@@ -21,21 +21,21 @@ internal sealed class NetworkParserSessionMetrics
     public void AddReceivedBytes(int bytes)
         => Interlocked.Add(ref _receivedBytes, bytes);
 
-    public void IncrementParsedPackets()
-        => Interlocked.Increment(ref _parsedPackets);
-
-    public void IncrementUnknownOpcodeDrops()
-        => Interlocked.Increment(ref _unknownOpcodeDrops);
-
     public void IncrementInvalidLengthDrops()
         => Interlocked.Increment(ref _invalidLengthDrops);
+
+    public void IncrementParsedPackets()
+        => Interlocked.Increment(ref _parsedPackets);
 
     public void IncrementParseFailures()
         => Interlocked.Increment(ref _parseFailures);
 
+    public void IncrementPendingBufferOverflows()
+        => Interlocked.Increment(ref _pendingBufferOverflows);
+
     public int IncrementProtocolViolations()
         => Interlocked.Increment(ref _protocolViolations);
 
-    public void IncrementPendingBufferOverflows()
-        => Interlocked.Increment(ref _pendingBufferOverflows);
+    public void IncrementUnknownOpcodeDrops()
+        => Interlocked.Increment(ref _unknownOpcodeDrops);
 }

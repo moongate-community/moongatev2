@@ -5,12 +5,20 @@ namespace Moongate.Tests.UO.Data.Geometry;
 public class Point2DTests
 {
     [Test]
-    public void Parse_WithValidInput_ShouldReturnExpectedPoint()
+    public void EqualityOperators_ShouldWorkAsExpected()
     {
-        var point = Point2D.Parse("(10, 20)");
+        var a = new Point2D(3, 3);
+        var b = new Point2D(3, 3);
+        var c = new Point2D(3, 4);
 
-        Assert.That(point.X, Is.EqualTo(10));
-        Assert.That(point.Y, Is.EqualTo(20));
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(a == b, Is.True);
+                Assert.That(a != c, Is.True);
+                Assert.That(a.Equals(b), Is.True);
+            }
+        );
     }
 
     [Test]
@@ -20,18 +28,20 @@ public class Point2DTests
     }
 
     [Test]
-    public void TryParse_WithValidInput_ShouldReturnTrueAndPoint()
+    public void Parse_WithValidInput_ShouldReturnExpectedPoint()
     {
-        var parsed = Point2D.TryParse("(7, 9)", null, out var point);
+        var point = Point2D.Parse("(10, 20)");
 
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(parsed, Is.True);
-                Assert.That(point.X, Is.EqualTo(7));
-                Assert.That(point.Y, Is.EqualTo(9));
-            }
-        );
+        Assert.That(point.X, Is.EqualTo(10));
+        Assert.That(point.Y, Is.EqualTo(20));
+    }
+
+    [Test]
+    public void ToString_ShouldMatchExpectedFormat()
+    {
+        var point = new Point2D(4, 5);
+
+        Assert.That(point.ToString(), Is.EqualTo("(4, 5)"));
     }
 
     [Test]
@@ -49,26 +59,16 @@ public class Point2DTests
     }
 
     [Test]
-    public void ToString_ShouldMatchExpectedFormat()
+    public void TryParse_WithValidInput_ShouldReturnTrueAndPoint()
     {
-        var point = new Point2D(4, 5);
-
-        Assert.That(point.ToString(), Is.EqualTo("(4, 5)"));
-    }
-
-    [Test]
-    public void EqualityOperators_ShouldWorkAsExpected()
-    {
-        var a = new Point2D(3, 3);
-        var b = new Point2D(3, 3);
-        var c = new Point2D(3, 4);
+        var parsed = Point2D.TryParse("(7, 9)", null, out var point);
 
         Assert.Multiple(
             () =>
             {
-                Assert.That(a == b, Is.True);
-                Assert.That(a != c, Is.True);
-                Assert.That(a.Equals(b), Is.True);
+                Assert.That(parsed, Is.True);
+                Assert.That(point.X, Is.EqualTo(7));
+                Assert.That(point.Y, Is.EqualTo(9));
             }
         );
     }

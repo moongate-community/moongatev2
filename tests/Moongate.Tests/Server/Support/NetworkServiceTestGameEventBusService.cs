@@ -11,6 +11,7 @@ public sealed class NetworkServiceTestGameEventBusService : IGameEventBusService
         where TEvent : IGameEvent
     {
         Events.Add(gameEvent!);
+
         return ValueTask.CompletedTask;
     }
 

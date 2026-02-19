@@ -45,7 +45,7 @@ public class TimerWheelServiceTests
             "delayed",
             TimeSpan.FromMilliseconds(100),
             () => fired++,
-            delay: TimeSpan.FromMilliseconds(300)
+            TimeSpan.FromMilliseconds(300)
         );
 
         service.ProcessTick();

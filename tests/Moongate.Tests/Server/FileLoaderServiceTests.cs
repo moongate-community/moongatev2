@@ -6,9 +6,7 @@ namespace Moongate.Tests.Server;
 
 public class FileLoaderServiceTests
 {
-    [SetUp]
-    public void SetUp()
-        => ExecutionLog.Clear();
+    public static List<string> ExecutionLog { get; } = [];
 
     [Test]
     public async Task AddFileLoader_WhenCalledTwiceForSameType_ShouldExecuteOnlyOnce()
@@ -62,5 +60,7 @@ public class FileLoaderServiceTests
         Assert.ThrowsAsync<InvalidOperationException>(async () => await service.ExecuteLoadersAsync());
     }
 
-    public static List<string> ExecutionLog { get; } = [];
+    [SetUp]
+    public void SetUp()
+        => ExecutionLog.Clear();
 }

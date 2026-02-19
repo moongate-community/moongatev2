@@ -53,35 +53,6 @@ public sealed class MoongateTCPClient : IAsyncDisposable, IDisposable
     }
 
     /// <summary>
-    /// Adds a middleware component to this client pipeline.
-    /// </summary>
-    /// <param name="middleware">Middleware to register.</param>
-    /// <returns>The current client instance.</returns>
-    public MoongateTCPClient AddMiddleware(INetMiddleware middleware)
-    {
-        _middlewarePipeline.AddMiddleware(middleware);
-        return this;
-    }
-
-    /// <summary>
-    /// Removes all middleware components of the specified type from this client pipeline.
-    /// </summary>
-    /// <typeparam name="TMiddleware">Middleware type to remove.</typeparam>
-    /// <returns><c>true</c> when at least one middleware instance was removed; otherwise <c>false</c>.</returns>
-    public bool RemoveMiddleware<TMiddleware>()
-        where TMiddleware : INetMiddleware
-        => _middlewarePipeline.RemoveMiddleware<TMiddleware>();
-
-    /// <summary>
-    /// Checks whether this client pipeline contains at least one middleware instance of the specified type.
-    /// </summary>
-    /// <typeparam name="TMiddleware">Middleware type to check.</typeparam>
-    /// <returns><c>true</c> when at least one instance is registered; otherwise <c>false</c>.</returns>
-    public bool ContainsMiddleware<TMiddleware>()
-        where TMiddleware : INetMiddleware
-        => _middlewarePipeline.ContainsMiddleware<TMiddleware>();
-
-    /// <summary>
     /// Raised when the client is fully connected and receive loop starts.
     /// </summary>
     public event EventHandler<MoongateTCPClientEventArgs>? OnConnected;
@@ -161,6 +132,18 @@ public sealed class MoongateTCPClient : IAsyncDisposable, IDisposable
     /// True when the underlying socket is connected and client not closed.
     /// </summary>
     public bool IsConnected => _socket.Connected && Volatile.Read(ref _closed) == 0;
+
+    /// <summary>
+    /// Adds a middleware component to this client pipeline.
+    /// </summary>
+    /// <param name="middleware">Middleware to register.</param>
+    /// <returns>The current client instance.</returns>
+    public MoongateTCPClient AddMiddleware(INetMiddleware middleware)
+    {
+        _middlewarePipeline.AddMiddleware(middleware);
+
+        return this;
+    }
 
     /// <summary>
     /// Closes the client connection and raises disconnect event once.
@@ -243,6 +226,15 @@ public sealed class MoongateTCPClient : IAsyncDisposable, IDisposable
         }
     }
 
+    /// <summary>
+    /// Checks whether this client pipeline contains at least one middleware instance of the specified type.
+    /// </summary>
+    /// <typeparam name="TMiddleware">Middleware type to check.</typeparam>
+    /// <returns><c>true</c> when at least one instance is registered; otherwise <c>false</c>.</returns>
+    public bool ContainsMiddleware<TMiddleware>()
+        where TMiddleware : INetMiddleware
+        => _middlewarePipeline.ContainsMiddleware<TMiddleware>();
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -293,6 +285,15 @@ public sealed class MoongateTCPClient : IAsyncDisposable, IDisposable
             return result;
         }
     }
+
+    /// <summary>
+    /// Removes all middleware components of the specified type from this client pipeline.
+    /// </summary>
+    /// <typeparam name="TMiddleware">Middleware type to remove.</typeparam>
+    /// <returns><c>true</c> when at least one middleware instance was removed; otherwise <c>false</c>.</returns>
+    public bool RemoveMiddleware<TMiddleware>()
+        where TMiddleware : INetMiddleware
+        => _middlewarePipeline.RemoveMiddleware<TMiddleware>();
 
     /// <summary>
     /// Sends a payload to the connected socket.

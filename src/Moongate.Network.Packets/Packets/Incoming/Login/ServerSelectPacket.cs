@@ -8,7 +8,6 @@ namespace Moongate.Network.Packets.Incoming.Login;
 [PacketHandler(0xA0, PacketSizing.Fixed, Length = 3, Description = "Select Server")]
 public class ServerSelectPacket : BaseGameNetworkPacket
 {
-
     public int SelectedServerIndex { get; set; }
 
     public ServerSelectPacket()
@@ -17,7 +16,7 @@ public class ServerSelectPacket : BaseGameNetworkPacket
     protected override bool ParsePayload(ref SpanReader reader)
     {
         SelectedServerIndex = reader.ReadInt16LE();
+
         return true;
     }
-
 }

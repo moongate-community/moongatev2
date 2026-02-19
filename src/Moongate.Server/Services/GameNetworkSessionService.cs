@@ -14,7 +14,7 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
 
     public GameSession GetOrCreate(MoongateTCPClient client)
     {
-        var session = _sessions.GetOrAdd(client.SessionId, _ => new(new GameNetworkSession(client)));
+        var session = _sessions.GetOrAdd(client.SessionId, _ => new(new(client)));
         session.NetworkSession.Refresh(client);
 
         return session;

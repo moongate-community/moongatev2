@@ -32,6 +32,7 @@ public class LogModule
         if (args is { Length: > 0 })
         {
             _logger.Write(level, "{LogMessage} | {@LogArgs}", message, args);
+
             return;
         }
 

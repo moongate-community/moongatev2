@@ -10,6 +10,7 @@ public sealed class GameEventBusTrackingAllEventsListener : IGameEventListener<I
     public Task HandleAsync(IGameEvent gameEvent, CancellationToken cancellationToken = default)
     {
         Received.Add(gameEvent);
+
         return Task.CompletedTask;
     }
 }

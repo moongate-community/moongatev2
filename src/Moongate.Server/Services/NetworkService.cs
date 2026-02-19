@@ -170,6 +170,78 @@ public class NetworkService : INetworkService
         return sb.ToString();
     }
 
+    private async Task CloseClientSafeAsync(MoongateTCPClient client, long sessionId)
+    {
+        try
+        {
+            await client.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to close client for session {SessionId}", sessionId);
+        }
+    }
+
+    private void DisconnectSession(
+        GameSession session,
+        string reason,
+        NetworkParserSessionMetrics metrics,
+        List<byte>? pendingBytes = null
+    )
+    {
+        _logger.Warning(
+            "Disconnecting session {SessionId}. Reason: {Reason}. Metrics: ReceivedBytes={ReceivedBytes}, ParsedPackets={ParsedPackets}, UnknownOpcodeDrops={UnknownOpcodeDrops}, InvalidLengthDrops={InvalidLengthDrops}, ParseFailures={ParseFailures}, ProtocolViolations={ProtocolViolations}, PendingBufferOverflows={PendingBufferOverflows}",
+            session.SessionId,
+            reason,
+            metrics.ReceivedBytes,
+            metrics.ParsedPackets,
+            metrics.UnknownOpcodeDrops,
+            metrics.InvalidLengthDrops,
+            metrics.ParseFailures,
+            metrics.ProtocolViolations,
+            metrics.PendingBufferOverflows
+        );
+
+        pendingBytes?.Clear();
+        session.NetworkSession.SetState(NetworkSessionState.Disconnecting);
+
+        if (session.NetworkSession.Client is { } client)
+        {
+            _ = CloseClientSafeAsync(client, session.SessionId);
+        }
+    }
+
+    private bool HandleProtocolViolation(
+        GameSession session,
+        string reason,
+        NetworkParserSessionMetrics metrics,
+        List<byte>? pendingBytes = null
+    )
+    {
+        var violations = metrics.IncrementProtocolViolations();
+        _logger.Warning(
+            "Protocol violation for session {SessionId}: {Reason} ({Violations}/{Limit}).",
+            session.SessionId,
+            reason,
+            violations,
+            MaxProtocolViolationsPerSession
+        );
+
+        if (violations < MaxProtocolViolationsPerSession)
+        {
+            return false;
+        }
+
+        DisconnectSession(
+            session,
+            $"Protocol violations limit reached ({violations}/{MaxProtocolViolationsPerSession}).",
+            metrics,
+            pendingBytes
+        );
+
+        return true;
+    }
+
     private void OnClientConnected(object? sender, MoongateTCPClientEventArgs e)
     {
         _logger.Information("Client connected: {RemoteEndPoint}", e.Client.RemoteEndPoint);
@@ -230,6 +302,7 @@ public class NetworkService : INetworkService
         }
 
         _gameNetworkSessionService.Remove(e.Client.SessionId);
+
         if (_parserMetrics.TryRemove(e.Client.SessionId, out var metrics))
         {
             _logger.Information(
@@ -288,6 +361,7 @@ public class NetworkService : INetworkService
                     session.SessionId
                 );
                 pendingBytes.RemoveAt(0);
+
                 if (HandleProtocolViolation(
                         session,
                         $"Unknown opcode 0x{opCode:X2}.",
@@ -319,6 +393,7 @@ public class NetworkService : INetworkService
                     bytesToDrop
                 );
                 pendingBytes.RemoveRange(0, bytesToDrop);
+
                 if (HandleProtocolViolation(
                         session,
                         $"Invalid packet length {expectedLength} for opcode 0x{opCode:X2}.",
@@ -344,6 +419,7 @@ public class NetworkService : INetworkService
                     bytesToDrop
                 );
                 pendingBytes.RemoveRange(0, bytesToDrop);
+
                 if (HandleProtocolViolation(
                         session,
                         $"Packet length {expectedLength} exceeds limit {MaxDeclaredPacketLength}.",
@@ -392,6 +468,7 @@ public class NetworkService : INetworkService
                     opCode,
                     session.SessionId
                 );
+
                 if (HandleProtocolViolation(
                         session,
                         $"Parse failure for opcode 0x{opCode:X2}.",
@@ -417,52 +494,6 @@ public class NetworkService : INetworkService
             metrics.IncrementParsedPackets();
             _logger.Information("Received packet 0x{OpCode:X2} from session {SessionId}", opCode, session.SessionId);
         }
-    }
-
-    private bool TryProcessInitialHandshake(List<byte> pendingBytes, GameSession session)
-    {
-        var networkSession = session.NetworkSession;
-
-        if (networkSession.State != NetworkSessionState.AwaitingSeed)
-        {
-            return true;
-        }
-
-        var firstByte = pendingBytes[0];
-
-        // 0xEF means this connection starts with the login-seed packet format.
-        if (firstByte == PacketDefinition.LoginSeedPacket)
-        {
-            networkSession.SetState(NetworkSessionState.Login);
-            return true;
-        }
-
-        // Game-server reconnect path: client can send a raw 4-byte seed first.
-        if (pendingBytes.Count < 4)
-        {
-            return false;
-        }
-
-        Span<byte> seedBytes = stackalloc byte[4];
-        seedBytes[0] = pendingBytes[0];
-        seedBytes[1] = pendingBytes[1];
-        seedBytes[2] = pendingBytes[2];
-        seedBytes[3] = pendingBytes[3];
-        var seed = BinaryPrimitives.ReadUInt32BigEndian(seedBytes);
-        if (seed == 0)
-        {
-            _logger.Warning("Received invalid zero seed from session {SessionId}.", session.SessionId);
-            pendingBytes.Clear();
-            return false;
-        }
-
-        networkSession.SetSeed(seed);
-        networkSession.SetState(NetworkSessionState.Login);
-        pendingBytes.RemoveRange(0, 4);
-
-        _logger.Information("Session {SessionId} completed seed handshake with 0x{Seed:X8}.", session.SessionId, seed);
-
-        return true;
     }
 
     private async Task PublishEventSafeAsync<TEvent>(TEvent gameEvent) where TEvent : IGameEvent
@@ -496,78 +527,6 @@ public class NetworkService : INetworkService
         return BinaryPrimitives.ReadUInt16BigEndian(lengthBuffer);
     }
 
-    private bool HandleProtocolViolation(
-        GameSession session,
-        string reason,
-        NetworkParserSessionMetrics metrics,
-        List<byte>? pendingBytes = null
-    )
-    {
-        var violations = metrics.IncrementProtocolViolations();
-        _logger.Warning(
-            "Protocol violation for session {SessionId}: {Reason} ({Violations}/{Limit}).",
-            session.SessionId,
-            reason,
-            violations,
-            MaxProtocolViolationsPerSession
-        );
-
-        if (violations < MaxProtocolViolationsPerSession)
-        {
-            return false;
-        }
-
-        DisconnectSession(
-            session,
-            $"Protocol violations limit reached ({violations}/{MaxProtocolViolationsPerSession}).",
-            metrics,
-            pendingBytes
-        );
-
-        return true;
-    }
-
-    private void DisconnectSession(
-        GameSession session,
-        string reason,
-        NetworkParserSessionMetrics metrics,
-        List<byte>? pendingBytes = null
-    )
-    {
-        _logger.Warning(
-            "Disconnecting session {SessionId}. Reason: {Reason}. Metrics: ReceivedBytes={ReceivedBytes}, ParsedPackets={ParsedPackets}, UnknownOpcodeDrops={UnknownOpcodeDrops}, InvalidLengthDrops={InvalidLengthDrops}, ParseFailures={ParseFailures}, ProtocolViolations={ProtocolViolations}, PendingBufferOverflows={PendingBufferOverflows}",
-            session.SessionId,
-            reason,
-            metrics.ReceivedBytes,
-            metrics.ParsedPackets,
-            metrics.UnknownOpcodeDrops,
-            metrics.InvalidLengthDrops,
-            metrics.ParseFailures,
-            metrics.ProtocolViolations,
-            metrics.PendingBufferOverflows
-        );
-
-        pendingBytes?.Clear();
-        session.NetworkSession.SetState(NetworkSessionState.Disconnecting);
-
-        if (session.NetworkSession.Client is { } client)
-        {
-            _ = CloseClientSafeAsync(client, session.SessionId);
-        }
-    }
-
-    private async Task CloseClientSafeAsync(MoongateTCPClient client, long sessionId)
-    {
-        try
-        {
-            await client.CloseAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to close client for session {SessionId}", sessionId);
-        }
-    }
-
     private void ShowRegisteredPackets()
     {
         _logger.Information("Registered packets: {Count}", _packetRegistry.RegisteredPackets.Count);
@@ -585,4 +544,52 @@ public class NetworkService : INetworkService
         }
     }
 
+    private bool TryProcessInitialHandshake(List<byte> pendingBytes, GameSession session)
+    {
+        var networkSession = session.NetworkSession;
+
+        if (networkSession.State != NetworkSessionState.AwaitingSeed)
+        {
+            return true;
+        }
+
+        var firstByte = pendingBytes[0];
+
+        // 0xEF means this connection starts with the login-seed packet format.
+        if (firstByte == PacketDefinition.LoginSeedPacket)
+        {
+            networkSession.SetState(NetworkSessionState.Login);
+
+            return true;
+        }
+
+        // Game-server reconnect path: client can send a raw 4-byte seed first.
+        if (pendingBytes.Count < 4)
+        {
+            return false;
+        }
+
+        Span<byte> seedBytes = stackalloc byte[4];
+        seedBytes[0] = pendingBytes[0];
+        seedBytes[1] = pendingBytes[1];
+        seedBytes[2] = pendingBytes[2];
+        seedBytes[3] = pendingBytes[3];
+        var seed = BinaryPrimitives.ReadUInt32BigEndian(seedBytes);
+
+        if (seed == 0)
+        {
+            _logger.Warning("Received invalid zero seed from session {SessionId}.", session.SessionId);
+            pendingBytes.Clear();
+
+            return false;
+        }
+
+        networkSession.SetSeed(seed);
+        networkSession.SetState(NetworkSessionState.Login);
+        pendingBytes.RemoveRange(0, 4);
+
+        _logger.Information("Session {SessionId} completed seed handshake with 0x{Seed:X8}.", session.SessionId, seed);
+
+        return true;
+    }
 }

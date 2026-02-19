@@ -16,9 +16,7 @@ public sealed class NetMiddlewarePipeline
     /// </summary>
     /// <param name="middlewares">Optional initial middleware sequence.</param>
     public NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewares = null)
-    {
-        _middlewares = [.. middlewares ?? []];
-    }
+        => _middlewares = [.. middlewares ?? []];
 
     /// <summary>
     /// Adds a middleware component at the end of the execution chain.
@@ -43,29 +41,6 @@ public sealed class NetMiddlewarePipeline
         lock (_middlewareSync)
         {
             return _middlewares.Any(static middleware => middleware is TMiddleware);
-        }
-    }
-
-    /// <summary>
-    /// Removes all middleware components of the specified type.
-    /// </summary>
-    /// <typeparam name="TMiddleware">Middleware type to remove.</typeparam>
-    /// <returns><c>true</c> when at least one middleware was removed; otherwise <c>false</c>.</returns>
-    public bool RemoveMiddleware<TMiddleware>()
-        where TMiddleware : INetMiddleware
-    {
-        lock (_middlewareSync)
-        {
-            var originalLength = _middlewares.Length;
-
-            if (originalLength == 0)
-            {
-                return false;
-            }
-
-            _middlewares = _middlewares.Where(static middleware => middleware is not TMiddleware).ToArray();
-
-            return _middlewares.Length != originalLength;
         }
     }
 
@@ -139,5 +114,28 @@ public sealed class NetMiddlewarePipeline
         }
 
         return current;
+    }
+
+    /// <summary>
+    /// Removes all middleware components of the specified type.
+    /// </summary>
+    /// <typeparam name="TMiddleware">Middleware type to remove.</typeparam>
+    /// <returns><c>true</c> when at least one middleware was removed; otherwise <c>false</c>.</returns>
+    public bool RemoveMiddleware<TMiddleware>()
+        where TMiddleware : INetMiddleware
+    {
+        lock (_middlewareSync)
+        {
+            var originalLength = _middlewares.Length;
+
+            if (originalLength == 0)
+            {
+                return false;
+            }
+
+            _middlewares = _middlewares.Where(static middleware => middleware is not TMiddleware).ToArray();
+
+            return _middlewares.Length != originalLength;
+        }
     }
 }

@@ -1,10 +1,7 @@
 using System.Net.Sockets;
-using Moongate.Server.Services;
 using Moongate.Network.Client;
-using Moongate.Network.Packets.Interfaces;
-using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
-using Moongate.Server.Interfaces.Services;
+using Moongate.Server.Services;
 using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
@@ -64,54 +61,6 @@ public class GameLoopServiceTests
     }
 
     [Test]
-    public async Task StopAsync_ShouldStopAdvancingTickCount()
-    {
-        _service = new(
-            new PacketDispatchService(),
-            new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            new TimerWheelService(),
-            new GameLoopTestOutboundPacketSender()
-        );
-        await _service.StartAsync();
-
-        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
-        Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
-
-        await _service.StopAsync();
-
-        var tickAfterStop = _service.TickCount;
-        await Task.Delay(500);
-
-        Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
-    }
-
-    [Test]
-    public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
-    {
-        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
-        var fired = 0;
-
-        timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
-
-        _service = new(
-            new PacketDispatchService(),
-            new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            timerService,
-            new GameLoopTestOutboundPacketSender()
-        );
-
-        await _service.StartAsync();
-
-        var timerFired = await WaitUntilAsync(() => Volatile.Read(ref fired) > 0, TimeSpan.FromSeconds(2));
-
-        Assert.That(timerFired, Is.True, "Timer callback was not executed by game loop processing.");
-    }
-
-    [Test]
     public async Task StartAsync_ShouldDrainMessageBusAndDispatchPacketsInOrder()
     {
         var messageBus = new MessageBusService();
@@ -120,7 +69,7 @@ public class GameLoopServiceTests
         packetDispatch.AddPacketListener(0xAA, listener);
 
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameSession(new GameNetworkSession(client));
+        var session = new GameSession(new(client));
         messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 1), 1));
         messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 2), 2));
         messageBus.PublishIncomingPacket(new(session, 0xAA, new GameLoopTestPacket(0xAA, 3), 3));
@@ -142,40 +91,6 @@ public class GameLoopServiceTests
             {
                 Assert.That(drained, Is.True, "Packet queue was not drained in time.");
                 Assert.That(listener.Sequences, Is.EqualTo(ExpectedDispatchSequence));
-            }
-        );
-    }
-
-    [Test]
-    public async Task StartAsync_WhenListenerThrows_ShouldStillInvokeOtherListeners()
-    {
-        var messageBus = new MessageBusService();
-        var packetDispatch = new PacketDispatchService();
-        var successfulListener = new GameLoopRecordingPacketListener();
-        packetDispatch.AddPacketListener(0xAB, new GameLoopThrowingPacketListener());
-        packetDispatch.AddPacketListener(0xAB, successfulListener);
-
-        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
-        var session = new GameSession(new GameNetworkSession(client));
-        messageBus.PublishIncomingPacket(new(session, 0xAB, new GameLoopTestPacket(0xAB, 42), 1));
-
-        _service = new(
-            packetDispatch,
-            messageBus,
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            new TimerWheelService(),
-            new GameLoopTestOutboundPacketSender()
-        );
-
-        await _service.StartAsync();
-        var invoked = await WaitUntilAsync(() => successfulListener.Sequences.Count == 1, TimeSpan.FromSeconds(2));
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(invoked, Is.True, "Non-throwing listener was not invoked.");
-                Assert.That(successfulListener.Sequences.Single(), Is.EqualTo(42));
             }
         );
     }
@@ -212,6 +127,88 @@ public class GameLoopServiceTests
         );
     }
 
+    [Test]
+    public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
+    {
+        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
+        var fired = 0;
+
+        timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
+
+        _service = new(
+            new PacketDispatchService(),
+            new MessageBusService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            timerService,
+            new GameLoopTestOutboundPacketSender()
+        );
+
+        await _service.StartAsync();
+
+        var timerFired = await WaitUntilAsync(() => Volatile.Read(ref fired) > 0, TimeSpan.FromSeconds(2));
+
+        Assert.That(timerFired, Is.True, "Timer callback was not executed by game loop processing.");
+    }
+
+    [Test]
+    public async Task StartAsync_WhenListenerThrows_ShouldStillInvokeOtherListeners()
+    {
+        var messageBus = new MessageBusService();
+        var packetDispatch = new PacketDispatchService();
+        var successfulListener = new GameLoopRecordingPacketListener();
+        packetDispatch.AddPacketListener(0xAB, new GameLoopThrowingPacketListener());
+        packetDispatch.AddPacketListener(0xAB, successfulListener);
+
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+        var session = new GameSession(new(client));
+        messageBus.PublishIncomingPacket(new(session, 0xAB, new GameLoopTestPacket(0xAB, 42), 1));
+
+        _service = new(
+            packetDispatch,
+            messageBus,
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            new TimerWheelService(),
+            new GameLoopTestOutboundPacketSender()
+        );
+
+        await _service.StartAsync();
+        var invoked = await WaitUntilAsync(() => successfulListener.Sequences.Count == 1, TimeSpan.FromSeconds(2));
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(invoked, Is.True, "Non-throwing listener was not invoked.");
+                Assert.That(successfulListener.Sequences.Single(), Is.EqualTo(42));
+            }
+        );
+    }
+
+    [Test]
+    public async Task StopAsync_ShouldStopAdvancingTickCount()
+    {
+        _service = new(
+            new PacketDispatchService(),
+            new MessageBusService(),
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            new TimerWheelService(),
+            new GameLoopTestOutboundPacketSender()
+        );
+        await _service.StartAsync();
+
+        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
+        Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
+
+        await _service.StopAsync();
+
+        var tickAfterStop = _service.TickCount;
+        await Task.Delay(500);
+
+        Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+    }
+
     [TearDown]
     public async Task TearDown()
     {
@@ -240,5 +237,4 @@ public class GameLoopServiceTests
 
         return condition();
     }
-
 }

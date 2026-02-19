@@ -26,14 +26,11 @@ public class ServerListPacket : BaseGameNetworkPacket
     public void AddShard(GameServerEntry entry)
         => Shards.Add(entry);
 
-    protected override bool ParsePayload(ref SpanReader reader)
-        => true;
-
     public override void Write(ref SpanWriter writer)
     {
         writer.Write(OpCode);
 
-        var length = 6 + (40 * Shards.Count);
+        var length = 6 + 40 * Shards.Count;
         writer.Write((ushort)length);
         writer.Write((byte)0x5D);
         writer.Write((ushort)Shards.Count);
@@ -43,4 +40,7 @@ public class ServerListPacket : BaseGameNetworkPacket
             writer.Write(shard.Write().Span);
         }
     }
+
+    protected override bool ParsePayload(ref SpanReader reader)
+        => true;
 }

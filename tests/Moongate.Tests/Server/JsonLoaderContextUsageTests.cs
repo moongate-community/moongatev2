@@ -20,7 +20,11 @@ public class JsonLoaderContextUsageTests
             Assert.Multiple(
                 () =>
                 {
-                    Assert.That(deserializeCalls, Is.GreaterThan(0), $"{fullPath} should deserialize at least one JSON file.");
+                    Assert.That(
+                        deserializeCalls,
+                        Is.GreaterThan(0),
+                        $"{fullPath} should deserialize at least one JSON file."
+                    );
                     Assert.That(
                         contextCalls,
                         Is.GreaterThanOrEqualTo(deserializeCalls),
@@ -30,6 +34,18 @@ public class JsonLoaderContextUsageTests
             );
         }
     }
+
+    private static IReadOnlyList<string> GetJsonLoaderFilePaths()
+        =>
+        [
+            "src/Moongate.Server/FileLoaders/ContainersDataLoader.cs",
+            "src/Moongate.Server/FileLoaders/ExpansionLoader.cs",
+            "src/Moongate.Server/FileLoaders/NamesLoader.cs",
+            "src/Moongate.Server/FileLoaders/ProfessionsLoader.cs",
+            "src/Moongate.Server/FileLoaders/RegionDataLoader.cs",
+            "src/Moongate.Server/FileLoaders/SkillLoader.cs",
+            "src/Moongate.Server/FileLoaders/WeatherDataLoader.cs"
+        ];
 
     private static string GetRepositoryRoot()
     {
@@ -47,16 +63,4 @@ public class JsonLoaderContextUsageTests
 
         throw new DirectoryNotFoundException("Unable to locate repository root from test base directory.");
     }
-
-    private static IReadOnlyList<string> GetJsonLoaderFilePaths()
-        =>
-        [
-            "src/Moongate.Server/FileLoaders/ContainersDataLoader.cs",
-            "src/Moongate.Server/FileLoaders/ExpansionLoader.cs",
-            "src/Moongate.Server/FileLoaders/NamesLoader.cs",
-            "src/Moongate.Server/FileLoaders/ProfessionsLoader.cs",
-            "src/Moongate.Server/FileLoaders/RegionDataLoader.cs",
-            "src/Moongate.Server/FileLoaders/SkillLoader.cs",
-            "src/Moongate.Server/FileLoaders/WeatherDataLoader.cs"
-        ];
 }
