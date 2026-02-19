@@ -3,6 +3,7 @@ using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
+using Moongate.Server.Interfaces.Characters;
 using Moongate.Server.Interfaces.Services.Accounting;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
@@ -17,11 +18,17 @@ public class LoginHandler : BasePacketListener
     private readonly ILogger _logger = Log.ForContext<LoginHandler>();
 
     private readonly IAccountService _accountService;
+    private readonly ICharacterService _characterService;
     private readonly ServerListPacket _serverListPacket;
 
-    public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue, IAccountService accountService) : base(outgoingPacketQueue)
+    public LoginHandler(
+        IOutgoingPacketQueue outgoingPacketQueue,
+        IAccountService accountService,
+        ICharacterService characterService
+    ) : base(outgoingPacketQueue)
     {
         _accountService = accountService;
+        _characterService = characterService;
         _serverListPacket = new();
         _serverListPacket.Shards.Add(
             new()
@@ -95,11 +102,11 @@ public class LoginHandler : BasePacketListener
         var characterListPacket = new CharactersStartingLocationsPacket();
         characterListPacket.Cities.AddRange(StartingCities.AvailableStartingCities);
 
-        characterListPacket.FillCharacters(null);
+        var characters = await _characterService.GetCharactersForAccountAsync(session.AccountId);
+        characterListPacket.FillCharacters(characters);
 
         Enqueue(session, new SupportFeaturesPacket());
         Enqueue(session, characterListPacket);
-
 
         return true;
     }

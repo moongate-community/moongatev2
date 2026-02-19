@@ -91,6 +91,16 @@ public class UOMobileEntity : IMobileEntity
 
     public int MaxStamina { get; set; }
 
+    /// <summary>
+    /// Gets or sets the serial of the backpack item.
+    /// </summary>
+    public Serial BackpackId { get; set; }
+
+    /// <summary>
+    /// Gets equipped item references by layer.
+    /// </summary>
+    public Dictionary<ItemLayerType, Serial> EquippedItemIds { get; set; } = [];
+
     public bool IsWarMode { get; set; }
 
     public bool IsHidden { get; set; }
@@ -120,6 +130,26 @@ public class UOMobileEntity : IMobileEntity
         Mana = Math.Min(Mana, MaxMana);
         Stamina = Math.Min(Stamina, MaxStamina);
     }
+
+    /// <summary>
+    /// Associates an equipped item with this mobile and updates item ownership metadata.
+    /// </summary>
+    public void AddEquippedItem(ItemLayerType layer, UOItemEntity item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+
+        EquippedItemIds[layer] = item.Id;
+        item.ParentContainerId = Serial.Zero;
+        item.ContainerPosition = Point2D.Zero;
+        item.EquippedMobileId = Id;
+        item.EquippedLayer = layer;
+    }
+
+    /// <summary>
+    /// Associates an equipped item id with this mobile without item metadata updates.
+    /// </summary>
+    public void AddEquippedItem(ItemLayerType layer, Serial itemId)
+        => EquippedItemIds[layer] = itemId;
 
     public override string ToString()
         => $"Mobile(Id={Id}, IsPlayer={IsPlayer}, Location={Location})";

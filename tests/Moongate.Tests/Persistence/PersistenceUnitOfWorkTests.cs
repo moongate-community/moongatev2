@@ -290,6 +290,13 @@ public class PersistenceUnitOfWorkTests
                 MaxHits = 60,
                 MaxMana = 40,
                 MaxStamina = 50,
+                BackpackId = (Serial)0x40000020,
+                EquippedItemIds = new Dictionary<ItemLayerType, Serial>
+                {
+                    [ItemLayerType.Shirt] = (Serial)0x40000021,
+                    [ItemLayerType.Pants] = (Serial)0x40000022,
+                    [ItemLayerType.Shoes] = (Serial)0x40000023
+                },
                 IsWarMode = false,
                 IsHidden = false,
                 IsFrozen = false,
@@ -307,7 +314,11 @@ public class PersistenceUnitOfWorkTests
             {
                 Id = (Serial)0x40000010,
                 ItemId = 0x0EED,
-                Location = new(10, 20, 0)
+                Location = new(10, 20, 0),
+                ParentContainerId = (Serial)0x40000020,
+                ContainerPosition = new(42, 84),
+                EquippedMobileId = (Serial)0x00000010,
+                EquippedLayer = ItemLayerType.Shirt
             }
         );
 
@@ -346,9 +357,18 @@ public class PersistenceUnitOfWorkTests
                 Assert.That(loadedMobile.MaxHits, Is.EqualTo(60));
                 Assert.That(loadedMobile.MaxMana, Is.EqualTo(40));
                 Assert.That(loadedMobile.MaxStamina, Is.EqualTo(50));
+                Assert.That(loadedMobile.BackpackId, Is.EqualTo((Serial)0x40000020));
+                Assert.That(loadedMobile.EquippedItemIds[ItemLayerType.Shirt], Is.EqualTo((Serial)0x40000021));
+                Assert.That(loadedMobile.EquippedItemIds[ItemLayerType.Pants], Is.EqualTo((Serial)0x40000022));
+                Assert.That(loadedMobile.EquippedItemIds[ItemLayerType.Shoes], Is.EqualTo((Serial)0x40000023));
                 Assert.That(loadedMobile.Notoriety, Is.EqualTo(Notoriety.Innocent));
                 Assert.That(loadedMobile.CreatedUtc, Is.EqualTo(new DateTime(2026, 2, 19, 12, 0, 0, DateTimeKind.Utc)));
                 Assert.That(loadedMobile.LastLoginUtc, Is.EqualTo(new DateTime(2026, 2, 19, 13, 0, 0, DateTimeKind.Utc)));
+                Assert.That(loadedItem!.ParentContainerId, Is.EqualTo((Serial)0x40000020));
+                Assert.That(loadedItem.ContainerPosition.X, Is.EqualTo(42));
+                Assert.That(loadedItem.ContainerPosition.Y, Is.EqualTo(84));
+                Assert.That(loadedItem.EquippedMobileId, Is.EqualTo((Serial)0x00000010));
+                Assert.That(loadedItem.EquippedLayer, Is.EqualTo(ItemLayerType.Shirt));
             }
         );
     }

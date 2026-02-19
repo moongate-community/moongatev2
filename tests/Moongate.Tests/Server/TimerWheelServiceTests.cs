@@ -1,5 +1,6 @@
 using Moongate.Server.Services;
 using Moongate.Server.Data.Config;
+using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Services.Timing;
 
 namespace Moongate.Tests.Server;
@@ -129,5 +130,35 @@ public class TimerWheelServiceTests
 
         Assert.That(firstBurst, Is.EqualTo(1));
         Assert.That(secondBurst, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task GetMetricsSnapshot_ShouldExposeExecutionAndErrorCounters()
+    {
+        var service = new TimerWheelService(
+            new TimerServiceConfig
+            {
+                TickDuration = TimeSpan.FromMilliseconds(50),
+                WheelSize = 64
+            }
+        );
+
+        service.RegisterTimer("ok", TimeSpan.FromMilliseconds(50), () => { });
+        service.RegisterTimer("fail", TimeSpan.FromMilliseconds(50), () => throw new InvalidOperationException("boom"));
+
+        service.ProcessTick();
+        await Task.Delay(50);
+
+        var metrics = ((ITimerMetricsSource)service).GetMetricsSnapshot();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(metrics.TotalRegisteredTimers, Is.EqualTo(2));
+                Assert.That(metrics.TotalExecutedCallbacks, Is.EqualTo(1));
+                Assert.That(metrics.CallbackErrors, Is.EqualTo(1));
+                Assert.That(metrics.AverageCallbackDurationMs, Is.GreaterThanOrEqualTo(0));
+            }
+        );
     }
 }

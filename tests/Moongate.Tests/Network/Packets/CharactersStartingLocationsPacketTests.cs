@@ -1,6 +1,7 @@
 using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Network.Spans;
 using Moongate.UO.Data.Packets.Data;
+using Moongate.UO.Data.Persistence.Entities;
 
 namespace Moongate.Tests.Network.Packets;
 
@@ -52,6 +53,29 @@ public class CharactersStartingLocationsPacketTests
                 Assert.That((flags & 0x40) != 0, Is.True); // SixthCharacterSlot
                 Assert.That((flags & 0x1000) != 0, Is.True); // SeventhCharacterSlot
                 Assert.That(terminator, Is.EqualTo(-1));
+            }
+        );
+    }
+
+    [Test]
+    public void FillCharacters_WithMobiles_ShouldMapNamesAndPad()
+    {
+        var packet = new CharactersStartingLocationsPacket();
+        var mobiles = new List<UOMobileEntity>
+        {
+            new() { Name = "alpha" },
+            new() { Name = null }
+        };
+
+        packet.FillCharacters(mobiles, size: 5);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(packet.Characters.Count, Is.EqualTo(5));
+                Assert.That(packet.Characters[0]?.Name, Is.EqualTo("alpha"));
+                Assert.That(packet.Characters[1]?.Name, Is.EqualTo(string.Empty));
+                Assert.That(packet.Characters[2], Is.Null);
             }
         );
     }

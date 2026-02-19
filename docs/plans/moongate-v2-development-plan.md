@@ -1,6 +1,6 @@
 # Moongate v2 - Development Plan
 
-> **Stack**: .NET 10 LTS · AOT · MoonSharp (Lua) · No persistence (in-memory)  
+> **Stack**: .NET 10 LTS · AOT · MoonSharp (Lua) · Snapshot+Journal persistence (MemoryPack)  
 > **Type**: Hobby project · Solo developer  
 > **Client target**: Classic Client 7.x (ClassicUO compatible)  
 > **Created**: 2026-02-15
@@ -34,7 +34,7 @@ Detailed status note: [[status-2026-02-18|Current Status (2026-02-18)]]
 | Runtime | .NET 10 LTS | Long-term support, latest AOT improvements |
 | Compilation | AOT-ready, JIT during dev | Fast dev iteration, AOT in CI as gate |
 | Scripting | MoonSharp (Lua 5.2) | Coroutines, AOT-safe, lightweight, fast |
-| Persistence | None (in-memory only) | Remove complexity, add later when needed |
+| Persistence | Snapshot + journal (MemoryPack) | Fast local persistence, deterministic restore, AOT-friendly |
 | Networking | System.IO.Pipelines | Proven in v1, zero-copy, backpressure |
 | Web API | ASP.NET Core Minimal APIs | Same process, shared DI, zero overhead |
 | Client | Classic 7.x only | Single protocol target, ClassicUO support |

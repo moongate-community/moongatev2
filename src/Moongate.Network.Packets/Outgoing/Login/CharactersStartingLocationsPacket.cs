@@ -4,6 +4,7 @@ using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
 using Moongate.UO.Data.Expansions;
 using Moongate.UO.Data.Packets.Data;
+using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Types;
 
 namespace Moongate.Network.Packets.Outgoing.Login;
@@ -39,6 +40,24 @@ public class CharactersStartingLocationsPacket : BaseGameNetworkPacket
         {
             Characters.Add(null);
         }
+    }
+
+    public void FillCharacters(IReadOnlyList<UOMobileEntity>? mobiles, int size = 7)
+    {
+        if (mobiles is null)
+        {
+            FillCharacters((IReadOnlyList<CharacterEntry>?)null, size);
+            return;
+        }
+
+        var characters = new List<CharacterEntry>(mobiles.Count);
+
+        for (var i = 0; i < mobiles.Count; i++)
+        {
+            characters.Add(new CharacterEntry(mobiles[i].Name ?? string.Empty));
+        }
+
+        FillCharacters(characters, size);
     }
 
     public override void Write(ref SpanWriter writer)

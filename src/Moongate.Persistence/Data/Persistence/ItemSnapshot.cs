@@ -19,4 +19,14 @@ public sealed partial class ItemSnapshot
     public int ItemId { get; set; }
 
     public int? GumpId { get; set; }
+
+    public uint ParentContainerId { get; set; }
+
+    public int ContainerX { get; set; }
+
+    public int ContainerY { get; set; }
+
+    public uint EquippedMobileId { get; set; }
+
+    public byte? EquippedLayer { get; set; }
 }

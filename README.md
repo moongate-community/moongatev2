@@ -40,9 +40,11 @@ The project is actively in development and already includes:
 - Embedded HTTP host (`Moongate.Server.Http`) for health/admin endpoints and OpenAPI/Scalar docs.
 - Dedicated HTTP rolling logs in the shared logs directory (`moongate_http-*.log`).
 - Snapshot+journal persistence module (`Moongate.Persistence`) integrated in server lifecycle.
+- ID-based persistence references for character equipment/container ownership.
 - Interactive console UI with fixed prompt (`moongate>`) and Spectre-based colored log rendering.
+- Timer wheel runtime metrics integrated in the metrics pipeline (`timer.*`).
 
-For a detailed internal status snapshot, see `docs/plans/status-2026-02-18.md`.
+For a detailed internal status snapshot, see `docs/plans/status-2026-02-19.md`.
 
 ## Persistence
 
@@ -53,6 +55,11 @@ Moongate uses a lightweight file-based persistence model implemented in `src/Moo
 - MemoryPack binary serialization for compact and fast read/write.
 - Per-operation checksums in journal entries to detect truncated/corrupted tails.
 - Thread-safe repositories for accounts, mobiles, and items.
+- Mobile/item relations are persisted by serial references:
+  - `UOMobileEntity.BackpackId`
+  - `UOMobileEntity.EquippedItemIds`
+  - `UOItemEntity.ParentContainerId` + `ContainerPosition`
+  - `UOItemEntity.EquippedMobileId` + `EquippedLayer`
 
 Runtime behavior:
 
@@ -182,7 +189,7 @@ Project documentation (Obsidian vault) is in `docs/`.
 
 - Docs home: `docs/Home.md`
 - Development plan: `docs/plans/moongate-v2-development-plan.md`
-- Current status snapshot: `docs/plans/status-2026-02-18.md`
+- Current status snapshot: `docs/plans/status-2026-02-19.md`
 - Sprint tracking: `docs/sprints/sprint-001.md`
 - Sprint closeout: `docs/sprints/sprint-001-closeout-2026-02-18.md`
 - Protocol notes index: `docs/protocol/README.md`

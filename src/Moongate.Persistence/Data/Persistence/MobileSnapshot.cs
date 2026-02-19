@@ -62,6 +62,12 @@ public sealed partial class MobileSnapshot
 
     public int MaxStamina { get; set; }
 
+    public uint BackpackId { get; set; }
+
+    public byte[] EquippedLayers { get; set; } = [];
+
+    public uint[] EquippedItemIds { get; set; } = [];
+
     public bool IsWarMode { get; set; }
 
     public bool IsHidden { get; set; }

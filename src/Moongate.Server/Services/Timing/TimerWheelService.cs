@@ -1,7 +1,10 @@
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Internal.Timers;
+using Moongate.Server.Data.Metrics;
+using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Timing;
 using Serilog;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Moongate.Server.Services.Timing;
@@ -10,6 +13,7 @@ namespace Moongate.Server.Services.Timing;
 /// Hashed timer-wheel implementation driven by game-loop ticks.
 /// </summary>
 public sealed class TimerWheelService : ITimerService
+    , ITimerMetricsSource
 {
     private readonly ILogger _logger = Log.ForContext<TimerWheelService>();
     private readonly TimeSpan _tickDuration;
@@ -19,6 +23,10 @@ public sealed class TimerWheelService : ITimerService
     private readonly Dictionary<string, HashSet<string>> _timerIdsByName = new(StringComparer.Ordinal);
 
     private long _currentTick;
+    private long _totalRegisteredTimers;
+    private long _totalExecutedCallbacks;
+    private long _callbackErrors;
+    private long _totalCallbackElapsedTicks;
 
     public TimerWheelService(TimerServiceConfig config)
     {
@@ -156,6 +164,7 @@ public sealed class TimerWheelService : ITimerService
         lock (_syncRoot)
         {
             _timersById[entry.Id] = entry;
+            _totalRegisteredTimers++;
 
             if (!_timerIdsByName.TryGetValue(name, out var ids))
             {
@@ -303,6 +312,8 @@ public sealed class TimerWheelService : ITimerService
             return;
         }
 
+        var startedAt = Stopwatch.GetTimestamp();
+
         try
         {
             _logger.Debug(
@@ -312,9 +323,12 @@ public sealed class TimerWheelService : ITimerService
                 entry.Repeat
             );
             await entry.CallbackAsync(CancellationToken.None);
+            Interlocked.Increment(ref _totalExecutedCallbacks);
+            Interlocked.Add(ref _totalCallbackElapsedTicks, Stopwatch.GetTimestamp() - startedAt);
         }
         catch (Exception ex)
         {
+            Interlocked.Increment(ref _callbackErrors);
             _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
         }
         finally
@@ -334,5 +348,30 @@ public sealed class TimerWheelService : ITimerService
                 ScheduleEntry(entry, entry.Interval);
             }
         }
+    }
+
+    public TimerMetricsSnapshot GetMetricsSnapshot()
+    {
+        int activeTimerCount;
+
+        lock (_syncRoot)
+        {
+            activeTimerCount = _timersById.Count;
+        }
+
+        var executedCallbacks = Interlocked.Read(ref _totalExecutedCallbacks);
+        var totalElapsedTicks = Interlocked.Read(ref _totalCallbackElapsedTicks);
+        var averageCallbackDurationMs =
+            executedCallbacks == 0
+                ? 0
+                : TimeSpan.FromTicks(totalElapsedTicks / executedCallbacks).TotalMilliseconds;
+
+        return new TimerMetricsSnapshot(
+            activeTimerCount,
+            Interlocked.Read(ref _totalRegisteredTimers),
+            executedCallbacks,
+            Interlocked.Read(ref _callbackErrors),
+            averageCallbackDurationMs
+        );
     }
 }

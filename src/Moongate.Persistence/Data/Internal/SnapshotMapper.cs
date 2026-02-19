@@ -48,7 +48,11 @@ internal static class SnapshotMapper
             Id = (Serial)snapshot.Id,
             Location = new(snapshot.X, snapshot.Y, snapshot.Z),
             ItemId = snapshot.ItemId,
-            GumpId = snapshot.GumpId
+            GumpId = snapshot.GumpId,
+            ParentContainerId = (Serial)snapshot.ParentContainerId,
+            ContainerPosition = new(snapshot.ContainerX, snapshot.ContainerY),
+            EquippedMobileId = (Serial)snapshot.EquippedMobileId,
+            EquippedLayer = snapshot.EquippedLayer is null ? null : (ItemLayerType)snapshot.EquippedLayer.Value
         };
 
     public static ItemSnapshot ToItemSnapshot(UOItemEntity entity)
@@ -59,11 +63,17 @@ internal static class SnapshotMapper
             Y = entity.Location.Y,
             Z = entity.Location.Z,
             ItemId = entity.ItemId,
-            GumpId = entity.GumpId
+            GumpId = entity.GumpId,
+            ParentContainerId = (uint)entity.ParentContainerId,
+            ContainerX = entity.ContainerPosition.X,
+            ContainerY = entity.ContainerPosition.Y,
+            EquippedMobileId = (uint)entity.EquippedMobileId,
+            EquippedLayer = entity.EquippedLayer is null ? null : (byte)entity.EquippedLayer.Value
         };
 
     public static UOMobileEntity ToMobileEntity(MobileSnapshot snapshot)
-        => new()
+    {
+        var entity = new UOMobileEntity
         {
             Id = (Serial)snapshot.Id,
             AccountId = (Serial)snapshot.AccountId,
@@ -90,6 +100,7 @@ internal static class SnapshotMapper
             MaxHits = snapshot.MaxHits,
             MaxMana = snapshot.MaxMana,
             MaxStamina = snapshot.MaxStamina,
+            BackpackId = (Serial)snapshot.BackpackId,
             IsWarMode = snapshot.IsWarMode,
             IsHidden = snapshot.IsHidden,
             IsFrozen = snapshot.IsFrozen,
@@ -100,8 +111,20 @@ internal static class SnapshotMapper
             LastLoginUtc = new(snapshot.LastLoginUtcTicks, DateTimeKind.Utc)
         };
 
+        var length = Math.Min(snapshot.EquippedLayers.Length, snapshot.EquippedItemIds.Length);
+        for (var i = 0; i < length; i++)
+        {
+            entity.EquippedItemIds[(ItemLayerType)snapshot.EquippedLayers[i]] = (Serial)snapshot.EquippedItemIds[i];
+        }
+
+        return entity;
+    }
+
     public static MobileSnapshot ToMobileSnapshot(UOMobileEntity entity)
-        => new()
+    {
+        var equipped = entity.EquippedItemIds.OrderBy(static pair => (int)pair.Key).ToArray();
+
+        return new()
         {
             Id = (uint)entity.Id,
             AccountId = (uint)entity.AccountId,
@@ -130,6 +153,9 @@ internal static class SnapshotMapper
             MaxHits = entity.MaxHits,
             MaxMana = entity.MaxMana,
             MaxStamina = entity.MaxStamina,
+            BackpackId = (uint)entity.BackpackId,
+            EquippedLayers = [.. equipped.Select(static pair => (byte)pair.Key)],
+            EquippedItemIds = [.. equipped.Select(static pair => (uint)pair.Value)],
             IsWarMode = entity.IsWarMode,
             IsHidden = entity.IsHidden,
             IsFrozen = entity.IsFrozen,
@@ -139,4 +165,5 @@ internal static class SnapshotMapper
             CreatedUtcTicks = entity.CreatedUtc.Ticks,
             LastLoginUtcTicks = entity.LastLoginUtc.Ticks
         };
+    }
 }
