@@ -1,5 +1,6 @@
 using Moongate.Server.Data.Events;
 using Moongate.Server.Services;
+using Moongate.Server.Services.Events;
 using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;

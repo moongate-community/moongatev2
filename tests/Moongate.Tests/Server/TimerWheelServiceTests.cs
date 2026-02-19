@@ -1,5 +1,6 @@
 using Moongate.Server.Services;
 using Moongate.Server.Data.Config;
+using Moongate.Server.Services.Timing;
 
 namespace Moongate.Tests.Server;
 

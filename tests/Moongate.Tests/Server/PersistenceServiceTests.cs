@@ -2,6 +2,7 @@ using Moongate.Core.Data.Directories;
 using Moongate.Core.Types;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Services;
+using Moongate.Server.Services.Persistence;
 using Moongate.Tests.TestSupport;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;

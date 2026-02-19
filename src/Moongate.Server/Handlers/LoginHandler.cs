@@ -4,6 +4,7 @@ using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
+using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
 using Serilog;
 
