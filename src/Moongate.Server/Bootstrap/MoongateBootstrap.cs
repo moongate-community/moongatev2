@@ -136,7 +136,6 @@ public sealed class MoongateBootstrap : IDisposable
         }
 
         await persistenceService.SaveAsync();
-
     }
 
     private void CheckConfig()

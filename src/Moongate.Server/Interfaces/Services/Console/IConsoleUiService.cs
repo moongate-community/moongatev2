@@ -39,6 +39,26 @@ public interface IConsoleUiService
     void UpdateInput(string input);
 
     /// <summary>
+    /// Scrolls the log viewport up by one page.
+    /// </summary>
+    void ScrollPageUp();
+
+    /// <summary>
+    /// Scrolls the log viewport down by one page.
+    /// </summary>
+    void ScrollPageDown();
+
+    /// <summary>
+    /// Scrolls the log viewport to the oldest available line.
+    /// </summary>
+    void ScrollToTop();
+
+    /// <summary>
+    /// Scrolls the log viewport to the most recent line.
+    /// </summary>
+    void ScrollToBottom();
+
+    /// <summary>
     /// Writes one log line to the console output area.
     /// </summary>
     /// <param name="line">Formatted log line.</param>

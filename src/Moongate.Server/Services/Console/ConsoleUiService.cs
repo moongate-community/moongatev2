@@ -10,6 +10,7 @@ namespace Moongate.Server.Services.Console;
 /// </summary>
 public sealed class ConsoleUiService : IConsoleUiService
 {
+    private const int MaxBufferedLogLines = 50_000;
     private const string PromptPrefix = "moongate> ";
     private const string LockedPromptPrefix = "moongate [LOCKED]> ";
     private const char PromptUnlockCharacter = '*';
@@ -19,6 +20,7 @@ public sealed class ConsoleUiService : IConsoleUiService
     private readonly List<ConsoleLogLine> _logBuffer = [];
 
     private string _input = string.Empty;
+    private int _scrollOffset;
 
     public ConsoleUiService()
     {
@@ -75,6 +77,65 @@ public sealed class ConsoleUiService : IConsoleUiService
         }
     }
 
+    public void ScrollPageUp()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
+            _scrollOffset += pageSize;
+            RenderUnsafe();
+        }
+    }
+
+    public void ScrollPageDown()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
+            _scrollOffset = Math.Max(0, _scrollOffset - pageSize);
+            RenderUnsafe();
+        }
+    }
+
+    public void ScrollToTop()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
+            _scrollOffset = Math.Max(0, _logBuffer.Count - pageSize);
+            RenderUnsafe();
+        }
+    }
+
+    public void ScrollToBottom()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            _scrollOffset = 0;
+            RenderUnsafe();
+        }
+    }
+
     public void WriteLogLine(
         string line,
         LogEventLevel level,
@@ -90,12 +151,22 @@ public sealed class ConsoleUiService : IConsoleUiService
 
         lock (_sync)
         {
+            var wasViewingHistory = _scrollOffset > 0;
+            var addedLines = 0;
+
             foreach (var item in SplitLines(line))
             {
                 _logBuffer.Add(CreateConsoleLogLine(item, level, highlightedValues));
+                addedLines++;
             }
 
-            TrimBufferForCurrentWindow();
+            TrimBufferToMaximum();
+
+            if (wasViewingHistory && addedLines > 0)
+            {
+                _scrollOffset += addedLines;
+            }
+
             RenderUnsafe();
         }
     }
@@ -232,9 +303,9 @@ public sealed class ConsoleUiService : IConsoleUiService
         {
             var width = Math.Max(1, System.Console.WindowWidth);
             var promptRow = Math.Max(0, System.Console.WindowHeight - 1);
-
-            TrimBuffer(promptRow);
-            var startIndex = Math.Max(0, _logBuffer.Count - promptRow);
+            var maxOffset = Math.Max(0, _logBuffer.Count - promptRow);
+            _scrollOffset = Math.Clamp(_scrollOffset, 0, maxOffset);
+            var startIndex = Math.Max(0, _logBuffer.Count - promptRow - _scrollOffset);
 
             for (var row = 0; row < promptRow; row++)
             {
@@ -282,18 +353,16 @@ public sealed class ConsoleUiService : IConsoleUiService
         }
     }
 
-    private void TrimBuffer(int maxRows)
+    private void TrimBufferToMaximum()
     {
-        while (_logBuffer.Count > maxRows)
+        if (_logBuffer.Count <= MaxBufferedLogLines)
         {
-            _logBuffer.RemoveAt(0);
+            return;
         }
-    }
 
-    private void TrimBufferForCurrentWindow()
-    {
-        var logRows = Math.Max(0, System.Console.WindowHeight - 1);
-        TrimBuffer(logRows);
+        var removeCount = _logBuffer.Count - MaxBufferedLogLines;
+        _logBuffer.RemoveRange(0, removeCount);
+        _scrollOffset = Math.Max(0, _scrollOffset - removeCount);
     }
 
     private static void WritePromptRow(string line, int row, int width)
