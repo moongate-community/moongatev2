@@ -25,8 +25,9 @@ using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Files;
 using Moongate.Server.Interfaces.Services.Lifecycle;
-using Moongate.Server.Interfaces.Services.Loop;
+using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
+using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Network;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Persistence;
@@ -38,8 +39,10 @@ using Moongate.Server.Services.Console.Internal.Logging;
 using Moongate.Server.Services.Events;
 using Moongate.Server.Services.Files;
 using Moongate.Server.Services.Lifecycle;
-using Moongate.Server.Services.Loop;
+using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Messaging;
+using Moongate.Server.Services.Metrics;
+using Moongate.Server.Services.Metrics.Providers;
 using Moongate.Server.Services.Network;
 using Moongate.Server.Services.Packets;
 using Moongate.Server.Services.Persistence;
@@ -215,12 +218,26 @@ public sealed class MoongateBootstrap : IDisposable
                             .MinimumLevel
                             .Is(_moongateConfig.LogLevel.ToSerilogLogLevel())
                             .WriteTo
-                            .Sink(new ConsoleUiSerilogSink(_consoleUiService))
-                            .WriteTo
                             .File(
                                 appLogPath,
                                 rollingInterval: RollingInterval.Day
                             );
+
+        if (_moongateConfig.Metrics.LogToConsole)
+        {
+            configuration = configuration.WriteTo.Sink(new ConsoleUiSerilogSink(_consoleUiService));
+        }
+        else
+        {
+            configuration = configuration.WriteTo.Logger(
+                loggerConfiguration =>
+                    loggerConfiguration
+                        .Filter
+                        .ByExcluding(Matching.WithProperty("MetricsData"))
+                        .WriteTo
+                        .Sink(new ConsoleUiSerilogSink(_consoleUiService))
+            );
+        }
 
         if (_moongateConfig.LogPacketData)
         {
@@ -343,6 +360,7 @@ public sealed class MoongateBootstrap : IDisposable
         };
 
         _container.RegisterInstance(_moongateConfig);
+        _container.RegisterInstance(_moongateConfig.Metrics);
         _container.RegisterInstance(_directoriesConfig);
         _container.RegisterInstance(timerServiceConfig);
         _container.RegisterInstance(_consoleUiService);
@@ -355,11 +373,28 @@ public sealed class MoongateBootstrap : IDisposable
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
+        _container.RegisterDelegate<IGameLoopMetricsSource>(
+            resolver => (IGameLoopMetricsSource)resolver.Resolve<IGameLoopService>(),
+            Reuse.Singleton
+        );
+        _container.RegisterDelegate<INetworkMetricsSource>(
+            resolver => (INetworkMetricsSource)resolver.Resolve<INetworkService>(),
+            Reuse.Singleton
+        );
+        _container.RegisterDelegate<IPersistenceMetricsSource>(
+            resolver => (IPersistenceMetricsSource)resolver.Resolve<IPersistenceService>(),
+            Reuse.Singleton
+        );
+        _container.Register<IMetricProvider, GameLoopMetricsProvider>(Reuse.Singleton);
+        _container.Register<IMetricProvider, NetworkMetricsProvider>(Reuse.Singleton);
+        _container.Register<IMetricProvider, ScriptEngineMetricsProvider>(Reuse.Singleton);
+        _container.Register<IMetricProvider, PersistenceMetricsProvider>(Reuse.Singleton);
 
         _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
         _container.RegisterMoongateService<ICommandSystemService, CommandSystemService>(131);
         _container.RegisterMoongateService<IConsoleCommandService, ConsoleCommandService>(132);
+        _container.RegisterMoongateService<IMetricsCollectionService, MetricsCollectionService>(135);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);
         _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
         _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);

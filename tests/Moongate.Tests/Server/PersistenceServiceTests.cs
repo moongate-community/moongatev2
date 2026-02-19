@@ -53,4 +53,26 @@ public class PersistenceServiceTests
         var snapshotPath = Path.Combine(directories[DirectoryType.Save], "world.snapshot.bin");
         Assert.That(File.Exists(snapshotPath), Is.True);
     }
+
+    [Test]
+    public async Task SaveAsync_ShouldUpdateSnapshotMetrics()
+    {
+        using var temp = new TempDirectory();
+        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+        var service = new PersistenceService(directories);
+
+        await service.StartAsync();
+        await service.SaveAsync();
+        var snapshot = service.GetMetricsSnapshot();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(snapshot.TotalSaves, Is.GreaterThanOrEqualTo(1));
+                Assert.That(snapshot.LastSaveDurationMs, Is.GreaterThanOrEqualTo(0));
+                Assert.That(snapshot.LastSaveTimestampUtc, Is.Not.Null);
+                Assert.That(snapshot.SaveErrors, Is.EqualTo(0));
+            }
+        );
+    }
 }

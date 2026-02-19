@@ -9,6 +9,11 @@ namespace Moongate.Server.Interfaces.Services.Sessions;
 public interface IGameNetworkSessionService
 {
     /// <summary>
+    /// Gets active session count.
+    /// </summary>
+    int Count { get; }
+
+    /// <summary>
     /// Clears all sessions.
     /// </summary>
     void Clear();

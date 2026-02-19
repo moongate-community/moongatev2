@@ -19,4 +19,6 @@ public class MoongateConfig
     public MoongateHttpConfig Http { get; set; } = new();
 
     public MoongateGameConfig Game { get; set; } = new();
+
+    public MoongateMetricsConfig Metrics { get; set; } = new();
 }

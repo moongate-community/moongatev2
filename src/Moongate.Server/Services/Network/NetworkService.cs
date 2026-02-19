@@ -17,6 +17,7 @@ using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Messaging;
+using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Network;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
@@ -24,7 +25,7 @@ using Serilog;
 
 namespace Moongate.Server.Services.Network;
 
-public class NetworkService : INetworkService
+public class NetworkService : INetworkService, INetworkMetricsSource
 {
     private const int MaxPendingBufferBytes = 64 * 1024;
     private const int MaxDeclaredPacketLength = 16 * 1024;
@@ -595,5 +596,26 @@ public class NetworkService : INetworkService
         _logger.Information("Session {SessionId} completed seed handshake with 0x{Seed:X8}.", session.SessionId, seed);
 
         return true;
+    }
+
+    public Data.Metrics.NetworkMetricsSnapshot GetMetricsSnapshot()
+    {
+        var totalReceivedBytes = _parserMetrics.Values.Sum(static metrics => metrics.ReceivedBytes);
+        var totalParsedPackets = _parserMetrics.Values.Sum(static metrics => metrics.ParsedPackets);
+        var totalParserErrors = _parserMetrics.Values.Sum(
+            static metrics =>
+                metrics.UnknownOpcodeDrops +
+                metrics.InvalidLengthDrops +
+                metrics.ParseFailures +
+                metrics.ProtocolViolations +
+                metrics.PendingBufferOverflows
+        );
+
+        return new(
+            _gameNetworkSessionService.Count,
+            totalReceivedBytes,
+            totalParsedPackets,
+            totalParserErrors
+        );
     }
 }

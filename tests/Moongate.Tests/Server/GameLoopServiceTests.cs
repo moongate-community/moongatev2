@@ -3,7 +3,7 @@ using Moongate.Network.Client;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
-using Moongate.Server.Services.Loop;
+using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Messaging;
 using Moongate.Server.Services.Packets;
 using Moongate.Server.Services.Sessions;
@@ -32,9 +32,10 @@ public class GameLoopServiceTests
         Assert.Multiple(
             () =>
             {
-                Assert.That(_service.TickCount, Is.Zero);
-                Assert.That(_service.Uptime, Is.EqualTo(TimeSpan.Zero));
-                Assert.That(_service.AverageTickMs, Is.Zero);
+                var snapshot = _service.GetMetricsSnapshot();
+                Assert.That(snapshot.TickCount, Is.Zero);
+                Assert.That(snapshot.Uptime, Is.EqualTo(TimeSpan.Zero));
+                Assert.That(snapshot.AverageTickMs, Is.Zero);
             }
         );
     }
@@ -53,15 +54,18 @@ public class GameLoopServiceTests
 
         await _service.StartAsync();
 
-        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
-        var uptimeAdvanced = await WaitUntilAsync(() => _service.Uptime > TimeSpan.Zero, TimeSpan.FromSeconds(2));
+        var tickAdvanced = await WaitUntilAsync(() => _service.GetMetricsSnapshot().TickCount > 0, TimeSpan.FromSeconds(2));
+        var uptimeAdvanced = await WaitUntilAsync(
+            () => _service.GetMetricsSnapshot().Uptime > TimeSpan.Zero,
+            TimeSpan.FromSeconds(2)
+        );
 
         Assert.Multiple(
             () =>
             {
                 Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
                 Assert.That(uptimeAdvanced, Is.True, "Uptime did not increase in time.");
-                Assert.That(_service.AverageTickMs, Is.GreaterThanOrEqualTo(0d));
+                Assert.That(_service.GetMetricsSnapshot().AverageTickMs, Is.GreaterThanOrEqualTo(0d));
             }
         );
     }
@@ -208,15 +212,18 @@ public class GameLoopServiceTests
         );
         await _service.StartAsync();
 
-        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
+        var tickAdvanced = await WaitUntilAsync(
+            () => _service.GetMetricsSnapshot().TickCount > 0,
+            TimeSpan.FromSeconds(2)
+        );
         Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
 
         await _service.StopAsync();
 
-        var tickAfterStop = _service.TickCount;
+        var tickAfterStop = _service.GetMetricsSnapshot().TickCount;
         await Task.Delay(500);
 
-        Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+        Assert.That(_service.GetMetricsSnapshot().TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
     }
 
     [TearDown]

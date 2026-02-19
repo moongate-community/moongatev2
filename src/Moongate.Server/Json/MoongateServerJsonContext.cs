@@ -7,5 +7,6 @@ namespace Moongate.Server.Json;
      PropertyNameCaseInsensitive = true,
      UseStringEnumConverter = true,
      WriteIndented = true
- ), JsonSerializable(typeof(MoongateConfig)), JsonSerializable(typeof(MoongateHttpConfig))]
+ ), JsonSerializable(typeof(MoongateConfig)), JsonSerializable(typeof(MoongateHttpConfig)),
+ JsonSerializable(typeof(MoongateGameConfig)), JsonSerializable(typeof(MoongateMetricsConfig))]
 public partial class MoongateServerJsonContext : JsonSerializerContext { }

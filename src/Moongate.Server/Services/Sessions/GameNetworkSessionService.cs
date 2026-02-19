@@ -9,6 +9,8 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
 {
     private readonly ConcurrentDictionary<long, GameSession> _sessions = new();
 
+    public int Count => _sessions.Count;
+
     public void Clear()
         => _sessions.Clear();
 

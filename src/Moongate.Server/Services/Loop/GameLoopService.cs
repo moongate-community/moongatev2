@@ -1,15 +1,17 @@
 using System.Diagnostics;
 using Moongate.Abstractions.Services.Base;
-using Moongate.Server.Interfaces.Services.Loop;
+using Moongate.Server.Data.Metrics;
+using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
+using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
 using Moongate.Server.Interfaces.Services.Timing;
 using Serilog;
 
-namespace Moongate.Server.Services.Loop;
+namespace Moongate.Server.Services.GameLoop;
 
-public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposable
+public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopMetricsSource, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly IMessageBusService _messageBusService;
@@ -20,10 +22,10 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(150);
-
-    public long TickCount { get; private set; }
-    public TimeSpan Uptime { get; private set; }
-    public double AverageTickMs { get; private set; }
+    private readonly Lock _metricsSync = new();
+    private long _tickCount;
+    private TimeSpan _uptime;
+    private double _averageTickMs;
 
     public GameLoopService(
         IPacketDispatchService packetDispatchService,
@@ -69,11 +71,14 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
 
                     ProcessQueue();
 
-                    TickCount++;
-
                     var elapsed = Stopwatch.GetElapsedTime(tickStart);
-                    Uptime += elapsed;
-                    AverageTickMs = AverageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
+
+                    lock (_metricsSync)
+                    {
+                        _tickCount++;
+                        _uptime += elapsed;
+                        _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
+                    }
 
                     var remaining = _tickInterval - elapsed;
 
@@ -129,5 +134,13 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IDisposabl
         DrainPacketQueue();
         _timerService.ProcessTick();
         DrainOutgoingPacketQueue();
+    }
+
+    public GameLoopMetricsSnapshot GetMetricsSnapshot()
+    {
+        lock (_metricsSync)
+        {
+            return new(_tickCount, _uptime, _averageTickMs);
+        }
     }
 }
