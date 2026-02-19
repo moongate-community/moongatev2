@@ -110,6 +110,23 @@ public sealed class AccountRepository : IAccountRepository
         }
     }
 
+    public ValueTask<bool> ExistsAsync(
+        Func<UOAccountEntity, bool> predicate,
+        CancellationToken cancellationToken = default
+    )
+    {
+        _logger.Verbose("Account exists query requested");
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        lock (_stateStore.SyncRoot)
+        {
+            var exists = _stateStore.AccountsById.Values.AsValueEnumerable().Any(predicate);
+            _logger.Verbose("Account exists query completed Exists={Exists}", exists);
+            return ValueTask.FromResult(exists);
+        }
+    }
+
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Account remove requested for Id={AccountId}", id);

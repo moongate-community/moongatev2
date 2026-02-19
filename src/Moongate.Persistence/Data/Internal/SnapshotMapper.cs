@@ -17,7 +17,9 @@ internal static class SnapshotMapper
             Id = (Serial)snapshot.Id,
             Username = snapshot.Username,
             PasswordHash = snapshot.PasswordHash,
+            Email = snapshot.Email,
             AccountType = (AccountType)snapshot.AccountType,
+            IsLocked = snapshot.IsLocked,
             CreatedUtc = new(snapshot.CreatedUtcTicks, DateTimeKind.Utc),
             LastLoginUtc = new(snapshot.LastLoginUtcTicks, DateTimeKind.Utc),
             CharacterIds = [.. snapshot.CharacterIds.Select(id => (Serial)id)]
@@ -31,7 +33,9 @@ internal static class SnapshotMapper
             Id = (uint)entity.Id,
             Username = entity.Username,
             PasswordHash = entity.PasswordHash,
+            Email = entity.Email,
             AccountType = (byte)entity.AccountType,
+            IsLocked = entity.IsLocked,
             CreatedUtcTicks = entity.CreatedUtc.Ticks,
             LastLoginUtcTicks = entity.LastLoginUtc.Ticks,
             CharacterIds = [.. entity.CharacterIds.Select(serial => (uint)serial)]

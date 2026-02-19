@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Moongate.Core.Data.Directories;
+using Moongate.Server.Http.Data;
 using Serilog.Events;
 
 namespace Moongate.Server.Http;
@@ -38,4 +39,9 @@ public sealed class MoongateHttpServiceOptions
     /// Optional callback for extra endpoint/middleware registrations.
     /// </summary>
     public Action<WebApplication>? ConfigureApp { get; init; }
+
+    /// <summary>
+    /// Optional factory used by the built-in <c>/metrics</c> endpoint.
+    /// </summary>
+    public Func<MoongateHttpMetricsSnapshot?>? MetricsSnapshotFactory { get; init; }
 }

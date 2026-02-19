@@ -156,6 +156,98 @@ public class PersistenceUnitOfWorkTests
     }
 
     [Test]
+    public async Task InitializeAsync_ShouldPreserveAccountLockStateAcrossSnapshotAndJournalReplay()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000040,
+                Username = "snapshot-locked",
+                PasswordHash = "pw",
+                IsLocked = true
+            }
+        );
+
+        await unitOfWork.SaveSnapshotAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000041,
+                Username = "journal-unlocked",
+                PasswordHash = "pw",
+                IsLocked = false
+            }
+        );
+
+        var secondUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await secondUnitOfWork.InitializeAsync();
+
+        var snapshotAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("snapshot-locked");
+        var journalAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("journal-unlocked");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(snapshotAccount, Is.Not.Null);
+                Assert.That(journalAccount, Is.Not.Null);
+                Assert.That(snapshotAccount!.IsLocked, Is.True);
+                Assert.That(journalAccount!.IsLocked, Is.False);
+            }
+        );
+    }
+
+    [Test]
+    public async Task InitializeAsync_ShouldPreserveAccountEmailAcrossSnapshotAndJournalReplay()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000050,
+                Username = "snapshot-email",
+                PasswordHash = "pw",
+                Email = "snapshot@moongate.local"
+            }
+        );
+
+        await unitOfWork.SaveSnapshotAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000051,
+                Username = "journal-email",
+                PasswordHash = "pw",
+                Email = "journal@moongate.local"
+            }
+        );
+
+        var secondUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await secondUnitOfWork.InitializeAsync();
+
+        var snapshotAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("snapshot-email");
+        var journalAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("journal-email");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(snapshotAccount, Is.Not.Null);
+                Assert.That(journalAccount, Is.Not.Null);
+                Assert.That(snapshotAccount!.Email, Is.EqualTo("snapshot@moongate.local"));
+                Assert.That(journalAccount!.Email, Is.EqualTo("journal@moongate.local"));
+            }
+        );
+    }
+
+    [Test]
     public async Task SaveSnapshotAsync_ShouldPersistAllEntities()
     {
         using var tempDirectory = new TempDirectory();
@@ -217,6 +309,27 @@ public class PersistenceUnitOfWorkTests
                         );
 
         Assert.That(usernames.OrderBy(x => x).ToArray(), Is.EqualTo(ExpectedAccountUsernames));
+    }
+
+    [Test]
+    public async Task ExistsAsync_OnAccounts_ShouldReturnExpectedValue()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(new() { Id = (Serial)0x1101, Username = "exists-user", PasswordHash = "pw" });
+
+        var exists = await unitOfWork.Accounts.ExistsAsync(account => account.Username == "exists-user");
+        var notExists = await unitOfWork.Accounts.ExistsAsync(account => account.Username == "missing-user");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(exists, Is.True);
+                Assert.That(notExists, Is.False);
+            }
+        );
     }
 
     [Test]

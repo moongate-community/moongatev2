@@ -3,8 +3,10 @@ using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
+using Moongate.Server.Interfaces.Services.Accounting;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
+using Moongate.UO.Data.Types;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -13,10 +15,13 @@ public class LoginHandler : BasePacketListener
 {
     private readonly ILogger _logger = Log.ForContext<LoginHandler>();
 
+
+    private readonly IAccountService _accountService;
     private readonly ServerListPacket _serverListPacket;
 
-    public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue) : base(outgoingPacketQueue)
+    public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue, IAccountService accountService) : base(outgoingPacketQueue)
     {
+        _accountService = accountService;
         _serverListPacket = new();
         _serverListPacket.Shards.Add(
             new()
@@ -61,7 +66,14 @@ public class LoginHandler : BasePacketListener
             accountLoginPacket.Account
         );
 
-        //Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+        if (_accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password) == null)
+        {
+
+            Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+            return true;
+        }
+
+
 
         Enqueue(session, _serverListPacket);
 

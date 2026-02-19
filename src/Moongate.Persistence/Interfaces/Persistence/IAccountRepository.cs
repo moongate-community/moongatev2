@@ -29,6 +29,14 @@ public interface IAccountRepository
     ValueTask<UOAccountEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns true when at least one account matches the predicate.
+    /// </summary>
+    ValueTask<bool> ExistsAsync(
+        Func<UOAccountEntity, bool> predicate,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Removes an account by its serial identifier.
     /// </summary>
     ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default);

@@ -8,46 +8,22 @@ using Moongate.Core.Extensions.Directories;
 using Moongate.Core.Extensions.Logger;
 using Moongate.Core.Json;
 using Moongate.Core.Types;
-using Moongate.Network.Packets.Data.Packets;
 using Moongate.Scripting.Data.Config;
 using Moongate.Scripting.Extensions.Scripts;
-using Moongate.Scripting.Interfaces;
-using Moongate.Scripting.Modules;
-using Moongate.Scripting.Services;
+using Moongate.Server.Bootstrap.Internal;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Events;
-using Moongate.Server.FileLoaders;
-using Moongate.Server.Handlers;
 using Moongate.Server.Http;
+using Moongate.Server.Http.Data;
 using Moongate.Server.Http.Interfaces;
-using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services.Console;
-using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Files;
 using Moongate.Server.Interfaces.Services.Lifecycle;
-using Moongate.Server.Interfaces.Services.GameLoop;
-using Moongate.Server.Interfaces.Services.Messaging;
 using Moongate.Server.Interfaces.Services.Metrics;
-using Moongate.Server.Interfaces.Services.Network;
-using Moongate.Server.Interfaces.Services.Packets;
-using Moongate.Server.Interfaces.Services.Persistence;
-using Moongate.Server.Interfaces.Services.Sessions;
-using Moongate.Server.Interfaces.Services.Timing;
 using Moongate.Server.Json;
 using Moongate.Server.Services.Console;
 using Moongate.Server.Services.Console.Internal.Logging;
-using Moongate.Server.Services.Events;
-using Moongate.Server.Services.Files;
-using Moongate.Server.Services.Lifecycle;
-using Moongate.Server.Services.GameLoop;
-using Moongate.Server.Services.Messaging;
-using Moongate.Server.Services.Metrics;
-using Moongate.Server.Services.Metrics.Providers;
-using Moongate.Server.Services.Network;
-using Moongate.Server.Services.Packets;
-using Moongate.Server.Services.Persistence;
-using Moongate.Server.Services.Sessions;
-using Moongate.Server.Services.Timing;
+using Moongate.Scripting.Modules;
 using Moongate.UO.Data.Files;
 using Moongate.UO.Data.Version;
 using Serilog;
@@ -271,21 +247,7 @@ public sealed class MoongateBootstrap : IDisposable
     private void RegisterFileLoaders()
     {
         var fileLoaderService = _container.Resolve<IFileLoaderService>();
-
-        fileLoaderService.AddFileLoader<ClientVersionLoader>();
-        fileLoaderService.AddFileLoader<SkillLoader>();
-        fileLoaderService.AddFileLoader<ExpansionLoader>();
-        fileLoaderService.AddFileLoader<BodyDataLoader>();
-        fileLoaderService.AddFileLoader<ProfessionsLoader>();
-        fileLoaderService.AddFileLoader<MultiDataLoader>();
-        fileLoaderService.AddFileLoader<RaceLoader>();
-        fileLoaderService.AddFileLoader<TileDataLoader>();
-        fileLoaderService.AddFileLoader<MapLoader>();
-        fileLoaderService.AddFileLoader<CliLocLoader>();
-        fileLoaderService.AddFileLoader<ContainersDataLoader>();
-        fileLoaderService.AddFileLoader<RegionDataLoader>();
-        fileLoaderService.AddFileLoader<WeatherDataLoader>();
-        fileLoaderService.AddFileLoader<NamesLoader>();
+        BootstrapFileLoaderRegistration.Register(fileLoaderService);
     }
 
     private void RegisterHttpServer()
@@ -301,7 +263,8 @@ public sealed class MoongateBootstrap : IDisposable
                 IsOpenApiEnabled = _moongateConfig.Http.IsOpenApiEnabled,
                 Port = _moongateConfig.Http.Port,
                 ServiceMappings = null,
-                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel()
+                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel(),
+                MetricsSnapshotFactory = CreateHttpMetricsSnapshot
             };
 
             _container.RegisterInstance(httpServiceOptions);
@@ -312,24 +275,9 @@ public sealed class MoongateBootstrap : IDisposable
         }
     }
 
-    private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener
-    {
-        if (!_container.IsRegistered<T>())
-        {
-            _container.Register<T>();
-        }
-
-        var handler = _container.Resolve<T>();
-        var packetListenerService = _container.Resolve<IPacketDispatchService>();
-        packetListenerService.AddPacketListener(opCode, handler);
-    }
-
     private void RegisterPacketHandlers()
     {
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.GameLoginPacket);
+        BootstrapPacketHandlerRegistration.Register(_container);
     }
 
     private void RegisterScriptModules()
@@ -353,53 +301,14 @@ public sealed class MoongateBootstrap : IDisposable
 
     private void RegisterServices()
     {
-        var timerServiceConfig = new TimerServiceConfig
-        {
-            TickDuration = TimeSpan.FromMilliseconds(Math.Max(1, _moongateConfig.Game.TimerTickMilliseconds)),
-            WheelSize = Math.Max(1, _moongateConfig.Game.TimerWheelSize)
-        };
+        BootstrapServiceRegistration.Register(_container, _moongateConfig, _directoriesConfig, _consoleUiService);
+    }
 
-        _container.RegisterInstance(_moongateConfig);
-        _container.RegisterInstance(_moongateConfig.Metrics);
-        _container.RegisterInstance(_directoriesConfig);
-        _container.RegisterInstance(timerServiceConfig);
-        _container.RegisterInstance(_consoleUiService);
+    private MoongateHttpMetricsSnapshot? CreateHttpMetricsSnapshot()
+    {
+        var snapshotFactory = _container.Resolve<IMetricsHttpSnapshotFactory>();
 
-        _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
-        _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
-        _container.Register<IServerLifetimeService, ServerLifetimeService>(Reuse.Singleton);
-        _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
-        _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
-        _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
-        _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
-        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
-
-        _container.RegisterDelegate<IGameLoopMetricsSource>(
-            resolver => (IGameLoopMetricsSource)resolver.Resolve<IGameLoopService>(),
-            Reuse.Singleton
-        );
-        _container.RegisterDelegate<INetworkMetricsSource>(
-            resolver => (INetworkMetricsSource)resolver.Resolve<INetworkService>(),
-            Reuse.Singleton
-        );
-        _container.RegisterDelegate<IPersistenceMetricsSource>(
-            resolver => (IPersistenceMetricsSource)resolver.Resolve<IPersistenceService>(),
-            Reuse.Singleton
-        );
-        _container.Register<IMetricProvider, GameLoopMetricsProvider>(Reuse.Singleton);
-        _container.Register<IMetricProvider, NetworkMetricsProvider>(Reuse.Singleton);
-        _container.Register<IMetricProvider, ScriptEngineMetricsProvider>(Reuse.Singleton);
-        _container.Register<IMetricProvider, PersistenceMetricsProvider>(Reuse.Singleton);
-
-        _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
-        _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
-        _container.RegisterMoongateService<ICommandSystemService, CommandSystemService>(131);
-        _container.RegisterMoongateService<IConsoleCommandService, ConsoleCommandService>(132);
-        _container.RegisterMoongateService<IMetricsCollectionService, MetricsCollectionService>(135);
-        _container.RegisterMoongateService<INetworkService, NetworkService>(150);
-        _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
-        _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
-        _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
+        return snapshotFactory.CreateSnapshot();
     }
 
     private async Task StopAsync(List<IMoongateService> runningServices)

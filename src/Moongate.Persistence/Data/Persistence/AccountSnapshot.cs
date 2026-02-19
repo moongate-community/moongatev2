@@ -14,7 +14,11 @@ public sealed partial class AccountSnapshot
 
     public string PasswordHash { get; set; }
 
+    public string Email { get; set; }
+
     public byte AccountType { get; set; }
+
+    public bool IsLocked { get; set; }
 
     public long CreatedUtcTicks { get; set; }
 
