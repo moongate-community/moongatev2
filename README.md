@@ -40,6 +40,7 @@ The project is actively in development and already includes:
 - Embedded HTTP host (`Moongate.Server.Http`) for health/admin endpoints and OpenAPI/Scalar docs.
 - Dedicated HTTP rolling logs in the shared logs directory (`moongate_http-*.log`).
 - Snapshot+journal persistence module (`Moongate.Persistence`) integrated in server lifecycle.
+- Interactive console UI with fixed prompt (`moongate>`) and Spectre-based colored log rendering.
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-18.md`.
 
@@ -95,6 +96,13 @@ dotnet run --project src/Moongate.Server
 ```
 
 By default, the server starts with packet data logging enabled in `Program.cs`.
+
+Console logging:
+
+- Custom Serilog console sink with output template compatible formatting.
+- Level-based colored output in terminal (Spectre.Console).
+- Placeholder values (message properties) highlighted with dedicated styling.
+- Fixed bottom prompt row (`moongate>`) when running in an interactive terminal.
 
 HTTP service defaults:
 
@@ -162,6 +170,11 @@ Container defaults:
 - `MOONGATE_UO_DIRECTORY=/uo`
 
 `/path/host/uo-client` must contain required UO client files (e.g. `client.exe`).
+
+Console behavior in Docker:
+
+- Run with `-it` to enable the interactive prompt UI (`moongate>`).
+- Without TTY (`-it` omitted), logs still work but prompt interaction is disabled.
 
 ## Documentation
 
