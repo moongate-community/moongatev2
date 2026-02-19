@@ -8,6 +8,24 @@ namespace Moongate.Tests.Network.Packets;
 public class ServerListPacketTests
 {
     [Test]
+    public void AddShard_ShouldAppendShard()
+    {
+        var packet = new ServerListPacket();
+
+        packet.AddShard(
+            new()
+            {
+                Index = 2,
+                ServerName = "Trammel",
+                IpAddress = IPAddress.Parse("127.0.0.2")
+            }
+        );
+
+        Assert.That(packet.Shards.Count, Is.EqualTo(1));
+        Assert.That(packet.Shards[0].Index, Is.EqualTo(2));
+    }
+
+    [Test]
     public void Write_WithSingleShard_ShouldSerializeHeaderAndEntry()
     {
         var packet = new ServerListPacket(
@@ -33,23 +51,5 @@ public class ServerListPacketTests
                 Assert.That((data[4] << 8) | data[5], Is.EqualTo(1));
             }
         );
-    }
-
-    [Test]
-    public void AddShard_ShouldAppendShard()
-    {
-        var packet = new ServerListPacket();
-
-        packet.AddShard(
-            new GameServerEntry
-            {
-                Index = 2,
-                ServerName = "Trammel",
-                IpAddress = IPAddress.Parse("127.0.0.2")
-            }
-        );
-
-        Assert.That(packet.Shards.Count, Is.EqualTo(1));
-        Assert.That(packet.Shards[0].Index, Is.EqualTo(2));
     }
 }

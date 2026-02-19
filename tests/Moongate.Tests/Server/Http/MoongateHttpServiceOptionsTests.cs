@@ -1,43 +1,28 @@
 using Moongate.Core.Data.Directories;
 using Moongate.Core.Types;
 using Moongate.Server.Http;
+using Moongate.Tests.Server.Http.Support;
+using Moongate.Tests.TestSupport;
 
 namespace Moongate.Tests.Server.Http;
 
 public class MoongateHttpServiceOptionsTests
 {
     [Test]
-    public void Constructor_WhenOptionsAreNull_ShouldThrowArgumentNullException()
-    {
-        var ex = Assert.Throws<ArgumentNullException>(() => _ = new MoongateHttpService(null!));
-
-        Assert.That(ex!.ParamName, Is.EqualTo("options"));
-    }
-
-    [Test]
-    public void Constructor_WhenServiceMappingsAreMissing_ShouldCreateInstance()
+    public void Constructor_WhenConfigureAppIsNull_ShouldCreateInstance()
     {
         using var temp = new TempDirectory();
         var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
 
         var instance = new MoongateHttpService(
-            new MoongateHttpServiceOptions { DirectoriesConfig = directories }
-        );
-
-        Assert.That(instance, Is.Not.Null);
-    }
-
-    [Test]
-    public void Constructor_WhenServiceMappingsAreEmpty_ShouldCreateInstance()
-    {
-        using var temp = new TempDirectory();
-        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
-
-        var instance = new MoongateHttpService(
-            new MoongateHttpServiceOptions
+            new()
             {
-                ServiceMappings = new Dictionary<Type, Type>(),
-                DirectoriesConfig = directories
+                ServiceMappings = new Dictionary<Type, Type>
+                {
+                    { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                },
+                DirectoriesConfig = directories,
+                ConfigureApp = null
             }
         );
 
@@ -49,14 +34,46 @@ public class MoongateHttpServiceOptionsTests
     {
         var ex = Assert.Throws<ArgumentException>(
             () => _ = new MoongateHttpService(
-                new MoongateHttpServiceOptions
-                {
-                    ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } }
-                }
-            )
+                      new()
+                      {
+                          ServiceMappings = new Dictionary<Type, Type>
+                          {
+                              { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                          }
+                      }
+                  )
         );
 
         Assert.That(ex!.Message, Does.Contain("DirectoriesConfig"));
+    }
+
+    [Test]
+    public void Constructor_WhenOptionsAreNull_ShouldThrowArgumentNullException()
+    {
+        var ex = Assert.Throws<ArgumentNullException>(() => _ = new MoongateHttpService(null!));
+
+        Assert.That(ex!.ParamName, Is.EqualTo("options"));
+    }
+
+    [Test]
+    public void Constructor_WhenOptionsAreValid_ShouldCreateInstance()
+    {
+        using var temp = new TempDirectory();
+        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+
+        var instance = new MoongateHttpService(
+            new()
+            {
+                ServiceMappings = new Dictionary<Type, Type>
+                {
+                    { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                },
+                DirectoriesConfig = directories,
+                Port = 8088
+            }
+        );
+
+        Assert.That(instance, Is.Not.Null);
     }
 
     [Test]
@@ -67,30 +84,32 @@ public class MoongateHttpServiceOptionsTests
 
         var ex = Assert.Throws<ArgumentOutOfRangeException>(
             () => _ = new MoongateHttpService(
-                new MoongateHttpServiceOptions
-                {
-                    ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
-                    DirectoriesConfig = directories,
-                    Port = 0
-                }
-            )
+                      new()
+                      {
+                          ServiceMappings = new Dictionary<Type, Type>
+                          {
+                              { typeof(IMoongateHttpOptionsDummyService), typeof(MoongateHttpOptionsDummyService) }
+                          },
+                          DirectoriesConfig = directories,
+                          Port = 0
+                      }
+                  )
         );
 
         Assert.That(ex!.Message, Does.Contain("1-65535"));
     }
 
     [Test]
-    public void Constructor_WhenOptionsAreValid_ShouldCreateInstance()
+    public void Constructor_WhenServiceMappingsAreEmpty_ShouldCreateInstance()
     {
         using var temp = new TempDirectory();
         var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
 
         var instance = new MoongateHttpService(
-            new MoongateHttpServiceOptions
+            new()
             {
-                ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
-                DirectoriesConfig = directories,
-                Port = 8088
+                ServiceMappings = new Dictionary<Type, Type>(),
+                DirectoriesConfig = directories
             }
         );
 
@@ -98,47 +117,13 @@ public class MoongateHttpServiceOptionsTests
     }
 
     [Test]
-    public void Constructor_WhenConfigureAppIsNull_ShouldCreateInstance()
+    public void Constructor_WhenServiceMappingsAreMissing_ShouldCreateInstance()
     {
         using var temp = new TempDirectory();
         var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
 
-        var instance = new MoongateHttpService(
-            new MoongateHttpServiceOptions
-            {
-                ServiceMappings = new Dictionary<Type, Type> { { typeof(IDummyService), typeof(DummyService) } },
-                DirectoriesConfig = directories,
-                ConfigureApp = null
-            }
-        );
+        var instance = new MoongateHttpService(new() { DirectoriesConfig = directories });
 
         Assert.That(instance, Is.Not.Null);
-    }
-
-    private interface IDummyService;
-
-    private sealed class DummyService : IDummyService;
-
-    private sealed class TempDirectory : IDisposable
-    {
-        public TempDirectory()
-        {
-            Path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "moongate-tests-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(Path);
-        }
-
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(Path, true);
-            }
-            catch
-            {
-                // best-effort temp cleanup
-            }
-        }
     }
 }

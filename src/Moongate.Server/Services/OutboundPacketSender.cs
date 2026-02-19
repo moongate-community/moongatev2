@@ -19,9 +19,7 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
     private readonly ILogger _packetDataLogger = Log.ForContext<OutboundPacketSender>().ForContext("PacketData", true);
 
     public OutboundPacketSender(MoongateConfig moongateConfig)
-    {
-        _logPacketData = moongateConfig.LogPacketData;
-    }
+        => _logPacketData = moongateConfig.LogPacketData;
 
     public async Task<bool> SendAsync(
         MoongateTCPClient client,
@@ -30,6 +28,7 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
     )
     {
         var payload = SerializePacket(outgoingPacket.Packet);
+
         if (payload.Length == 0)
         {
             return false;
@@ -51,6 +50,7 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
         try
         {
             await client.SendAsync(payload, cancellationToken);
+
             return true;
         }
         catch (OperationCanceledException)
@@ -65,23 +65,8 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
                 outgoingPacket.Packet.OpCode,
                 outgoingPacket.SessionId
             );
+
             return false;
-        }
-    }
-
-    private static byte[] SerializePacket(IGameNetworkPacket packet)
-    {
-        var initialCapacity = packet.Length > 0 ? packet.Length : 256;
-        var writer = new SpanWriter(initialCapacity, true);
-
-        try
-        {
-            packet.Write(ref writer);
-            return writer.ToArray();
-        }
-        finally
-        {
-            writer.Dispose();
         }
     }
 
@@ -134,5 +119,22 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
         }
 
         return sb.ToString();
+    }
+
+    private static byte[] SerializePacket(IGameNetworkPacket packet)
+    {
+        var initialCapacity = packet.Length > 0 ? packet.Length : 256;
+        var writer = new SpanWriter(initialCapacity, true);
+
+        try
+        {
+            packet.Write(ref writer);
+
+            return writer.ToArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 }

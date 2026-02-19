@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Moongate.Network.Packets.Generators.Data.Internal;
 
 namespace Moongate.Network.Packets.Generators;
 
@@ -11,26 +12,6 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
 {
     private const string PacketHandlerAttributeName = "Moongate.Network.Packets.Attributes.PacketHandlerAttribute";
     private const string PacketSizingTypeName = "Moongate.Network.Packets.Types.Packets.PacketSizing";
-
-    private sealed class PacketModel
-    {
-        public string TypeName { get; }
-        public string PacketName { get; }
-        public byte OpCode { get; }
-        public bool IsFixed { get; }
-        public int Length { get; }
-        public string? Description { get; }
-
-        public PacketModel(string typeName, string packetName, byte opCode, bool isFixed, int length, string? description)
-        {
-            TypeName = typeName;
-            PacketName = packetName;
-            OpCode = opCode;
-            IsFixed = isFixed;
-            Length = length;
-            Description = description;
-        }
-    }
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -57,9 +38,35 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
                 var source = BuildSource(models);
                 productionContext.AddSource("PacketTable.Generated.g.cs", SourceText.From(source, Encoding.UTF8));
                 var packetDefinitionSource = BuildPacketDefinitionSource(models);
-                productionContext.AddSource("PacketDefinition.Generated.g.cs", SourceText.From(packetDefinitionSource, Encoding.UTF8));
+                productionContext.AddSource(
+                    "PacketDefinition.Generated.g.cs",
+                    SourceText.From(packetDefinitionSource, Encoding.UTF8)
+                );
             }
         );
+    }
+
+    private static string BuildPacketDefinitionSource(IReadOnlyList<PacketModel> models)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("namespace Moongate.Network.Packets.Data.Packets;");
+        sb.AppendLine();
+        sb.AppendLine("public static partial class PacketDefinition");
+        sb.AppendLine("{");
+
+        foreach (var model in models.OrderBy(static model => model.PacketName, StringComparer.Ordinal))
+        {
+            sb.Append("    public const byte ");
+            sb.Append(model.PacketName);
+            sb.Append(" = 0x");
+            sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
+            sb.AppendLine(";");
+        }
+
+        sb.AppendLine("}");
+
+        return sb.ToString();
     }
 
     private static string BuildSource(IReadOnlyList<PacketModel> models)
@@ -120,29 +127,6 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static string BuildPacketDefinitionSource(IReadOnlyList<PacketModel> models)
-    {
-        var sb = new StringBuilder();
-
-        sb.AppendLine("namespace Moongate.Network.Packets.Data.Packets;");
-        sb.AppendLine();
-        sb.AppendLine("public static partial class PacketDefinition");
-        sb.AppendLine("{");
-
-        foreach (var model in models.OrderBy(static model => model.PacketName, StringComparer.Ordinal))
-        {
-            sb.Append("    public const byte ");
-            sb.Append(model.PacketName);
-            sb.Append(" = 0x");
-            sb.Append(model.OpCode.ToString("X2", CultureInfo.InvariantCulture));
-            sb.AppendLine(";");
-        }
-
-        sb.AppendLine("}");
-
-        return sb.ToString();
-    }
-
     private static PacketModel? CreatePacketModel(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
@@ -197,6 +181,7 @@ public sealed class PacketTableGenerator : IIncrementalGenerator
         }
 
         var packetName = typeSymbol.Name;
+
         return new(fullTypeName, packetName, opCode, isFixed, length, description);
     }
 

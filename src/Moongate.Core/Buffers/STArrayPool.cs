@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Moongate.Core.Buffers.Types;
 
 namespace Moongate.Core.Buffers;
 
@@ -15,13 +16,7 @@ namespace Moongate.Core.Buffers;
 public class STArrayPool<T> : ArrayPool<T>
 {
 #if DEBUG_ARRAYPOOL
-    private class RentReturnStatus
-    {
-        public string StackTrace { get; set; }
-        public bool IsRented { get; set; }
-    }
-
-    private static readonly ConditionalWeakTable<T[], RentReturnStatus> _rentedArrays = new();
+    private static readonly ConditionalWeakTable<T[], STArrayPoolRentReturnStatus> _rentedArrays = new();
 #endif
 
     private const int StackArraySize = 32;
@@ -30,8 +25,8 @@ public class STArrayPool<T> : ArrayPool<T>
     public static STArrayPool<T> Shared { get; } = new();
 
     private int _trimCallbackCreated;
-    private static STArray[] _cacheBuckets;
-    private readonly STArrayStack[] _buckets = new STArrayStack[BucketCount];
+    private static STArrayPoolBucket<T>[] _cacheBuckets;
+    private readonly STArrayPoolStack<T>[] _buckets = new STArrayPoolStack<T>[BucketCount];
 
     private STArrayPool() { }
 
@@ -52,7 +47,7 @@ public class STArrayPool<T> : ArrayPool<T>
             #if DEBUG_ARRAYPOOL
                 _rentedArrays.AddOrUpdate(
                     buffer,
-                    new RentReturnStatus { IsRented = true }
+                    new STArrayPoolRentReturnStatus { IsRented = true }
                 );
             #endif
                 return buffer;
@@ -74,7 +69,7 @@ public class STArrayPool<T> : ArrayPool<T>
                 #if DEBUG_ARRAYPOOL
                     _rentedArrays.AddOrUpdate(
                         buffer,
-                        new RentReturnStatus { IsRented = true }
+                        new STArrayPoolRentReturnStatus { IsRented = true }
                     );
                 #endif
                     return buffer;
@@ -100,7 +95,7 @@ public class STArrayPool<T> : ArrayPool<T>
     #if DEBUG_ARRAYPOOL
         _rentedArrays.AddOrUpdate(
             array,
-            new RentReturnStatus { IsRented = true, StackTrace = Environment.StackTrace }
+            new STArrayPoolRentReturnStatus { IsRented = true, StackTrace = Environment.StackTrace }
         );
     #endif
 
@@ -176,7 +171,7 @@ public class STArrayPool<T> : ArrayPool<T>
         }
 
         // Under high pressure, release all cached buckets
-        if (pressure == MemoryPressure.High)
+        if (pressure == STArrayPoolMemoryPressureType.High)
         {
             Array.Clear(_cacheBuckets);
         }
@@ -184,8 +179,8 @@ public class STArrayPool<T> : ArrayPool<T>
         {
             uint threshold = pressure switch
             {
-                MemoryPressure.Medium => 10000,
-                _                     => 30000
+                STArrayPoolMemoryPressureType.Medium => 10000,
+                _                                    => 30000
             };
 
             var cacheBuckets = _cacheBuckets;
@@ -215,15 +210,15 @@ public class STArrayPool<T> : ArrayPool<T>
         return true;
     }
 
-    private STArrayStack CreateBucketStack(int bucketIndex)
+    private STArrayPoolStack<T> CreateBucketStack(int bucketIndex)
     {
-        return _buckets[bucketIndex] = new();
+        return _buckets[bucketIndex] = new(StackArraySize);
     }
 
-    private STArray[] InitializeBuckets()
+    private STArrayPoolBucket<T>[] InitializeBuckets()
     {
         Debug.Assert(_cacheBuckets is null, $"Non-null {nameof(_cacheBuckets)}");
-        var buckets = new STArray[BucketCount];
+        var buckets = new STArrayPoolBucket<T>[BucketCount];
 
         if (Interlocked.Exchange(ref _trimCallbackCreated, 1) == 0)
         {
@@ -251,142 +246,20 @@ public class STArrayPool<T> : ArrayPool<T>
         return maxSize;
     }
 
-    internal enum MemoryPressure
-    {
-        Low,
-        Medium,
-        High
-    }
-
-    internal static MemoryPressure GetMemoryPressure()
+    internal static STArrayPoolMemoryPressureType GetMemoryPressure()
     {
         var memoryInfo = GC.GetGCMemoryInfo();
 
         if (memoryInfo.MemoryLoadBytes >= memoryInfo.HighMemoryLoadThresholdBytes * 0.90)
         {
-            return MemoryPressure.High;
+            return STArrayPoolMemoryPressureType.High;
         }
 
         if (memoryInfo.MemoryLoadBytes >= memoryInfo.HighMemoryLoadThresholdBytes * 0.70)
         {
-            return MemoryPressure.Medium;
+            return STArrayPoolMemoryPressureType.Medium;
         }
 
-        return MemoryPressure.Low;
-    }
-
-    private sealed class STArrayStack
-    {
-        // Maximum buffers we will store in our stack
-        private readonly T[][] _arrays = new T[StackArraySize][];
-        private int _count;
-        private long _ticks;
-
-        public void Trim(long now, MemoryPressure pressure, int bucketSize)
-        {
-            if (_count == 0)
-            {
-                return;
-            }
-
-            // 10 seconds under high pressure, otherwise 60 seconds
-            var threshold = pressure == MemoryPressure.High ? 10000 : 60000;
-
-            if (_ticks == 0)
-            {
-                _ticks = now;
-
-                return;
-            }
-
-            if (now - _ticks <= threshold)
-            {
-                return;
-            }
-
-            var trimCount = 1;
-
-            switch (pressure)
-            {
-                case MemoryPressure.Medium:
-                    {
-                        trimCount = 2;
-
-                        break;
-                    }
-                case MemoryPressure.High:
-                    {
-                        if (bucketSize > 16384)
-                        {
-                            trimCount++;
-                        }
-
-                        var size = Unsafe.SizeOf<T>();
-
-                        if (size > 32)
-                        {
-                            trimCount += 2;
-                        }
-                        else if (size > 16)
-                        {
-                            trimCount++;
-                        }
-
-                        break;
-                    }
-            }
-
-            while (_count > 0 && trimCount-- > 0)
-            {
-                _arrays[--_count] = null;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T[] TryPop()
-        {
-            var arrays = _arrays;
-            var count = _count - 1;
-
-            if ((uint)count < (uint)arrays.Length)
-            {
-                var arr = arrays[count];
-                arrays[count] = null;
-                _count = count;
-
-                return arr;
-            }
-
-            return null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPush(T[] array)
-        {
-            var arrays = _arrays;
-            var count = _count;
-
-            if ((uint)count < (uint)_arrays.Length)
-            {
-                arrays[count] = array;
-                _count = count + 1;
-
-                return true;
-            }
-
-            return false;
-        }
-    }
-
-    private struct STArray
-    {
-        public T[] Array;
-        public long Ticks;
-
-        public STArray(T[] array)
-        {
-            Array = array;
-            Ticks = 0;
-        }
+        return STArrayPoolMemoryPressureType.Low;
     }
 }

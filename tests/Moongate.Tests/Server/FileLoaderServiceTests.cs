@@ -1,14 +1,12 @@
 using DryIoc;
 using Moongate.Server.Services;
-using Moongate.UO.Data.Interfaces.FileLoaders;
+using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
 
 public class FileLoaderServiceTests
 {
-    [SetUp]
-    public void SetUp()
-        => ExecutionLog.Clear();
+    public static List<string> ExecutionLog { get; } = [];
 
     [Test]
     public async Task AddFileLoader_WhenCalledTwiceForSameType_ShouldExecuteOnlyOnce()
@@ -16,8 +14,8 @@ public class FileLoaderServiceTests
         using var container = new Container();
         var service = new FileLoaderService(container);
 
-        service.AddFileLoader<LoaderA>();
-        service.AddFileLoader<LoaderA>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderA>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderA>();
 
         await service.ExecuteLoadersAsync();
 
@@ -30,11 +28,11 @@ public class FileLoaderServiceTests
         using var container = new Container();
         var service = new FileLoaderService(container);
 
-        Assert.That(container.IsRegistered<LoaderA>(), Is.False);
+        Assert.That(container.IsRegistered<FileLoaderServiceTestLoaderA>(), Is.False);
 
-        service.AddFileLoader<LoaderA>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderA>();
 
-        Assert.That(container.IsRegistered<LoaderA>(), Is.True);
+        Assert.That(container.IsRegistered<FileLoaderServiceTestLoaderA>(), Is.True);
     }
 
     [Test]
@@ -43,8 +41,8 @@ public class FileLoaderServiceTests
         using var container = new Container();
         var service = new FileLoaderService(container);
 
-        service.AddFileLoader<LoaderA>();
-        service.AddFileLoader<LoaderB>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderA>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderB>();
 
         await service.ExecuteLoadersAsync();
 
@@ -57,34 +55,12 @@ public class FileLoaderServiceTests
         using var container = new Container();
         var service = new FileLoaderService(container);
 
-        service.AddFileLoader<LoaderThrows>();
+        service.AddFileLoader<FileLoaderServiceTestLoaderThrows>();
 
         Assert.ThrowsAsync<InvalidOperationException>(async () => await service.ExecuteLoadersAsync());
     }
 
-    private static List<string> ExecutionLog { get; } = [];
-
-    private sealed class LoaderA : IFileLoader
-    {
-        public Task LoadAsync()
-        {
-            ExecutionLog.Add("A");
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class LoaderB : IFileLoader
-    {
-        public Task LoadAsync()
-        {
-            ExecutionLog.Add("B");
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class LoaderThrows : IFileLoader
-    {
-        public Task LoadAsync()
-            => throw new InvalidOperationException("boom");
-    }
+    [SetUp]
+    public void SetUp()
+        => ExecutionLog.Clear();
 }

@@ -6,32 +6,27 @@ namespace Moongate.Tests.UO.Data.Geometry;
 public class Point3DTests
 {
     [Test]
-    public void Parse_WithValidInput_ShouldReturnExpectedPoint()
+    public void DirectionConversion_ShouldMapToExpectedOffset()
     {
-        var point = Point3D.Parse("(10, 20, -5)");
+        Point3D eastOffset = DirectionType.East;
+        var moved = new Point3D(10, 10, 0).Move(DirectionType.East);
 
         Assert.Multiple(
             () =>
             {
-                Assert.That(point.X, Is.EqualTo(10));
-                Assert.That(point.Y, Is.EqualTo(20));
-                Assert.That(point.Z, Is.EqualTo(-5));
+                Assert.That(eastOffset, Is.EqualTo(new Point3D(1, 0, 0)));
+                Assert.That(moved, Is.EqualTo(new Point3D(11, 10, 0)));
             }
         );
     }
 
     [Test]
-    public void TryParse_WithInvalidInput_ShouldReturnFalse()
+    public void GetDirectionTo_ShouldReturnExpectedDirection()
     {
-        var parsed = Point3D.TryParse("(10,20)", null, out var point);
+        var from = new Point3D(10, 10, 0);
+        var to = new Point3D(11, 9, 0);
 
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(parsed, Is.False);
-                Assert.That(point, Is.EqualTo(default(Point3D)));
-            }
-        );
+        Assert.That(from.GetDirectionTo(to), Is.EqualTo(DirectionType.NorthEast));
     }
 
     [Test]
@@ -68,16 +63,16 @@ public class Point3DTests
     }
 
     [Test]
-    public void DirectionConversion_ShouldMapToExpectedOffset()
+    public void Parse_WithValidInput_ShouldReturnExpectedPoint()
     {
-        Point3D eastOffset = DirectionType.East;
-        var moved = new Point3D(10, 10, 0).Move(DirectionType.East);
+        var point = Point3D.Parse("(10, 20, -5)");
 
         Assert.Multiple(
             () =>
             {
-                Assert.That(eastOffset, Is.EqualTo(new Point3D(1, 0, 0)));
-                Assert.That(moved, Is.EqualTo(new Point3D(11, 10, 0)));
+                Assert.That(point.X, Is.EqualTo(10));
+                Assert.That(point.Y, Is.EqualTo(20));
+                Assert.That(point.Z, Is.EqualTo(-5));
             }
         );
     }
@@ -98,11 +93,16 @@ public class Point3DTests
     }
 
     [Test]
-    public void GetDirectionTo_ShouldReturnExpectedDirection()
+    public void TryParse_WithInvalidInput_ShouldReturnFalse()
     {
-        var from = new Point3D(10, 10, 0);
-        var to = new Point3D(11, 9, 0);
+        var parsed = Point3D.TryParse("(10,20)", null, out var point);
 
-        Assert.That(from.GetDirectionTo(to), Is.EqualTo(DirectionType.NorthEast));
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(parsed, Is.False);
+                Assert.That(point, Is.EqualTo(default(Point3D)));
+            }
+        );
     }
 }

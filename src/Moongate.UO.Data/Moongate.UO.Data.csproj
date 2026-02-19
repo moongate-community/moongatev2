@@ -11,12 +11,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Interfaces\" />
+        <Folder Include="Interfaces\"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj"/>
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
     </ItemGroup>
 
 </Project>

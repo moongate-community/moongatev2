@@ -74,6 +74,13 @@ public interface IScriptEngineService : IMoongateService
     void AddScriptModule(Type type);
 
     /// <summary>
+    /// Executes a LUA function by name with the provided arguments.
+    /// </summary>
+    /// <param name="functionName"></param>
+    /// <param name="args"></param>
+    void CallFunction(string functionName, params object[] args);
+
+    /// <summary>
     /// Clears the script cache
     /// </summary>
     void ClearScriptCache();
@@ -96,13 +103,6 @@ public interface IScriptEngineService : IMoongateService
     /// <param name="command">The JavaScript function call to execute.</param>
     /// <returns>A ScriptResult containing the execution outcome.</returns>
     ScriptResult ExecuteFunction(string command);
-
-    /// <summary>
-    ///  Executes a LUA function by name with the provided arguments.
-    /// </summary>
-    /// <param name="functionName"></param>
-    /// <param name="args"></param>
-    void CallFunction(string functionName, params object[] args);
 
     /// <summary>
     /// Asynchronously executes a JavaScript function and returns the result.

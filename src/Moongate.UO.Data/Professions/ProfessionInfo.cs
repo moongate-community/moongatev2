@@ -24,8 +24,6 @@ public class ProfessionInfo
 
     public ProfessionInfo()
     {
-        Name = string.Empty;
-
         _skills = new (UOSkillName, byte)[4];
         Stats = new byte[3];
     }

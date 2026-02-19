@@ -19,12 +19,6 @@ public class GameEventScriptBridgeService : IGameEventScriptBridgeService, IGame
         _scriptEngineService = scriptEngineService;
     }
 
-    public async Task StartAsync()
-    {
-        _logger.Debug("Subscribing to game events for script bridge...");
-        _gameEventBusService.RegisterListener(this);
-    }
-
     public async Task HandleAsync(IGameEvent gameEvent, CancellationToken cancellationToken = default)
     {
         _logger.Debug("Received game event: {EventType}", gameEvent.GetType().Name);
@@ -33,9 +27,18 @@ public class GameEventScriptBridgeService : IGameEventScriptBridgeService, IGame
         _scriptEngineService.CallFunction(scriptFunctionName, gameEvent);
     }
 
+    public async Task StartAsync()
+    {
+        _logger.Debug("Subscribing to game events for script bridge...");
+        _gameEventBusService.RegisterListener(this);
+    }
+
+    public async Task StopAsync() { }
+
     private static string GetScriptFunctionNameForEvent(IGameEvent gameEvent)
     {
         var eventName = gameEvent.GetType().Name.ToSnakeCase();
+
         if (eventName.EndsWith("_event", StringComparison.Ordinal))
         {
             eventName = eventName[..^"_event".Length];
@@ -43,6 +46,4 @@ public class GameEventScriptBridgeService : IGameEventScriptBridgeService, IGame
 
         return $"on_{eventName}";
     }
-
-    public async Task StopAsync() { }
 }

@@ -62,55 +62,48 @@ public sealed class MoongateBootstrap : IDisposable
         RegisterPacketHandlers();
     }
 
-    private void RegisterScriptUserData()
+    public void Dispose()
     {
-        _container.RegisterLuaUserData<PlayerConnectedEvent>();
-        _container.RegisterLuaUserData<PlayerDisconnectedEvent>();
-        _container.RegisterLuaUserData<ClientVersion>();
+        _container.Dispose();
+        GC.SuppressFinalize(this);
     }
 
-    private void RegisterPacketHandlers()
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
-        RegisterPacketHandler<LoginHandler>(PacketDefinition.GameLoginPacket);
-    }
+        var startTime = Stopwatch.GetTimestamp();
+        var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
+                                             .OrderBy(s => s.Priority)
+                                             .ToList();
 
-    private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener
-    {
-        if (!_container.IsRegistered<T>())
+        var runningServices = new List<IMoongateService>(serviceRegistrations.Count);
+
+        foreach (var serviceRegistration in serviceRegistrations)
         {
-            _container.Register<T>();
-        }
-
-        var handler = _container.Resolve<T>();
-        var packetListenerService = _container.Resolve<IPacketDispatchService>();
-        packetListenerService.AddPacketListener(opCode, handler);
-    }
-
-    private void RegisterHttpServer()
-    {
-        if (_moongateConfig.Http.IsEnabled)
-        {
-            _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
-            _logger.Information("HTTP Server enabled.");
-
-            var httpServiceOptions = new MoongateHttpServiceOptions()
+            if (_container.Resolve(serviceRegistration.ServiceType) is not IMoongateService instance)
             {
-                DirectoriesConfig = _directoriesConfig,
-                IsOpenApiEnabled = _moongateConfig.Http.IsOpenApiEnabled,
-                Port = _moongateConfig.Http.Port,
-                ServiceMappings = null,
-                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel()
-            };
+                throw new InvalidOperationException(
+                    $"Failed to resolve service of type {serviceRegistration.ServiceType.FullName}"
+                );
+            }
 
-            _container.RegisterInstance(httpServiceOptions);
+            _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
+            await instance.StartAsync();
+            runningServices.Add(instance);
         }
-        else
+
+        _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
+        _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
+
+        try
         {
-            _logger.Information("HTTP Server disabled.");
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         }
+        catch (OperationCanceledException)
+        {
+            _logger.Information("Shutdown requested.");
+        }
+
+        await StopAsync(runningServices);
     }
 
     private void CheckConfig()
@@ -157,24 +150,17 @@ public sealed class MoongateBootstrap : IDisposable
         }
     }
 
-    private void RegisterFileLoaders()
+    private void CheckDirectoryConfig()
     {
-        var fileLoaderService = _container.Resolve<IFileLoaderService>();
+        if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
+        {
+            _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
+                                            Path.Combine(AppContext.BaseDirectory, "moongate");
+        }
 
-        fileLoaderService.AddFileLoader<ClientVersionLoader>();
-        fileLoaderService.AddFileLoader<SkillLoader>();
-        fileLoaderService.AddFileLoader<ExpansionLoader>();
-        fileLoaderService.AddFileLoader<BodyDataLoader>();
-        fileLoaderService.AddFileLoader<ProfessionsLoader>();
-        fileLoaderService.AddFileLoader<MultiDataLoader>();
-        fileLoaderService.AddFileLoader<RaceLoader>();
-        fileLoaderService.AddFileLoader<TileDataLoader>();
-        fileLoaderService.AddFileLoader<MapLoader>();
-        fileLoaderService.AddFileLoader<CliLocLoader>();
-        fileLoaderService.AddFileLoader<ContainersDataLoader>();
-        fileLoaderService.AddFileLoader<RegionDataLoader>();
-        fileLoaderService.AddFileLoader<WeatherDataLoader>();
-        fileLoaderService.AddFileLoader<NamesLoader>();
+        _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
+
+        _directoriesConfig = new(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
     }
 
     private void CheckUODirectory()
@@ -187,63 +173,13 @@ public sealed class MoongateBootstrap : IDisposable
         if (string.IsNullOrWhiteSpace(_moongateConfig.UODirectory))
         {
             _logger.Error("UO Directory not configured. Set --uoDirectory or MOONGATE_UO_DIRECTORY.");
+
             throw new InvalidOperationException("UO Directory not configured.");
         }
 
         UoFiles.RootDir = _moongateConfig.UODirectory.ResolvePathAndEnvs();
         UoFiles.ReLoadDirectory();
         _logger.Information("UO Directory configured in {UODirectory}", UoFiles.RootDir);
-    }
-
-    public async Task RunAsync(CancellationToken cancellationToken)
-    {
-        var startTime = Stopwatch.GetTimestamp();
-        var serviceRegistrations = _container.Resolve<List<ServiceRegistrationObject>>()
-                                             .OrderBy(s => s.Priority)
-                                             .ToList();
-
-        var runningServices = new List<IMoongateService>(serviceRegistrations.Count);
-
-        foreach (var serviceRegistration in serviceRegistrations)
-        {
-            if (_container.Resolve(serviceRegistration.ServiceType) is not IMoongateService instance)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to resolve service of type {serviceRegistration.ServiceType.FullName}"
-                );
-            }
-
-            _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
-            await instance.StartAsync();
-            runningServices.Add(instance);
-        }
-
-        _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
-        _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
-
-        try
-        {
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.Information("Shutdown requested.");
-        }
-
-        await StopAsync(runningServices);
-    }
-
-    private void CheckDirectoryConfig()
-    {
-        if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
-        {
-            _moongateConfig.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT_DIRECTORY") ??
-                                            Path.Combine(AppContext.BaseDirectory, "moongate");
-        }
-
-        _moongateConfig.RootDirectory = _moongateConfig.RootDirectory.ResolvePathAndEnvs();
-
-        _directoriesConfig = new(_moongateConfig.RootDirectory, Enum.GetNames<DirectoryType>());
     }
 
     private void CreateLogger()
@@ -282,22 +218,76 @@ public sealed class MoongateBootstrap : IDisposable
         _logger = Log.ForContext<MoongateBootstrap>();
     }
 
-    private void RegisterServices()
+    private void EnsureDataAssets()
     {
-        _container.RegisterInstance(_moongateConfig);
-        _container.RegisterInstance(_directoriesConfig);
-        _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
-        _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
-        _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
-        _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
-        _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
-        _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
-        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
-        _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
-        _container.RegisterMoongateService<INetworkService, NetworkService>(150);
-        _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
-        _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
-        _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
+        var sourceDataDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "data");
+        var destinationDataDirectory = _directoriesConfig[DirectoryType.Data];
+
+        DataAssetsBootstrapper.EnsureDataAssets(sourceDataDirectory, destinationDataDirectory, _logger);
+    }
+
+    private void RegisterFileLoaders()
+    {
+        var fileLoaderService = _container.Resolve<IFileLoaderService>();
+
+        fileLoaderService.AddFileLoader<ClientVersionLoader>();
+        fileLoaderService.AddFileLoader<SkillLoader>();
+        fileLoaderService.AddFileLoader<ExpansionLoader>();
+        fileLoaderService.AddFileLoader<BodyDataLoader>();
+        fileLoaderService.AddFileLoader<ProfessionsLoader>();
+        fileLoaderService.AddFileLoader<MultiDataLoader>();
+        fileLoaderService.AddFileLoader<RaceLoader>();
+        fileLoaderService.AddFileLoader<TileDataLoader>();
+        fileLoaderService.AddFileLoader<MapLoader>();
+        fileLoaderService.AddFileLoader<CliLocLoader>();
+        fileLoaderService.AddFileLoader<ContainersDataLoader>();
+        fileLoaderService.AddFileLoader<RegionDataLoader>();
+        fileLoaderService.AddFileLoader<WeatherDataLoader>();
+        fileLoaderService.AddFileLoader<NamesLoader>();
+    }
+
+    private void RegisterHttpServer()
+    {
+        if (_moongateConfig.Http.IsEnabled)
+        {
+            _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
+            _logger.Information("HTTP Server enabled.");
+
+            var httpServiceOptions = new MoongateHttpServiceOptions
+            {
+                DirectoriesConfig = _directoriesConfig,
+                IsOpenApiEnabled = _moongateConfig.Http.IsOpenApiEnabled,
+                Port = _moongateConfig.Http.Port,
+                ServiceMappings = null,
+                MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel()
+            };
+
+            _container.RegisterInstance(httpServiceOptions);
+        }
+        else
+        {
+            _logger.Information("HTTP Server disabled.");
+        }
+    }
+
+    private void RegisterPacketHandler<T>(byte opCode) where T : IPacketListener
+    {
+        if (!_container.IsRegistered<T>())
+        {
+            _container.Register<T>();
+        }
+
+        var handler = _container.Resolve<T>();
+        var packetListenerService = _container.Resolve<IPacketDispatchService>();
+        packetListenerService.AddPacketListener(opCode, handler);
+    }
+
+    private void RegisterPacketHandlers()
+    {
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.LoginSeedPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.AccountLoginPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.ServerSelectPacket);
+        RegisterPacketHandler<LoginHandler>(PacketDefinition.GameLoginPacket);
     }
 
     private void RegisterScriptModules()
@@ -312,12 +302,44 @@ public sealed class MoongateBootstrap : IDisposable
         _container.RegisterScriptModule<LogModule>();
     }
 
-    private void EnsureDataAssets()
+    private void RegisterScriptUserData()
     {
-        var sourceDataDirectory = Path.Combine(AppContext.BaseDirectory, "Assets", "data");
-        var destinationDataDirectory = _directoriesConfig[DirectoryType.Data];
+        _container.RegisterLuaUserData<PlayerConnectedEvent>();
+        _container.RegisterLuaUserData<PlayerDisconnectedEvent>();
+        _container.RegisterLuaUserData<ClientVersion>();
+    }
 
-        DataAssetsBootstrapper.EnsureDataAssets(sourceDataDirectory, destinationDataDirectory, _logger);
+    private void RegisterServices()
+    {
+        var timerServiceConfig = new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(Math.Max(1, _moongateConfig.Game.TimerTickMilliseconds)),
+            WheelSize = Math.Max(1, _moongateConfig.Game.TimerWheelSize)
+        };
+
+        _container.RegisterInstance(_moongateConfig);
+        _container.RegisterInstance(_directoriesConfig);
+        _container.RegisterInstance(timerServiceConfig);
+        _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
+        _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
+        _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
+        _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
+        _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
+        _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
+        _container.RegisterDelegate<ITimerService>(
+            resolver =>
+            {
+                var config = resolver.Resolve<TimerServiceConfig>();
+                return new TimerWheelService(config.TickDuration, config.WheelSize);
+            },
+            Reuse.Singleton
+        );
+        _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
+        _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
+        _container.RegisterMoongateService<INetworkService, NetworkService>(150);
+        _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
+        _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
+        _container.RegisterMoongateService<IScriptEngineService, LuaScriptEngineService>(150);
     }
 
     private async Task StopAsync(List<IMoongateService> runningServices)
@@ -329,11 +351,5 @@ public sealed class MoongateBootstrap : IDisposable
             _logger.Information("Stopping {ServiceTypeFullName}", service.GetType().Name);
             await service.StopAsync();
         }
-    }
-
-    public void Dispose()
-    {
-        _container.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

@@ -57,7 +57,7 @@ public sealed class MoongateHttpService : IMoongateHttpService
         var httpLogger = CreateHttpLogger(logPath, _minimumLogLevel);
 
         builder.WebHost.UseUrls($"http://0.0.0.0:{_port}");
-        builder.Host.UseSerilog(httpLogger, dispose: true);
+        builder.Host.UseSerilog(httpLogger, true);
 
         RegisterServiceMappings(builder.Services, _serviceMappings);
 
@@ -69,9 +69,23 @@ public sealed class MoongateHttpService : IMoongateHttpService
         var app = builder.Build();
         app.UseSerilogRequestLogging();
 
-        app.MapGet("/", () => "Moongate HTTP Service is running.");
+        app.MapGet(
+            "/",
+            static async context =>
+            {
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync("Moongate HTTP Service is running.");
+            }
+        );
 
-        app.MapGet("/health", () => Results.Ok("ok"));
+        app.MapGet(
+            "/health",
+            static async context =>
+            {
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync("ok");
+            }
+        );
 
         if (_isOpenApiEnabled)
         {
@@ -109,6 +123,23 @@ public sealed class MoongateHttpService : IMoongateHttpService
         _app = null;
     }
 
+    private static Logger CreateHttpLogger(string logPath, LogEventLevel minimumLogLevel)
+        => new LoggerConfiguration()
+           .MinimumLevel
+           .Is(minimumLogLevel)
+           .Enrich
+           .FromLogContext()
+           .WriteTo
+           .File(logPath, rollingInterval: RollingInterval.Day)
+           .CreateLogger();
+
+    private static string CreateLogPath(string logDirectory)
+    {
+        Directory.CreateDirectory(logDirectory);
+
+        return Path.Combine(logDirectory, "moongate_http-.log");
+    }
+
     private static void RegisterServiceMappings(
         IServiceCollection services,
         IReadOnlyDictionary<Type, Type> mappings
@@ -137,24 +168,5 @@ public sealed class MoongateHttpService : IMoongateHttpService
 
             services.AddSingleton(serviceType, implementationType);
         }
-    }
-
-    private static string CreateLogPath(string logDirectory)
-    {
-        Directory.CreateDirectory(logDirectory);
-
-        return Path.Combine(logDirectory, "moongate_http-.log");
-    }
-
-    private static Logger CreateHttpLogger(string logPath, LogEventLevel minimumLogLevel)
-    {
-        return new LoggerConfiguration()
-               .MinimumLevel
-               .Is(minimumLogLevel)
-               .Enrich
-               .FromLogContext()
-               .WriteTo
-               .File(logPath, rollingInterval: RollingInterval.Day)
-               .CreateLogger();
     }
 }

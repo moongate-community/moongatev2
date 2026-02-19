@@ -57,7 +57,10 @@ public class FileLoaderService : IFileLoaderService
             }
         }
 
-        _logger.Information("All file loaders executed in {ElapsedMilliseconds} ms", Stopwatch.GetElapsedTime(startTime).Seconds);
+        _logger.Information(
+            "All file loaders executed in {ElapsedMilliseconds} ms",
+            Stopwatch.GetElapsedTime(startTime).Seconds
+        );
     }
 
     public Task StartAsync()

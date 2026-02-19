@@ -18,9 +18,6 @@ public class ServerRedirectPacket : BaseGameNetworkPacket
     public ServerRedirectPacket()
         : base(0x8C, 11) { }
 
-    protected override bool ParsePayload(ref SpanReader reader)
-        => true;
-
     public override void Write(ref SpanWriter writer)
     {
         writer.Write(OpCode);
@@ -28,4 +25,7 @@ public class ServerRedirectPacket : BaseGameNetworkPacket
         writer.Write((ushort)Port);
         writer.Write(SessionKey);
     }
+
+    protected override bool ParsePayload(ref SpanReader reader)
+        => true;
 }

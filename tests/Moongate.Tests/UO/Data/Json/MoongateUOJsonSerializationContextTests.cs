@@ -11,10 +11,6 @@ namespace Moongate.Tests.UO.Data.Json;
 
 public class MoongateUOJsonSerializationContextTests
 {
-    [OneTimeSetUp]
-    public void Setup()
-        => JsonUtils.RegisterJsonContext(MoongateUOJsonSerializationContext.Default);
-
     [Test]
     public void Context_ShouldRegister_AllJsonRootTypesUsedByLoaders()
     {
@@ -75,6 +71,10 @@ public class MoongateUOJsonSerializationContextTests
             }
         );
     }
+
+    [OneTimeSetUp]
+    public void Setup()
+        => JsonUtils.RegisterJsonContext(MoongateUOJsonSerializationContext.Default);
 
     private static string GetAssetsDataRoot()
     {

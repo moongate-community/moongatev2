@@ -1,63 +1,34 @@
-using System.Text;
-using Moongate.Network.Client;
-using Moongate.Network.Interfaces;
 using Moongate.Network.Pipeline;
+using Moongate.Tests.Network.Support;
 
 namespace Moongate.Tests.Network;
 
 public class MiddlewarePipelineTests
 {
-    private sealed class PrefixMiddleware(string prefix) : INetMiddleware
+    [Test]
+    public async Task AddMiddleware_ShouldAddMiddlewareToPipeline()
     {
-        public ValueTask<ReadOnlyMemory<byte>> ProcessAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-        {
-            var prefixBytes = Encoding.UTF8.GetBytes(prefix);
-            var combined = new byte[prefixBytes.Length + data.Length];
+        var pipeline = new NetMiddlewarePipeline();
+        pipeline.AddMiddleware(new MiddlewarePipelinePrefixMiddleware("A"));
+        pipeline.AddMiddleware(new MiddlewarePipelinePrefixMiddleware("B"));
 
-            prefixBytes.CopyTo(combined, 0);
-            data.CopyTo(combined.AsMemory(prefixBytes.Length));
+        var output = await pipeline.ExecuteAsync(null, "payload"u8.ToArray(), CancellationToken.None);
 
-            return ValueTask.FromResult<ReadOnlyMemory<byte>>(combined);
-        }
+        Assert.That(output.ToArray(), Is.EqualTo("BApayload"u8.ToArray()));
     }
 
-    private sealed class EmptyMiddleware : INetMiddleware
+    [Test]
+    public void ContainsMiddleware_ShouldReflectRegisteredMiddlewares()
     {
-        public ValueTask<ReadOnlyMemory<byte>> ProcessAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-            => ValueTask.FromResult(ReadOnlyMemory<byte>.Empty);
-    }
+        var pipeline = new NetMiddlewarePipeline([new MiddlewarePipelinePrefixMiddleware("A")]);
 
-    private sealed class SendPrefixMiddleware(string prefix) : INetMiddleware
-    {
-        public ValueTask<ReadOnlyMemory<byte>> ProcessAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-            => ValueTask.FromResult(data);
-
-        public ValueTask<ReadOnlyMemory<byte>> ProcessSendAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-        {
-            var prefixBytes = Encoding.UTF8.GetBytes(prefix);
-            var combined = new byte[prefixBytes.Length + data.Length];
-
-            prefixBytes.CopyTo(combined, 0);
-            data.CopyTo(combined.AsMemory(prefixBytes.Length));
-
-            return ValueTask.FromResult<ReadOnlyMemory<byte>>(combined);
-        }
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(pipeline.ContainsMiddleware<MiddlewarePipelinePrefixMiddleware>(), Is.True);
+                Assert.That(pipeline.ContainsMiddleware<MiddlewarePipelineEmptyMiddleware>(), Is.False);
+            }
+        );
     }
 
     [Test]
@@ -65,8 +36,8 @@ public class MiddlewarePipelineTests
     {
         var pipeline = new NetMiddlewarePipeline(
             [
-                new PrefixMiddleware("A"),
-                new PrefixMiddleware("B")
+                new MiddlewarePipelinePrefixMiddleware("A"),
+                new MiddlewarePipelinePrefixMiddleware("B")
             ]
         );
 
@@ -81,8 +52,8 @@ public class MiddlewarePipelineTests
     {
         var pipeline = new NetMiddlewarePipeline(
             [
-                new EmptyMiddleware(),
-                new PrefixMiddleware("X")
+                new MiddlewarePipelineEmptyMiddleware(),
+                new MiddlewarePipelinePrefixMiddleware("X")
             ]
         );
 
@@ -97,8 +68,8 @@ public class MiddlewarePipelineTests
     {
         var pipeline = new NetMiddlewarePipeline(
             [
-                new SendPrefixMiddleware("A"),
-                new SendPrefixMiddleware("B")
+                new MiddlewarePipelineSendPrefixMiddleware("A"),
+                new MiddlewarePipelineSendPrefixMiddleware("B")
             ]
         );
 
@@ -106,5 +77,28 @@ public class MiddlewarePipelineTests
         var output = await pipeline.ExecuteSendAsync(null, input, CancellationToken.None);
 
         Assert.That(output.ToArray(), Is.EqualTo("BApayload"u8.ToArray()));
+    }
+
+    [Test]
+    public async Task RemoveMiddleware_ShouldRemoveAllMatchingMiddlewares()
+    {
+        var pipeline = new NetMiddlewarePipeline(
+            [
+                new MiddlewarePipelinePrefixMiddleware("A"),
+                new MiddlewarePipelineEmptyMiddleware(),
+                new MiddlewarePipelinePrefixMiddleware("B")
+            ]
+        );
+
+        var removed = pipeline.RemoveMiddleware<MiddlewarePipelineEmptyMiddleware>();
+        var output = await pipeline.ExecuteAsync(null, "payload"u8.ToArray(), CancellationToken.None);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(removed, Is.True);
+                Assert.That(output.ToArray(), Is.EqualTo("BApayload"u8.ToArray()));
+            }
+        );
     }
 }

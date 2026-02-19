@@ -1,44 +1,19 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Moongate.Network.Client;
 using Moongate.Network.Events;
-using Moongate.Network.Interfaces;
 using Moongate.Network.Server;
+using Moongate.Tests.Network.Support;
 
 namespace Moongate.Tests.Network;
 
 public class MoongateTcpServerTests
 {
-    private sealed class UppercaseMiddleware : INetMiddleware
-    {
-        public ValueTask<ReadOnlyMemory<byte>> ProcessAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-        {
-            var value = Encoding.UTF8.GetString(data.Span).ToUpperInvariant();
-
-            return ValueTask.FromResult<ReadOnlyMemory<byte>>(Encoding.UTF8.GetBytes(value));
-        }
-    }
-
-    private sealed class ThrowingMiddleware : INetMiddleware
-    {
-        public ValueTask<ReadOnlyMemory<byte>> ProcessAsync(
-            MoongateTCPClient? client,
-            ReadOnlyMemory<byte> data,
-            CancellationToken cancellationToken = default
-        )
-            => throw new InvalidOperationException("middleware failure");
-    }
-
     [Test]
     public async Task StartAsync_WhenClientConnectsAndSendsData_ShouldRaiseAllEvents()
     {
         using var server = new MoongateTCPServer(new(IPAddress.Loopback, 0));
-        server.AddMiddleware(new UppercaseMiddleware());
+        server.AddMiddleware(new MoongateTcpServerUppercaseMiddleware());
 
         var connectedTcs =
             new TaskCompletionSource<MoongateTCPClientEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -120,7 +95,7 @@ public class MoongateTcpServerTests
     public async Task StartAsync_WhenMiddlewareThrows_ShouldRaiseOnException()
     {
         using var server = new MoongateTCPServer(new(IPAddress.Loopback, 0));
-        server.AddMiddleware(new ThrowingMiddleware());
+        server.AddMiddleware(new MoongateTcpServerThrowingMiddleware());
 
         var exceptionTcs =
             new TaskCompletionSource<MoongateTCPExceptionEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);

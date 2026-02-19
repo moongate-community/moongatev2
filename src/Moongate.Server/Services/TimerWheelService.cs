@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Moongate.Server.Data.Internal.Timers;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
@@ -19,9 +18,16 @@ public sealed class TimerWheelService : ITimerService
 
     private long _currentTick;
 
-    public TimerWheelService(TimeSpan? tickDuration = null, int wheelSize = 512)
+    public TimerWheelService()
+        : this(TimeSpan.FromMilliseconds(250), 512) { }
+
+    public TimerWheelService(TimeSpan tickDuration)
+        : this(tickDuration, 512) { }
+
+    public TimerWheelService(TimeSpan tickDuration, int wheelSize)
     {
-        _tickDuration = tickDuration ?? TimeSpan.FromMilliseconds(250);
+        _tickDuration = tickDuration;
+
         if (_tickDuration <= TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(tickDuration), "Tick duration must be positive.");
@@ -37,6 +43,80 @@ public sealed class TimerWheelService : ITimerService
         for (var i = 0; i < _wheel.Length; i++)
         {
             _wheel[i] = new();
+        }
+    }
+
+    public void ProcessTick()
+    {
+        List<TimerEntry> dueEntries = [];
+
+        lock (_syncRoot)
+        {
+            _currentTick++;
+            var slotIndex = (int)(_currentTick % _wheel.Length);
+            var bucket = _wheel[slotIndex];
+            var node = bucket.First;
+
+            while (node is not null)
+            {
+                var next = node.Next;
+                var entry = node.Value;
+
+                if (entry.Cancelled)
+                {
+                    bucket.Remove(node);
+                    entry.Node = null;
+                    node = next;
+
+                    continue;
+                }
+
+                if (entry.RemainingRounds > 0)
+                {
+                    entry.RemainingRounds--;
+                    node = next;
+
+                    continue;
+                }
+
+                bucket.Remove(node);
+                entry.Node = null;
+                dueEntries.Add(entry);
+
+                if (!entry.Repeat)
+                {
+                    RemoveFromIndexes(entry);
+                }
+
+                node = next;
+            }
+        }
+
+        foreach (var entry in dueEntries)
+        {
+            try
+            {
+                entry.Callback();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
+            }
+
+            if (!entry.Repeat)
+            {
+                continue;
+            }
+
+            lock (_syncRoot)
+            {
+                if (entry.Cancelled || !_timersById.ContainsKey(entry.Id))
+                {
+                    continue;
+                }
+
+                ScheduleEntry(entry, entry.Interval);
+            }
         }
     }
 
@@ -94,6 +174,20 @@ public sealed class TimerWheelService : ITimerService
         return entry.Id;
     }
 
+    public void UnregisterAllTimers()
+    {
+        lock (_syncRoot)
+        {
+            _timersById.Clear();
+            _timerIdsByName.Clear();
+
+            foreach (var bucket in _wheel)
+            {
+                bucket.Clear();
+            }
+        }
+    }
+
     public bool UnregisterTimer(string timerId)
     {
         if (string.IsNullOrWhiteSpace(timerId))
@@ -136,89 +230,40 @@ public sealed class TimerWheelService : ITimerService
         }
     }
 
-    public void UnregisterAllTimers()
+    private bool RemoveEntryById(string timerId)
     {
-        lock (_syncRoot)
+        if (!_timersById.TryGetValue(timerId, out var entry))
         {
-            _timersById.Clear();
-            _timerIdsByName.Clear();
-
-            foreach (var bucket in _wheel)
-            {
-                bucket.Clear();
-            }
+            return false;
         }
+
+        entry.Cancelled = true;
+
+        if (entry.Node is not null)
+        {
+            _wheel[entry.SlotIndex].Remove(entry.Node);
+            entry.Node = null;
+        }
+
+        RemoveFromIndexes(entry);
+
+        return true;
     }
 
-    public void ProcessTick()
+    private void RemoveFromIndexes(TimerEntry entry)
     {
-        List<TimerEntry> dueEntries = [];
+        _timersById.Remove(entry.Id);
 
-        lock (_syncRoot)
+        if (!_timerIdsByName.TryGetValue(entry.Name, out var ids))
         {
-            _currentTick++;
-            var slotIndex = (int)(_currentTick % _wheel.Length);
-            var bucket = _wheel[slotIndex];
-            var node = bucket.First;
-
-            while (node is not null)
-            {
-                var next = node.Next;
-                var entry = node.Value;
-
-                if (entry.Cancelled)
-                {
-                    bucket.Remove(node);
-                    entry.Node = null;
-                    node = next;
-                    continue;
-                }
-
-                if (entry.RemainingRounds > 0)
-                {
-                    entry.RemainingRounds--;
-                    node = next;
-                    continue;
-                }
-
-                bucket.Remove(node);
-                entry.Node = null;
-                dueEntries.Add(entry);
-
-                if (!entry.Repeat)
-                {
-                    RemoveFromIndexes(entry);
-                }
-
-                node = next;
-            }
+            return;
         }
 
-        foreach (var entry in dueEntries)
+        ids.Remove(entry.Id);
+
+        if (ids.Count == 0)
         {
-            try
-            {
-                entry.Callback();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
-            }
-
-            if (!entry.Repeat)
-            {
-                continue;
-            }
-
-            lock (_syncRoot)
-            {
-                if (entry.Cancelled || !_timersById.ContainsKey(entry.Id))
-                {
-                    continue;
-                }
-
-                ScheduleEntry(entry, entry.Interval);
-            }
+            _timerIdsByName.Remove(entry.Name);
         }
     }
 
@@ -239,42 +284,7 @@ public sealed class TimerWheelService : ITimerService
     private long ToWheelTicks(TimeSpan dueTime)
     {
         var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
+
         return Math.Max(1, ticks);
-    }
-
-    private bool RemoveEntryById(string timerId)
-    {
-        if (!_timersById.TryGetValue(timerId, out var entry))
-        {
-            return false;
-        }
-
-        entry.Cancelled = true;
-
-        if (entry.Node is not null)
-        {
-            _wheel[entry.SlotIndex].Remove(entry.Node);
-            entry.Node = null;
-        }
-
-        RemoveFromIndexes(entry);
-        return true;
-    }
-
-    private void RemoveFromIndexes(TimerEntry entry)
-    {
-        _timersById.Remove(entry.Id);
-
-        if (!_timerIdsByName.TryGetValue(entry.Name, out var ids))
-        {
-            return;
-        }
-
-        ids.Remove(entry.Id);
-
-        if (ids.Count == 0)
-        {
-            _timerIdsByName.Remove(entry.Name);
-        }
     }
 }

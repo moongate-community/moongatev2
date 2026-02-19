@@ -6,9 +6,43 @@ namespace Moongate.Network.Pipeline;
 /// <summary>
 /// Executes network middleware components in registration order.
 /// </summary>
-public sealed class NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewares = null)
+public sealed class NetMiddlewarePipeline
 {
-    private readonly INetMiddleware[] _middlewares = [.. middlewares ?? []];
+    private readonly Lock _middlewareSync = new();
+    private INetMiddleware[] _middlewares;
+
+    /// <summary>
+    /// Initializes the middleware pipeline.
+    /// </summary>
+    /// <param name="middlewares">Optional initial middleware sequence.</param>
+    public NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewares = null)
+        => _middlewares = [.. middlewares ?? []];
+
+    /// <summary>
+    /// Adds a middleware component at the end of the execution chain.
+    /// </summary>
+    /// <param name="middleware">Middleware to register.</param>
+    public void AddMiddleware(INetMiddleware middleware)
+    {
+        lock (_middlewareSync)
+        {
+            _middlewares = [.. _middlewares, middleware];
+        }
+    }
+
+    /// <summary>
+    /// Checks whether at least one middleware component of the specified type is registered.
+    /// </summary>
+    /// <typeparam name="TMiddleware">Middleware type to check.</typeparam>
+    /// <returns><c>true</c> when a matching middleware is registered; otherwise <c>false</c>.</returns>
+    public bool ContainsMiddleware<TMiddleware>()
+        where TMiddleware : INetMiddleware
+    {
+        lock (_middlewareSync)
+        {
+            return _middlewares.Any(static middleware => middleware is TMiddleware);
+        }
+    }
 
     /// <summary>
     /// Processes the payload through all registered middleware components.
@@ -23,12 +57,19 @@ public sealed class NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewar
         CancellationToken cancellationToken
     )
     {
+        INetMiddleware[] middlewares;
+
+        lock (_middlewareSync)
+        {
+            middlewares = _middlewares;
+        }
+
         var current = data;
 
-        for (var i = 0; i < _middlewares.Length; i++)
+        for (var i = 0; i < middlewares.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            current = await _middlewares[i].ProcessAsync(client, current, cancellationToken);
+            current = await middlewares[i].ProcessAsync(client, current, cancellationToken);
 
             if (current.IsEmpty)
             {
@@ -52,12 +93,19 @@ public sealed class NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewar
         CancellationToken cancellationToken
     )
     {
+        INetMiddleware[] middlewares;
+
+        lock (_middlewareSync)
+        {
+            middlewares = _middlewares;
+        }
+
         var current = data;
 
-        for (var i = 0; i < _middlewares.Length; i++)
+        for (var i = 0; i < middlewares.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            current = await _middlewares[i].ProcessSendAsync(client, current, cancellationToken);
+            current = await middlewares[i].ProcessSendAsync(client, current, cancellationToken);
 
             if (current.IsEmpty)
             {
@@ -66,5 +114,28 @@ public sealed class NetMiddlewarePipeline(IEnumerable<INetMiddleware>? middlewar
         }
 
         return current;
+    }
+
+    /// <summary>
+    /// Removes all middleware components of the specified type.
+    /// </summary>
+    /// <typeparam name="TMiddleware">Middleware type to remove.</typeparam>
+    /// <returns><c>true</c> when at least one middleware was removed; otherwise <c>false</c>.</returns>
+    public bool RemoveMiddleware<TMiddleware>()
+        where TMiddleware : INetMiddleware
+    {
+        lock (_middlewareSync)
+        {
+            var originalLength = _middlewares.Length;
+
+            if (originalLength == 0)
+            {
+                return false;
+            }
+
+            _middlewares = _middlewares.Where(static middleware => middleware is not TMiddleware).ToArray();
+
+            return _middlewares.Length != originalLength;
+        }
     }
 }

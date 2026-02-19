@@ -1,4 +1,5 @@
 using Moongate.Network.Client;
+using Moongate.UO.Data.Middlewares;
 
 namespace Moongate.Server.Data.Session;
 
@@ -85,6 +86,7 @@ public sealed class GameNetworkSession
         lock (_stateSync)
         {
             CompressionEnabled = false;
+            Client.RemoveMiddleware<CompressionMiddleware>();
         }
     }
 
@@ -107,6 +109,11 @@ public sealed class GameNetworkSession
         lock (_stateSync)
         {
             CompressionEnabled = true;
+
+            if (!Client.ContainsMiddleware<CompressionMiddleware>())
+            {
+                Client.AddMiddleware(new CompressionMiddleware());
+            }
         }
     }
 
@@ -150,6 +157,16 @@ public sealed class GameNetworkSession
     }
 
     /// <summary>
+    /// Updates endpoint information from current client state.
+    /// </summary>
+    /// <param name="client">Source TCP client.</param>
+    public void Refresh(MoongateTCPClient client)
+    {
+        _client = client;
+        RemoteEndPoint = client.RemoteEndPoint?.ToString();
+    }
+
+    /// <summary>
     /// Stores the protocol seed received during initial handshake.
     /// </summary>
     /// <param name="seed">4-byte seed value.</param>
@@ -159,16 +176,6 @@ public sealed class GameNetworkSession
         {
             Seed = seed;
         }
-    }
-
-    /// <summary>
-    /// Updates endpoint information from current client state.
-    /// </summary>
-    /// <param name="client">Source TCP client.</param>
-    public void Refresh(MoongateTCPClient client)
-    {
-        _client = client;
-        RemoteEndPoint = client.RemoteEndPoint?.ToString();
     }
 
     /// <summary>

@@ -13,6 +13,7 @@ public static class DataAssetsBootstrapper
         if (!Directory.Exists(sourceDataDirectory))
         {
             logger.Warning("Data assets source directory not found: {SourceDataDirectory}", sourceDataDirectory);
+
             return 0;
         }
 

@@ -5,7 +5,6 @@ using Moongate.Network.Packets.Outgoing.Login;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Listeners.Base;
-using Moongate.UO.Data.Packets.Data;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -18,13 +17,13 @@ public class LoginHandler : BasePacketListener
 
     public LoginHandler(IOutgoingPacketQueue outgoingPacketQueue) : base(outgoingPacketQueue)
     {
-        _serverListPacket = new ServerListPacket();
+        _serverListPacket = new();
         _serverListPacket.Shards.Add(
-            new GameServerEntry()
+            new()
             {
                 Index = 0,
                 IpAddress = IPAddress.Parse("127.0.0.1"),
-                ServerName = "Moongate",
+                ServerName = "Moongate"
             }
         );
     }
@@ -54,6 +53,21 @@ public class LoginHandler : BasePacketListener
         return true;
     }
 
+    private async Task<bool> HandleAccountLoginPacketAsync(GameSession session, AccountLoginPacket accountLoginPacket)
+    {
+        _logger.Information(
+            "Received AccountLoginPacket from session {SessionId} with username {Username}",
+            session.SessionId,
+            accountLoginPacket.Account
+        );
+
+        //Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+
+        Enqueue(session, _serverListPacket);
+
+        return true;
+    }
+
     private async Task<bool> HandleGameLoginPacketAsync(GameSession session, GameLoginPacket gameLoginPacket)
     {
         _logger.Information(
@@ -62,26 +76,7 @@ public class LoginHandler : BasePacketListener
             gameLoginPacket.AccountName
         );
 
-        return true;
-    }
-
-    private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
-    {
-        var selectedIndex = serverSelectPacket.SelectedServerIndex;
-        var selectedShard = _serverListPacket.Shards[selectedIndex];
-
-        var sessionKey = new Random().Next();
-
-        var connectToServer = new ServerRedirectPacket()
-        {
-            IPAddress = selectedShard.IpAddress,
-            Port = 2593,
-            SessionKey = (uint)sessionKey
-        };
-
-        session.NetworkSession.SetSeed((uint)sessionKey);
-
-        Enqueue(session, connectToServer);
+        session.NetworkSession.EnableCompression();
 
         return true;
     }
@@ -98,17 +93,23 @@ public class LoginHandler : BasePacketListener
         return Task.FromResult(true);
     }
 
-    private async Task<bool> HandleAccountLoginPacketAsync(GameSession session, AccountLoginPacket accountLoginPacket)
+    private async Task<bool> HandleServerSelectPacketAsync(GameSession session, ServerSelectPacket serverSelectPacket)
     {
-        _logger.Information(
-            "Received AccountLoginPacket from session {SessionId} with username {Username}",
-            session.SessionId,
-            accountLoginPacket.Account
-        );
+        var selectedIndex = serverSelectPacket.SelectedServerIndex;
+        var selectedShard = _serverListPacket.Shards[selectedIndex];
 
-        //Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+        var sessionKey = new Random().Next();
 
-        Enqueue(session, _serverListPacket);
+        var connectToServer = new ServerRedirectPacket
+        {
+            IPAddress = selectedShard.IpAddress,
+            Port = 2593,
+            SessionKey = (uint)sessionKey
+        };
+
+        session.NetworkSession.SetSeed((uint)sessionKey);
+
+        Enqueue(session, connectToServer);
 
         return true;
     }
