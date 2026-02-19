@@ -6,6 +6,7 @@ using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services.Accounting;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
+using Moongate.UO.Data.Maps;
 using Moongate.UO.Data.Types;
 using Serilog;
 
@@ -14,7 +15,6 @@ namespace Moongate.Server.Handlers;
 public class LoginHandler : BasePacketListener
 {
     private readonly ILogger _logger = Log.ForContext<LoginHandler>();
-
 
     private readonly IAccountService _accountService;
     private readonly ServerListPacket _serverListPacket;
@@ -68,12 +68,10 @@ public class LoginHandler : BasePacketListener
 
         if (await _accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password) == null)
         {
-
             Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+
             return true;
         }
-
-
 
         Enqueue(session, _serverListPacket);
 
@@ -89,6 +87,16 @@ public class LoginHandler : BasePacketListener
         );
 
         session.NetworkSession.EnableCompression();
+
+        var characterListPacket = new CharactersStartingLocationsPacket();
+        characterListPacket.Cities.AddRange(StartingCities.AvailableStartingCities);
+
+        characterListPacket.FillCharacters(null);
+
+        Enqueue(session, new SupportFeaturesPacket());
+        Enqueue(session, characterListPacket);
+
+        //session.SendPackets(new SupportFeaturesPacket());
 
         return true;
     }
