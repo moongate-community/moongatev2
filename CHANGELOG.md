@@ -4,6 +4,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.4.0"></a>
+## [0.4.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.4.0) (2026-02-19)
+
+### Features
+
+* **network:** add client middleware management and support features packet ([6c8f0fa](https://www.github.com/moongate-community/moongatev2/commit/6c8f0fa74a2545f09d4a62d9d4d3e735c6424d66))
+
 <a name="0.3.0"></a>
 ## [0.3.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.3.0) (2026-02-19)
 
