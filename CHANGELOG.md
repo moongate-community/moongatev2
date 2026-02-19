@@ -4,6 +4,28 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.5.0"></a>
+## [0.5.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.5.0) (2026-02-19)
+
+### Features
+
+* add console ui logger with prompt and spectre colors ([8e7a9e6](https://www.github.com/moongate-community/moongatev2/commit/8e7a9e6d75898f6a8c4783c58ddb6bc9ee093ed9))
+* **console:** add scrollable log history in interactive UI ([45f61f7](https://www.github.com/moongate-community/moongatev2/commit/45f61f728701fd8c295505efd1fb4cba8d1b2327))
+* **console:** add startup input lock with unlock flow ([45e7e67](https://www.github.com/moongate-community/moongatev2/commit/45e7e6752e3ddd9ae5a6b835b6d1de9b0d70ced5))
+* **network:** add CharactersStartingLocationsPacket (0xA9) ([c3cf68d](https://www.github.com/moongate-community/moongatev2/commit/c3cf68df681ba2d156aa77fbce0da60510414b90))
+* **persistence:** add repository count APIs and bootstrap account check ([d46676e](https://www.github.com/moongate-community/moongatev2/commit/d46676ef54363acc85b09d3757caa7fb0cf50e65))
+* **scripting:** cache compiled lua chunks ([67af7cb](https://www.github.com/moongate-community/moongatev2/commit/67af7cb18cec0a9fe6a665d705f4c6c8c5a47d35))
+* **server:** add command system service and lifecycle shutdown flow ([8651e1a](https://www.github.com/moongate-community/moongatev2/commit/8651e1a1dc9fab3d03a87c6e8a8226884479b6d3))
+* **server:** add timer metrics, item/mobile link refs, and docs status refresh ([3378403](https://www.github.com/moongate-community/moongatev2/commit/33784038b91f186d958dacdbbeb15d6903690e51))
+* **server:** refactor metrics into snapshot sources ([bf39de0](https://www.github.com/moongate-community/moongatev2/commit/bf39de08782bd9eab2a8d7ad75906d5d74d16788))
+* **server:** update persistence/timers, packet mapping and serial parsing fixes ([0974549](https://www.github.com/moongate-community/moongatev2/commit/0974549e25ec3e79921ebb22e23ed4720fd79dae))
+* **uo:** add mobile stat recalculation and apply on character mapping ([3d93590](https://www.github.com/moongate-community/moongatev2/commit/3d935908fab8d169afbe2826b49f851c3fb62543))
+
+### Bug Fixes
+
+* align docker publish inputs and slim http builder for aot ([69a68f1](https://www.github.com/moongate-community/moongatev2/commit/69a68f18fe9881689e2874e3bb200803a4718e57))
+* **network:** enforce ordered outbound send and always compress post-login ([c6b263b](https://www.github.com/moongate-community/moongatev2/commit/c6b263b72129c6e858b6f3fea30619648e4068f1))
+
 <a name="0.4.0"></a>
 ## [0.4.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.4.0) (2026-02-19)
 
