@@ -37,4 +37,13 @@ public interface IAccountRepository
     /// Inserts or updates an account.
     /// </summary>
     ValueTask UpsertAsync(UOAccountEntity account, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs a projection query over account entities.
+    /// </summary>
+    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOAccountEntity, bool> predicate,
+        Func<UOAccountEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    );
 }

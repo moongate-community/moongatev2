@@ -4,6 +4,7 @@ using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using ZLinq;
 
 namespace Moongate.Persistence.Services.Persistence;
 
@@ -79,6 +80,27 @@ public sealed class ItemRepository : IItemRepository
         }
 
         await _journalService.AppendAsync(entry, cancellationToken);
+    }
+
+    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOItemEntity, bool> predicate,
+        Func<UOItemEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        UOItemEntity[] snapshot;
+
+        lock (_stateStore.SyncRoot)
+        {
+            snapshot = [.. _stateStore.ItemsById.Values.Select(Clone)];
+        }
+
+        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     private static UOItemEntity Clone(UOItemEntity item)

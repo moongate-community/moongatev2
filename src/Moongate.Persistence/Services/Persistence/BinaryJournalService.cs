@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using MemoryPack;
 using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
@@ -9,13 +10,17 @@ namespace Moongate.Persistence.Services.Persistence;
 /// <summary>
 /// Stores append-only journal entries in a binary file with checksum validation.
 /// </summary>
-public sealed class BinaryJournalService : IJournalService, IDisposable
+public sealed class BinaryJournalService : IJournalService
 {
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> IoLocks = new(StringComparer.OrdinalIgnoreCase);
     private readonly string _journalFilePath;
-    private readonly SemaphoreSlim _ioLock = new(1, 1);
+    private readonly SemaphoreSlim _ioLock;
 
     public BinaryJournalService(string journalFilePath)
-        => _journalFilePath = journalFilePath;
+    {
+        _journalFilePath = Path.GetFullPath(journalFilePath);
+        _ioLock = IoLocks.GetOrAdd(_journalFilePath, _ => new SemaphoreSlim(1, 1));
+    }
 
     public async ValueTask AppendAsync(JournalEntry entry, CancellationToken cancellationToken = default)
     {
@@ -49,11 +54,6 @@ public sealed class BinaryJournalService : IJournalService, IDisposable
         {
             _ioLock.Release();
         }
-    }
-
-    public void Dispose()
-    {
-        _ioLock.Dispose();
     }
 
     public async ValueTask<IReadOnlyCollection<JournalEntry>> ReadAllAsync(CancellationToken cancellationToken = default)

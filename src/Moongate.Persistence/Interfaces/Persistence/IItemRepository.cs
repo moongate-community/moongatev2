@@ -27,4 +27,13 @@ public interface IItemRepository
     /// Inserts or updates an item.
     /// </summary>
     ValueTask UpsertAsync(UOItemEntity item, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs a projection query over item entities.
+    /// </summary>
+    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOItemEntity, bool> predicate,
+        Func<UOItemEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    );
 }

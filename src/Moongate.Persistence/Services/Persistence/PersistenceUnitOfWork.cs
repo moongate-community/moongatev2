@@ -8,7 +8,7 @@ namespace Moongate.Persistence.Services.Persistence;
 /// <summary>
 /// Coordinates repositories plus snapshot/journal load-save lifecycle.
 /// </summary>
-public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork, IDisposable
+public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
 {
     private readonly BinaryJournalService _journalService;
     private readonly MemoryPackSnapshotService _snapshotService;
@@ -29,11 +29,6 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork, IDisposable
     public IItemRepository Items { get; }
 
     public IMobileRepository Mobiles { get; }
-
-    public void Dispose()
-    {
-        _journalService.Dispose();
-    }
 
     public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {

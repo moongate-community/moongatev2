@@ -27,4 +27,13 @@ public interface IMobileRepository
     /// Inserts or updates a mobile.
     /// </summary>
     ValueTask UpsertAsync(UOMobileEntity mobile, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs a projection query over mobile entities.
+    /// </summary>
+    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOMobileEntity, bool> predicate,
+        Func<UOMobileEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    );
 }
