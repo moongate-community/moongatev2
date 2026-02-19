@@ -11,6 +11,8 @@ namespace Moongate.Server.Services.Console;
 public sealed class ConsoleUiService : IConsoleUiService
 {
     private const string PromptPrefix = "moongate> ";
+    private const string LockedPromptPrefix = "moongate [LOCKED]> ";
+    private const char PromptUnlockCharacter = '*';
     private static readonly Style PropertyStyle = new(Color.Aqua);
 
     private readonly Lock _sync = new();
@@ -19,9 +21,16 @@ public sealed class ConsoleUiService : IConsoleUiService
     private string _input = string.Empty;
 
     public ConsoleUiService()
-        => IsInteractive = IsInteractiveConsole();
+    {
+        IsInteractive = IsInteractiveConsole();
+        IsInputLocked = true;
+    }
 
     public bool IsInteractive { get; private set; }
+
+    public bool IsInputLocked { get; private set; }
+
+    public char UnlockCharacter => PromptUnlockCharacter;
 
     public void UpdateInput(string input)
     {
@@ -33,6 +42,35 @@ public sealed class ConsoleUiService : IConsoleUiService
         lock (_sync)
         {
             _input = input;
+            RenderUnsafe();
+        }
+    }
+
+    public void LockInput()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            IsInputLocked = true;
+            _input = string.Empty;
+            RenderUnsafe();
+        }
+    }
+
+    public void UnlockInput()
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            IsInputLocked = false;
             RenderUnsafe();
         }
     }
@@ -204,8 +242,9 @@ public sealed class ConsoleUiService : IConsoleUiService
                 WriteRow(line, row, width);
             }
 
-            WritePromptRow(PromptPrefix + _input, promptRow, width);
-            var cursorColumn = Math.Min(width - 1, PromptPrefix.Length + _input.Length);
+            var promptPrefix = IsInputLocked ? LockedPromptPrefix : PromptPrefix;
+            WritePromptRow(promptPrefix + _input, promptRow, width);
+            var cursorColumn = Math.Min(width - 1, promptPrefix.Length + _input.Length);
             System.Console.SetCursorPosition(cursorColumn, promptRow);
         }
         catch (IOException)
@@ -268,6 +307,7 @@ public sealed class ConsoleUiService : IConsoleUiService
 
     private static void WriteRow(ConsoleLogLine line, int row, int width)
     {
+
         System.Console.SetCursorPosition(0, row);
         System.Console.Write(new string(' ', width));
         System.Console.SetCursorPosition(0, row);

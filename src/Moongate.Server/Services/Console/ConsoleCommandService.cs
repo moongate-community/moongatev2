@@ -3,6 +3,7 @@ using Moongate.Server.Data.Events;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
 using Serilog;
+using Serilog.Events;
 
 namespace Moongate.Server.Services.Console;
 
@@ -46,6 +47,11 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
         }
 
         _logger.Information("Interactive console prompt enabled.");
+        _consoleUiService.LockInput();
+        _consoleUiService.WriteLogLine(
+            $"Console input is locked. Press '{_consoleUiService.UnlockCharacter}' to unlock.",
+            LogEventLevel.Warning
+        );
         _inputLoopTask = Task.Run(() => InputLoopAsync(_lifetimeCts.Token), _lifetimeCts.Token);
 
         return Task.CompletedTask;
@@ -68,6 +74,7 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
     private async Task InputLoopAsync(CancellationToken cancellationToken)
     {
         var buffer = new StringBuilder();
+        var lockWarningShown = false;
         _consoleUiService.UpdateInput(string.Empty);
 
         while (!cancellationToken.IsCancellationRequested)
@@ -81,11 +88,32 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
 
             var key = System.Console.ReadKey(true);
 
+            if (_consoleUiService.IsInputLocked)
+            {
+                if (key.KeyChar == _consoleUiService.UnlockCharacter)
+                {
+                    _consoleUiService.UnlockInput();
+                    lockWarningShown = false;
+                    _consoleUiService.WriteLogLine("Console unlocked.", LogEventLevel.Information);
+                }
+                else if (!lockWarningShown)
+                {
+                    _consoleUiService.WriteLogLine(
+                        $"Console input is locked. Press '{_consoleUiService.UnlockCharacter}' to unlock.",
+                        LogEventLevel.Warning
+                    );
+                    lockWarningShown = true;
+                }
+
+                continue;
+            }
+
             if (key.Key == ConsoleKey.Enter)
             {
                 await SubmitCommandAsync(buffer.ToString(), cancellationToken);
                 buffer.Clear();
                 _consoleUiService.UpdateInput(string.Empty);
+                lockWarningShown = false;
 
                 continue;
             }
@@ -98,6 +126,8 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
                     _consoleUiService.UpdateInput(buffer.ToString());
                 }
 
+                lockWarningShown = false;
+
                 continue;
             }
 
@@ -105,6 +135,7 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
             {
                 buffer.Clear();
                 _consoleUiService.UpdateInput(string.Empty);
+                lockWarningShown = false;
 
                 continue;
             }
@@ -113,6 +144,7 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
             {
                 buffer.Append(key.KeyChar);
                 _consoleUiService.UpdateInput(buffer.ToString());
+                lockWarningShown = false;
             }
         }
     }

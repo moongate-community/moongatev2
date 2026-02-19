@@ -13,10 +13,30 @@ public interface IConsoleUiService
     bool IsInteractive { get; }
 
     /// <summary>
+    /// Gets whether console input is currently locked.
+    /// </summary>
+    bool IsInputLocked { get; }
+
+    /// <summary>
+    /// Gets the character used to unlock console input while locked.
+    /// </summary>
+    char UnlockCharacter { get; }
+
+    /// <summary>
     /// Updates the command buffer shown in the prompt row.
     /// </summary>
     /// <param name="input">Current command text.</param>
     void UpdateInput(string input);
+
+    /// <summary>
+    /// Locks console input.
+    /// </summary>
+    void LockInput();
+
+    /// <summary>
+    /// Unlocks console input.
+    /// </summary>
+    void UnlockInput();
 
     /// <summary>
     /// Writes one log line to the console output area.
