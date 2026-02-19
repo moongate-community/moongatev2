@@ -39,6 +39,19 @@ public sealed class ItemRepository : IItemRepository
         }
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Item count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.ItemsById.Count;
+            _logger.Verbose("Item count completed Count={Count}", count);
+            return ValueTask.FromResult(count);
+        }
+    }
+
     public ValueTask<UOItemEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Item get-by-id requested for Id={ItemId}", id);
@@ -84,6 +97,7 @@ public sealed class ItemRepository : IItemRepository
         {
             var clone = Clone(item);
             _stateStore.ItemsById[clone.Id] = clone;
+            _stateStore.LastItemId = Math.Max(_stateStore.LastItemId, (uint)clone.Id);
             entry = CreateEntry(PersistenceOperationType.UpsertItem, JournalPayloadCodec.EncodeItem(clone));
         }
 

@@ -8,6 +8,9 @@ using Moongate.Network.Packets.Incoming.Speech;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
+using Moongate.Server.Services.Network;
+using Moongate.Server.Services.Packets;
+using Moongate.Server.Services.Sessions;
 using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;

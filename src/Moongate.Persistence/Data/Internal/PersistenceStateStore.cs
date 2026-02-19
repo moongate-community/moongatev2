@@ -20,4 +20,10 @@ internal sealed class PersistenceStateStore
     public object SyncRoot { get; } = new();
 
     public long LastSequenceId { get; set; }
+
+    public uint LastAccountId { get; set; } = (uint)(Serial.MobileStart - 1);
+
+    public uint LastMobileId { get; set; } = (uint)(Serial.MobileStart - 1);
+
+    public uint LastItemId { get; set; } = Serial.ItemOffset - 1;
 }

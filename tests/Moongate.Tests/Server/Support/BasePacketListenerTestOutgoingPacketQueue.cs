@@ -1,6 +1,7 @@
 using Moongate.Network.Packets.Interfaces;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Services;
+using Moongate.Server.Interfaces.Services.Packets;
 
 namespace Moongate.Tests.Server.Support;
 

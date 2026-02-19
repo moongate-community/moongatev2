@@ -55,8 +55,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     private readonly ConcurrentDictionary<string, object> _loadedModules = new();
     private readonly ILogger _logger = Log.ForContext<LuaScriptEngineService>();
 
-    // Script caching - using hash to avoid re-parsing identical scripts
-    private readonly ConcurrentDictionary<string, string> _scriptCache = new();
+    // Cache compiled script chunks by content hash to avoid re-compiling identical scripts.
+    private readonly ConcurrentDictionary<string, DynValue> _scriptCache = new();
+    private readonly Lock _scriptExecutionSync = new();
     private readonly List<ScriptModuleData> _scriptModules;
     private readonly List<ScriptUserData> _loadedUserData;
 
@@ -1110,8 +1111,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
         try
         {
             var scriptHash = GetScriptHash(script);
+            DynValue compiledScriptChunk;
 
-            if (_scriptCache.ContainsKey(scriptHash))
+            if (_scriptCache.TryGetValue(scriptHash, out compiledScriptChunk))
             {
                 Interlocked.Increment(ref _cacheHits);
                 _logger.Debug("Script found in cache");
@@ -1119,10 +1121,25 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             else
             {
                 Interlocked.Increment(ref _cacheMisses);
-                _scriptCache.TryAdd(scriptHash, script);
+
+                // Compile first: invalid scripts must not pollute cache entries.
+                var compiled = LuaScript.LoadString(script, null, fileName ?? "runtime_chunk");
+
+                if (!_scriptCache.TryAdd(scriptHash, compiled))
+                {
+                    Interlocked.Increment(ref _cacheHits);
+                    _scriptCache.TryGetValue(scriptHash, out compiledScriptChunk);
+                }
+                else
+                {
+                    compiledScriptChunk = compiled;
+                }
             }
 
-            LuaScript.DoString(script);
+            lock (_scriptExecutionSync)
+            {
+                LuaScript.Call(compiledScriptChunk);
+            }
             var elapsedMs = Stopwatch.GetElapsedTime(stopwatch);
             _logger.Debug("Script executed successfully in {ElapsedMs}ms", elapsedMs);
         }

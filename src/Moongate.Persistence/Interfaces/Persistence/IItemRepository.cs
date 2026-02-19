@@ -14,6 +14,11 @@ public interface IItemRepository
     ValueTask<IReadOnlyCollection<UOItemEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the current number of persisted items.
+    /// </summary>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets an item by its serial identifier.
     /// </summary>
     ValueTask<UOItemEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default);

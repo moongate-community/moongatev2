@@ -1,7 +1,13 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
+using Moongate.Server.Services.GameLoop;
+using Moongate.Server.Services.Messaging;
+using Moongate.Server.Services.Packets;
+using Moongate.Server.Services.Sessions;
+using Moongate.Server.Services.Timing;
 using Moongate.Tests.Server.Support;
 
 namespace Moongate.Tests.Server;
@@ -19,16 +25,17 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
         Assert.Multiple(
             () =>
             {
-                Assert.That(_service.TickCount, Is.Zero);
-                Assert.That(_service.Uptime, Is.EqualTo(TimeSpan.Zero));
-                Assert.That(_service.AverageTickMs, Is.Zero);
+                var snapshot = _service.GetMetricsSnapshot();
+                Assert.That(snapshot.TickCount, Is.Zero);
+                Assert.That(snapshot.Uptime, Is.EqualTo(TimeSpan.Zero));
+                Assert.That(snapshot.AverageTickMs, Is.Zero);
             }
         );
     }
@@ -41,21 +48,24 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
 
-        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
-        var uptimeAdvanced = await WaitUntilAsync(() => _service.Uptime > TimeSpan.Zero, TimeSpan.FromSeconds(2));
+        var tickAdvanced = await WaitUntilAsync(() => _service.GetMetricsSnapshot().TickCount > 0, TimeSpan.FromSeconds(2));
+        var uptimeAdvanced = await WaitUntilAsync(
+            () => _service.GetMetricsSnapshot().Uptime > TimeSpan.Zero,
+            TimeSpan.FromSeconds(2)
+        );
 
         Assert.Multiple(
             () =>
             {
                 Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
                 Assert.That(uptimeAdvanced, Is.True, "Uptime did not increase in time.");
-                Assert.That(_service.AverageTickMs, Is.GreaterThanOrEqualTo(0d));
+                Assert.That(_service.GetMetricsSnapshot().AverageTickMs, Is.GreaterThanOrEqualTo(0d));
             }
         );
     }
@@ -79,7 +89,7 @@ public class GameLoopServiceTests
             messageBus,
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -110,7 +120,7 @@ public class GameLoopServiceTests
             new MessageBusService(),
             outgoingQueue,
             sessions,
-            new TimerWheelService(),
+            CreateTimerService(),
             sender
         );
 
@@ -130,7 +140,11 @@ public class GameLoopServiceTests
     [Test]
     public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
     {
-        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
+        var timerService = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(250),
+            WheelSize = 512
+        });
         var fired = 0;
 
         timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
@@ -169,7 +183,7 @@ public class GameLoopServiceTests
             messageBus,
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -193,20 +207,23 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
         await _service.StartAsync();
 
-        var tickAdvanced = await WaitUntilAsync(() => _service.TickCount > 0, TimeSpan.FromSeconds(2));
+        var tickAdvanced = await WaitUntilAsync(
+            () => _service.GetMetricsSnapshot().TickCount > 0,
+            TimeSpan.FromSeconds(2)
+        );
         Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
 
         await _service.StopAsync();
 
-        var tickAfterStop = _service.TickCount;
+        var tickAfterStop = _service.GetMetricsSnapshot().TickCount;
         await Task.Delay(500);
 
-        Assert.That(_service.TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+        Assert.That(_service.GetMetricsSnapshot().TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
     }
 
     [TearDown]
@@ -237,4 +254,13 @@ public class GameLoopServiceTests
 
         return condition();
     }
+
+    private static TimerWheelService CreateTimerService()
+        => new(
+            new TimerServiceConfig
+            {
+                TickDuration = TimeSpan.FromMilliseconds(150),
+                WheelSize = 512
+            }
+        );
 }

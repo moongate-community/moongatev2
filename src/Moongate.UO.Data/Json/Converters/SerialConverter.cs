@@ -11,7 +11,7 @@ public class SerialConverter : JsonConverter<Serial>
         return reader.TokenType switch
         {
             JsonTokenType.String => Serial.Parse(reader.GetString()!),
-            JsonTokenType.Number => new((uint)reader.GetInt32()),
+            JsonTokenType.Number => new(reader.GetUInt32()),
             _                    => throw new JsonException("Invalid token type for Serial")
         };
     }

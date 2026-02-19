@@ -40,9 +40,26 @@ public sealed class CompressionMiddleware : INetMiddleware
         _ = client;
         cancellationToken.ThrowIfCancellationRequested();
 
-        var input = data;
-        NetworkCompression.ProcessSend(ref input, out var output);
+        if (data.IsEmpty)
+        {
+            return ValueTask.FromResult(ReadOnlyMemory<byte>.Empty);
+        }
 
-        return ValueTask.FromResult(output);
+        var maxSize = NetworkCompression.CalculateMaxCompressedSize(data.Length);
+
+        if (maxSize <= 0)
+        {
+            return ValueTask.FromResult(ReadOnlyMemory<byte>.Empty);
+        }
+
+        var buffer = new byte[maxSize];
+        var compressedLength = NetworkCompression.Compress(data.Span, buffer.AsSpan());
+
+        if (compressedLength <= 0)
+        {
+            return ValueTask.FromResult(ReadOnlyMemory<byte>.Empty);
+        }
+
+        return ValueTask.FromResult<ReadOnlyMemory<byte>>(buffer.AsMemory(0, compressedLength));
     }
 }

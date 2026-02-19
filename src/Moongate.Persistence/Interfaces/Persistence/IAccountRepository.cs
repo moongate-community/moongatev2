@@ -19,6 +19,11 @@ public interface IAccountRepository
     ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the current number of persisted accounts.
+    /// </summary>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets an account by its serial identifier.
     /// </summary>
     ValueTask<UOAccountEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default);
@@ -27,6 +32,14 @@ public interface IAccountRepository
     /// Gets an account by username.
     /// </summary>
     ValueTask<UOAccountEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns true when at least one account matches the predicate.
+    /// </summary>
+    ValueTask<bool> ExistsAsync(
+        Func<UOAccountEntity, bool> predicate,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Removes an account by its serial identifier.

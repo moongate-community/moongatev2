@@ -1,3 +1,4 @@
+using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Version;
 
 namespace Moongate.Server.Data.Session;
@@ -24,6 +25,11 @@ public sealed class GameSession
     /// Gets the negotiated client version, when known.
     /// </summary>
     public ClientVersion? ClientVersion { get; private set; }
+
+    /// <summary>
+    ///  Gets or sets the account identifier associated with this session, when authenticated.
+    /// </summary>
+    public Serial AccountId { get; set; }
 
     /// <summary>
     /// Stores the negotiated client version for this session.

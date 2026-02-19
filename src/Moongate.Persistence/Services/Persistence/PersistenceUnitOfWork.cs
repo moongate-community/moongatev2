@@ -2,6 +2,7 @@ using Moongate.Persistence.Data.Internal;
 using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
+using Moongate.UO.Data.Ids;
 using Serilog;
 
 namespace Moongate.Persistence.Services.Persistence;
@@ -44,6 +45,9 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
             _stateStore.MobilesById.Clear();
             _stateStore.ItemsById.Clear();
             _stateStore.LastSequenceId = 0;
+            _stateStore.LastAccountId = (uint)(Serial.MobileStart - 1);
+            _stateStore.LastMobileId = (uint)(Serial.MobileStart - 1);
+            _stateStore.LastItemId = Serial.ItemOffset - 1;
 
             if (snapshot is not null)
             {
@@ -83,6 +87,8 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                     _stateStore.LastSequenceId = entry.SequenceId;
                 }
             }
+
+            RecalculateLastEntityIds();
         }
 
         _logger.Verbose(
@@ -92,6 +98,33 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
             _stateStore.ItemsById.Count,
             _stateStore.LastSequenceId
         );
+    }
+
+    public Serial AllocateNextAccountId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastAccountId++;
+            return (Serial)_stateStore.LastAccountId;
+        }
+    }
+
+    public Serial AllocateNextMobileId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastMobileId++;
+            return (Serial)_stateStore.LastMobileId;
+        }
+    }
+
+    public Serial AllocateNextItemId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastItemId++;
+            return (Serial)_stateStore.LastItemId;
+        }
     }
 
     public async ValueTask SaveSnapshotAsync(CancellationToken cancellationToken = default)
@@ -126,6 +159,7 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                     var account = JournalPayloadCodec.DecodeAccount(entry.Payload);
                     _stateStore.AccountsById[account.Id] = account;
                     _stateStore.AccountNameIndex[account.Username] = account.Id;
+                    _stateStore.LastAccountId = Math.Max(_stateStore.LastAccountId, (uint)account.Id);
 
                     break;
                 }
@@ -144,6 +178,7 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                 {
                     var mobile = JournalPayloadCodec.DecodeMobile(entry.Payload);
                     _stateStore.MobilesById[mobile.Id] = mobile;
+                    _stateStore.LastMobileId = Math.Max(_stateStore.LastMobileId, (uint)mobile.Id);
 
                     break;
                 }
@@ -158,6 +193,7 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                 {
                     var item = JournalPayloadCodec.DecodeItem(entry.Payload);
                     _stateStore.ItemsById[item.Id] = item;
+                    _stateStore.LastItemId = Math.Max(_stateStore.LastItemId, (uint)item.Id);
 
                     break;
                 }
@@ -169,5 +205,20 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                     break;
                 }
         }
+    }
+
+    private void RecalculateLastEntityIds()
+    {
+        _stateStore.LastAccountId = _stateStore.AccountsById.Count == 0
+                                        ? (uint)(Serial.MobileStart - 1)
+                                        : _stateStore.AccountsById.Keys.Max(static id => (uint)id);
+
+        _stateStore.LastMobileId = _stateStore.MobilesById.Count == 0
+                                       ? (uint)(Serial.MobileStart - 1)
+                                       : _stateStore.MobilesById.Keys.Max(static id => (uint)id);
+
+        _stateStore.LastItemId = _stateStore.ItemsById.Count == 0
+                                     ? Serial.ItemOffset - 1
+                                     : _stateStore.ItemsById.Keys.Max(static id => (uint)id);
     }
 }
