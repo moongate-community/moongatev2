@@ -4,6 +4,7 @@ using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using Serilog;
 using ZLinq;
 
 namespace Moongate.Persistence.Services.Persistence;
@@ -15,6 +16,7 @@ public sealed class AccountRepository : IAccountRepository
 {
     private readonly IJournalService _journalService;
     private readonly PersistenceStateStore _stateStore;
+    private readonly ILogger _logger = Log.ForContext<AccountRepository>();
 
     internal AccountRepository(PersistenceStateStore stateStore, IJournalService journalService)
     {
@@ -24,6 +26,7 @@ public sealed class AccountRepository : IAccountRepository
 
     public async ValueTask<bool> AddAsync(UOAccountEntity account, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account add requested for Id={AccountId} Username={Username}", account.Id, account.Username);
         var normalizedUsername = account.Username.Trim();
 
         bool inserted;
@@ -53,11 +56,19 @@ public sealed class AccountRepository : IAccountRepository
             await _journalService.AppendAsync(entry, cancellationToken);
         }
 
+        _logger.Verbose(
+            "Account add completed for Id={AccountId} Username={Username} Inserted={Inserted}",
+            account.Id,
+            normalizedUsername,
+            inserted
+        );
+
         return inserted;
     }
 
     public ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account get-all requested");
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -72,6 +83,7 @@ public sealed class AccountRepository : IAccountRepository
 
     public ValueTask<UOAccountEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account get-by-id requested for Id={AccountId}", id);
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -82,6 +94,7 @@ public sealed class AccountRepository : IAccountRepository
 
     public ValueTask<UOAccountEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account get-by-username requested for Username={Username}", username);
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -99,6 +112,7 @@ public sealed class AccountRepository : IAccountRepository
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account remove requested for Id={AccountId}", id);
         var removed = false;
         JournalEntry? entry = null;
 
@@ -117,11 +131,14 @@ public sealed class AccountRepository : IAccountRepository
             await _journalService.AppendAsync(entry, cancellationToken);
         }
 
+        _logger.Verbose("Account remove completed for Id={AccountId} Removed={Removed}", id, removed);
+
         return removed;
     }
 
     public async ValueTask UpsertAsync(UOAccountEntity account, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Account upsert requested for Id={AccountId} Username={Username}", account.Id, account.Username);
         var normalizedUsername = account.Username.Trim();
         JournalEntry entry;
 
@@ -143,6 +160,7 @@ public sealed class AccountRepository : IAccountRepository
         }
 
         await _journalService.AppendAsync(entry, cancellationToken);
+        _logger.Verbose("Account upsert completed for Id={AccountId} Username={Username}", account.Id, normalizedUsername);
     }
 
     public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
@@ -151,6 +169,7 @@ public sealed class AccountRepository : IAccountRepository
         CancellationToken cancellationToken = default
     )
     {
+        _logger.Verbose("Account query requested");
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(predicate);
         ArgumentNullException.ThrowIfNull(selector);
@@ -163,6 +182,7 @@ public sealed class AccountRepository : IAccountRepository
         }
 
         var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Account query completed with Count={Count}", results.Length);
         return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 

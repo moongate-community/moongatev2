@@ -2,6 +2,7 @@ using Moongate.Persistence.Data.Internal;
 using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
+using Serilog;
 
 namespace Moongate.Persistence.Services.Persistence;
 
@@ -11,6 +12,7 @@ namespace Moongate.Persistence.Services.Persistence;
 public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
 {
     private readonly BinaryJournalService _journalService;
+    private readonly ILogger _logger = Log.ForContext<PersistenceUnitOfWork>();
     private readonly MemoryPackSnapshotService _snapshotService;
     private readonly PersistenceStateStore _stateStore = new();
 
@@ -32,6 +34,7 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
 
     public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Persistence initialize requested");
         var snapshot = await _snapshotService.LoadAsync(cancellationToken);
 
         lock (_stateStore.SyncRoot)
@@ -81,10 +84,19 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
                 }
             }
         }
+
+        _logger.Verbose(
+            "Persistence initialize completed Accounts={AccountCount} Mobiles={MobileCount} Items={ItemCount} LastSequenceId={LastSequenceId}",
+            _stateStore.AccountsById.Count,
+            _stateStore.MobilesById.Count,
+            _stateStore.ItemsById.Count,
+            _stateStore.LastSequenceId
+        );
     }
 
     public async ValueTask SaveSnapshotAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Persistence snapshot-save requested");
         WorldSnapshot snapshot;
 
         lock (_stateStore.SyncRoot)
@@ -102,6 +114,7 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
 
         await _snapshotService.SaveAsync(snapshot, cancellationToken);
         await _journalService.ResetAsync(cancellationToken);
+        _logger.Verbose("Persistence snapshot-save completed LastSequenceId={LastSequenceId}", snapshot.LastSequenceId);
     }
 
     private void ApplyEntry(JournalEntry entry)

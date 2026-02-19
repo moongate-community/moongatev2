@@ -4,6 +4,7 @@ using MemoryPack;
 using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Utils;
+using Serilog;
 
 namespace Moongate.Persistence.Services.Persistence;
 
@@ -13,6 +14,7 @@ namespace Moongate.Persistence.Services.Persistence;
 public sealed class BinaryJournalService : IJournalService
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> IoLocks = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ILogger _logger = Log.ForContext<BinaryJournalService>();
     private readonly string _journalFilePath;
     private readonly SemaphoreSlim _ioLock;
 
@@ -24,6 +26,12 @@ public sealed class BinaryJournalService : IJournalService
 
     public async ValueTask AppendAsync(JournalEntry entry, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose(
+            "Journal append requested Path={JournalPath} SequenceId={SequenceId} OperationType={OperationType}",
+            _journalFilePath,
+            entry.SequenceId,
+            entry.OperationType
+        );
         var payload = MemoryPackSerializer.Serialize(entry);
         var checksum = ChecksumUtils.Compute(payload);
 
@@ -54,12 +62,16 @@ public sealed class BinaryJournalService : IJournalService
         {
             _ioLock.Release();
         }
+
+        _logger.Verbose("Journal append completed Path={JournalPath} SequenceId={SequenceId}", _journalFilePath, entry.SequenceId);
     }
 
     public async ValueTask<IReadOnlyCollection<JournalEntry>> ReadAllAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Journal read-all requested Path={JournalPath}", _journalFilePath);
         if (!File.Exists(_journalFilePath))
         {
+            _logger.Verbose("Journal file not found Path={JournalPath}", _journalFilePath);
             return [];
         }
 
@@ -84,6 +96,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (lengthBytesRead != 4)
                 {
+                    _logger.Warning("Journal truncated at record-length read Path={JournalPath}", _journalFilePath);
                     break;
                 }
 
@@ -91,6 +104,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (payloadLength <= 0 || payloadLength > 16 * 1024 * 1024)
                 {
+                    _logger.Warning("Journal invalid payload length Path={JournalPath} PayloadLength={PayloadLength}", _journalFilePath, payloadLength);
                     break;
                 }
 
@@ -99,6 +113,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (payloadBytesRead != payloadLength)
                 {
+                    _logger.Warning("Journal truncated at payload read Path={JournalPath} PayloadLength={PayloadLength}", _journalFilePath, payloadLength);
                     break;
                 }
 
@@ -106,6 +121,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (checksumBytesRead != 4)
                 {
+                    _logger.Warning("Journal truncated at checksum read Path={JournalPath}", _journalFilePath);
                     break;
                 }
 
@@ -114,6 +130,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (expectedChecksum != actualChecksum)
                 {
+                    _logger.Warning("Journal checksum mismatch Path={JournalPath}", _journalFilePath);
                     break;
                 }
 
@@ -121,6 +138,7 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (entry is null)
                 {
+                    _logger.Warning("Journal entry deserialize failed Path={JournalPath}", _journalFilePath);
                     break;
                 }
 
@@ -132,11 +150,13 @@ public sealed class BinaryJournalService : IJournalService
             _ioLock.Release();
         }
 
+        _logger.Verbose("Journal read-all completed Path={JournalPath} Count={Count}", _journalFilePath, entries.Count);
         return entries;
     }
 
     public async ValueTask ResetAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Journal reset requested Path={JournalPath}", _journalFilePath);
         await _ioLock.WaitAsync(cancellationToken);
 
         try
@@ -155,5 +175,7 @@ public sealed class BinaryJournalService : IJournalService
         {
             _ioLock.Release();
         }
+
+        _logger.Verbose("Journal reset completed Path={JournalPath}", _journalFilePath);
     }
 }

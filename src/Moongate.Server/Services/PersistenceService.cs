@@ -4,6 +4,7 @@ using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Services.Persistence;
 using Moongate.Server.Interfaces.Services;
+using Serilog;
 
 namespace Moongate.Server.Services;
 
@@ -12,6 +13,8 @@ namespace Moongate.Server.Services;
 /// </summary>
 public sealed class PersistenceService : IPersistenceService
 {
+    private readonly ILogger _logger = Log.ForContext<PersistenceService>();
+
     public PersistenceService(DirectoriesConfig directoriesConfig)
     {
         ArgumentNullException.ThrowIfNull(directoriesConfig);
@@ -29,17 +32,23 @@ public sealed class PersistenceService : IPersistenceService
 
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Persistence service save requested");
         await UnitOfWork.SaveSnapshotAsync(cancellationToken);
+        _logger.Verbose("Persistence service save completed");
     }
 
     public async Task StartAsync()
     {
+        _logger.Verbose("Persistence service start requested");
         await UnitOfWork.InitializeAsync();
+        _logger.Verbose("Persistence service start completed");
     }
 
     public async Task StopAsync()
     {
+        _logger.Verbose("Persistence service stop requested");
         await UnitOfWork.SaveSnapshotAsync();
+        _logger.Verbose("Persistence service stop completed");
     }
 
     public void Dispose()

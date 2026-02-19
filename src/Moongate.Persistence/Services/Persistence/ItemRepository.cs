@@ -4,6 +4,7 @@ using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using Serilog;
 using ZLinq;
 
 namespace Moongate.Persistence.Services.Persistence;
@@ -15,6 +16,7 @@ public sealed class ItemRepository : IItemRepository
 {
     private readonly IJournalService _journalService;
     private readonly PersistenceStateStore _stateStore;
+    private readonly ILogger _logger = Log.ForContext<ItemRepository>();
 
     internal ItemRepository(PersistenceStateStore stateStore, IJournalService journalService)
     {
@@ -24,6 +26,7 @@ public sealed class ItemRepository : IItemRepository
 
     public ValueTask<IReadOnlyCollection<UOItemEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Item get-all requested");
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -38,6 +41,7 @@ public sealed class ItemRepository : IItemRepository
 
     public ValueTask<UOItemEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Item get-by-id requested for Id={ItemId}", id);
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -48,6 +52,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Item remove requested for Id={ItemId}", id);
         var removed = false;
         JournalEntry? entry = null;
 
@@ -65,11 +70,14 @@ public sealed class ItemRepository : IItemRepository
             await _journalService.AppendAsync(entry, cancellationToken);
         }
 
+        _logger.Verbose("Item remove completed for Id={ItemId} Removed={Removed}", id, removed);
+
         return removed;
     }
 
     public async ValueTask UpsertAsync(UOItemEntity item, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Item upsert requested for Id={ItemId}", item.Id);
         JournalEntry entry;
 
         lock (_stateStore.SyncRoot)
@@ -80,6 +88,7 @@ public sealed class ItemRepository : IItemRepository
         }
 
         await _journalService.AppendAsync(entry, cancellationToken);
+        _logger.Verbose("Item upsert completed for Id={ItemId}", item.Id);
     }
 
     public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
@@ -88,6 +97,7 @@ public sealed class ItemRepository : IItemRepository
         CancellationToken cancellationToken = default
     )
     {
+        _logger.Verbose("Item query requested");
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(predicate);
         ArgumentNullException.ThrowIfNull(selector);
@@ -100,6 +110,7 @@ public sealed class ItemRepository : IItemRepository
         }
 
         var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Item query completed with Count={Count}", results.Length);
         return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 

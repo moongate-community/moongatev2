@@ -4,6 +4,7 @@ using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Types;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using Serilog;
 using ZLinq;
 
 namespace Moongate.Persistence.Services.Persistence;
@@ -15,6 +16,7 @@ public sealed class MobileRepository : IMobileRepository
 {
     private readonly IJournalService _journalService;
     private readonly PersistenceStateStore _stateStore;
+    private readonly ILogger _logger = Log.ForContext<MobileRepository>();
 
     internal MobileRepository(PersistenceStateStore stateStore, IJournalService journalService)
     {
@@ -24,6 +26,7 @@ public sealed class MobileRepository : IMobileRepository
 
     public ValueTask<IReadOnlyCollection<UOMobileEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Mobile get-all requested");
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -38,6 +41,7 @@ public sealed class MobileRepository : IMobileRepository
 
     public ValueTask<UOMobileEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Mobile get-by-id requested for Id={MobileId}", id);
         _ = cancellationToken;
 
         lock (_stateStore.SyncRoot)
@@ -48,6 +52,7 @@ public sealed class MobileRepository : IMobileRepository
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Mobile remove requested for Id={MobileId}", id);
         var removed = false;
         JournalEntry? entry = null;
 
@@ -65,11 +70,14 @@ public sealed class MobileRepository : IMobileRepository
             await _journalService.AppendAsync(entry, cancellationToken);
         }
 
+        _logger.Verbose("Mobile remove completed for Id={MobileId} Removed={Removed}", id, removed);
+
         return removed;
     }
 
     public async ValueTask UpsertAsync(UOMobileEntity mobile, CancellationToken cancellationToken = default)
     {
+        _logger.Verbose("Mobile upsert requested for Id={MobileId}", mobile.Id);
         JournalEntry entry;
 
         lock (_stateStore.SyncRoot)
@@ -80,6 +88,7 @@ public sealed class MobileRepository : IMobileRepository
         }
 
         await _journalService.AppendAsync(entry, cancellationToken);
+        _logger.Verbose("Mobile upsert completed for Id={MobileId}", mobile.Id);
     }
 
     public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
@@ -88,6 +97,7 @@ public sealed class MobileRepository : IMobileRepository
         CancellationToken cancellationToken = default
     )
     {
+        _logger.Verbose("Mobile query requested");
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(predicate);
         ArgumentNullException.ThrowIfNull(selector);
@@ -100,6 +110,7 @@ public sealed class MobileRepository : IMobileRepository
         }
 
         var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Mobile query completed with Count={Count}", results.Length);
         return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
