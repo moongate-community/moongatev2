@@ -18,9 +18,15 @@ public sealed class TimerWheelService : ITimerService
 
     private long _currentTick;
 
-    public TimerWheelService(TimeSpan? tickDuration = null, int wheelSize = 512)
+    public TimerWheelService()
+        : this(TimeSpan.FromMilliseconds(250), 512) { }
+
+    public TimerWheelService(TimeSpan tickDuration)
+        : this(tickDuration, 512) { }
+
+    public TimerWheelService(TimeSpan tickDuration, int wheelSize)
     {
-        _tickDuration = tickDuration ?? TimeSpan.FromMilliseconds(250);
+        _tickDuration = tickDuration;
 
         if (_tickDuration <= TimeSpan.Zero)
         {

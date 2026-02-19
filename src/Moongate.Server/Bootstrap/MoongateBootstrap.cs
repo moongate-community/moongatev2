@@ -311,15 +311,29 @@ public sealed class MoongateBootstrap : IDisposable
 
     private void RegisterServices()
     {
+        var timerServiceConfig = new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(Math.Max(1, _moongateConfig.Game.TimerTickMilliseconds)),
+            WheelSize = Math.Max(1, _moongateConfig.Game.TimerWheelSize)
+        };
+
         _container.RegisterInstance(_moongateConfig);
         _container.RegisterInstance(_directoriesConfig);
+        _container.RegisterInstance(timerServiceConfig);
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
-        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
+        _container.RegisterDelegate<ITimerService>(
+            resolver =>
+            {
+                var config = resolver.Resolve<TimerServiceConfig>();
+                return new TimerWheelService(config.TickDuration, config.WheelSize);
+            },
+            Reuse.Singleton
+        );
         _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);

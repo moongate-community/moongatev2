@@ -14,9 +14,11 @@ namespace Moongate.Server.Services;
 public sealed class PersistenceService : IPersistenceService
 {
     private readonly ILogger _logger = Log.ForContext<PersistenceService>();
+    private readonly DirectoriesConfig _directoriesConfig;
 
     public PersistenceService(DirectoriesConfig directoriesConfig)
     {
+        _directoriesConfig = directoriesConfig;
         ArgumentNullException.ThrowIfNull(directoriesConfig);
 
         var saveDirectory = directoriesConfig[DirectoryType.Save];
@@ -42,6 +44,7 @@ public sealed class PersistenceService : IPersistenceService
         _logger.Verbose("Persistence service start requested");
         await UnitOfWork.InitializeAsync();
         _logger.Verbose("Persistence service start completed");
+        _logger.Information("Persistence service started in directory: {SaveDirectory}", _directoriesConfig[DirectoryType.Save]);
     }
 
     public async Task StopAsync()
