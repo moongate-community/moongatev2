@@ -1,4 +1,6 @@
-# Change Log
+<p align="center">
+  <img src="images/moongate_logo.png" alt="Moongate logo" width="240" />
+</p>
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
@@ -40,4 +42,3 @@ All notable changes to this project will be documented in this file. See [versio
 * **server:** wire startup banner and platform handling updates ([6e9af34](https://www.github.com/moongate-community/moongatev2/commit/6e9af3447d8878ac1239ef6277e580f4a4ea77ec))
 * **uo-data:** add Serial type and coverage tests ([69f5836](https://www.github.com/moongate-community/moongatev2/commit/69f5836095b265d0d843fbe4d7ba723b98cc8731))
 * **uo-data:** import core legacy UO data and add minimal entity model ([4359964](https://www.github.com/moongate-community/moongatev2/commit/43599640fb4b9a84fd0185c78580f876d10d003f))
-

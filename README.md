@@ -1,7 +1,7 @@
 # Moongate v2
 
 <p align="center">
-  <img src="moongate_logo.png" alt="Moongate logo" width="240" />
+  <img src="images/moongate_logo.png" alt="Moongate logo" width="240" />
 </p>
 
 <p align="center">
