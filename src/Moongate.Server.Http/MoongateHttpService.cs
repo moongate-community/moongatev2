@@ -52,7 +52,7 @@ public sealed class MoongateHttpService : IMoongateHttpService
             return;
         }
 
-        var builder = WebApplication.CreateBuilder();
+        var builder = WebApplication.CreateSlimBuilder(Array.Empty<string>());
         var logPath = CreateLogPath(_directoriesConfig[DirectoryType.Logs]);
         var httpLogger = CreateHttpLogger(logPath, _minimumLogLevel);
 
