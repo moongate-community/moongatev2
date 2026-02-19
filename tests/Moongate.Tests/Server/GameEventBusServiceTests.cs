@@ -54,4 +54,18 @@ public class GameEventBusServiceTests
         Assert.That(tracking.Received.Count, Is.EqualTo(1));
         Assert.That(tracking.Received[0].SessionId, Is.EqualTo(7));
     }
+
+    [Test]
+    public async Task PublishAsync_ShouldDispatchCommandEnteredEventToTypedListener()
+    {
+        var bus = new GameEventBusService();
+        var listener = new GameEventBusTrackingCommandEnteredListener();
+        var commandEvent = new CommandEnteredEvent("help", 1000);
+
+        bus.RegisterListener(listener);
+        await bus.PublishAsync(commandEvent);
+
+        Assert.That(listener.Received.Count, Is.EqualTo(1));
+        Assert.That(listener.Received[0].CommandText, Is.EqualTo("help"));
+    }
 }

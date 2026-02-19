@@ -1,3 +1,4 @@
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Internal.Timers;
 using Moongate.Server.Interfaces.Services;
 using Serilog;
@@ -18,19 +19,14 @@ public sealed class TimerWheelService : ITimerService
 
     private long _currentTick;
 
-    public TimerWheelService()
-        : this(TimeSpan.FromMilliseconds(250), 512) { }
-
-    public TimerWheelService(TimeSpan tickDuration)
-        : this(tickDuration, 512) { }
-
-    public TimerWheelService(TimeSpan tickDuration, int wheelSize)
+    public TimerWheelService(TimerServiceConfig config)
     {
-        _tickDuration = tickDuration;
+        _tickDuration = config.TickDuration;
+        var wheelSize = config.WheelSize;
 
         if (_tickDuration <= TimeSpan.Zero)
         {
-            throw new ArgumentOutOfRangeException(nameof(tickDuration), "Tick duration must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(_tickDuration), "Tick duration must be positive.");
         }
 
         if (wheelSize <= 0)

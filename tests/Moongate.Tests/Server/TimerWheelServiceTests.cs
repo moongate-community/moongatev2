@@ -1,4 +1,5 @@
 using Moongate.Server.Services;
+using Moongate.Server.Data.Config;
 
 namespace Moongate.Tests.Server;
 
@@ -7,7 +8,11 @@ public class TimerWheelServiceTests
     [Test]
     public void ProcessTick_OneShotTimer_ShouldExecuteOnce()
     {
-        var service = new TimerWheelService(TimeSpan.FromMilliseconds(100), 64);
+        var service = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(100),
+            WheelSize = 64
+        });
         var fired = 0;
 
         service.RegisterTimer("one-shot", TimeSpan.FromMilliseconds(100), () => fired++);
@@ -21,7 +26,11 @@ public class TimerWheelServiceTests
     [Test]
     public void ProcessTick_RepeatingTimer_ShouldExecuteEveryInterval()
     {
-        var service = new TimerWheelService(TimeSpan.FromMilliseconds(100), 64);
+        var service = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(100),
+            WheelSize = 64
+        });
         var fired = 0;
 
         service.RegisterTimer("repeat", TimeSpan.FromMilliseconds(200), () => fired++, repeat: true);
@@ -38,7 +47,11 @@ public class TimerWheelServiceTests
     [Test]
     public void ProcessTick_TimerWithDelay_ShouldWaitBeforeFirstExecution()
     {
-        var service = new TimerWheelService(TimeSpan.FromMilliseconds(100), 64);
+        var service = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(100),
+            WheelSize = 64
+        });
         var fired = 0;
 
         service.RegisterTimer(
@@ -59,7 +72,11 @@ public class TimerWheelServiceTests
     [Test]
     public void UnregisterTimersByName_ShouldRemoveAllMatchingTimers()
     {
-        var service = new TimerWheelService(TimeSpan.FromMilliseconds(100), 64);
+        var service = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(100),
+            WheelSize = 64
+        });
         var fired = 0;
 
         service.RegisterTimer("same-name", TimeSpan.FromMilliseconds(100), () => fired++);

@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services;
 using Moongate.Tests.Server.Support;
@@ -19,7 +20,7 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -41,7 +42,7 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -79,7 +80,7 @@ public class GameLoopServiceTests
             messageBus,
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -110,7 +111,7 @@ public class GameLoopServiceTests
             new MessageBusService(),
             outgoingQueue,
             sessions,
-            new TimerWheelService(),
+            CreateTimerService(),
             sender
         );
 
@@ -130,7 +131,11 @@ public class GameLoopServiceTests
     [Test]
     public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
     {
-        var timerService = new TimerWheelService(TimeSpan.FromMilliseconds(250));
+        var timerService = new TimerWheelService(new TimerServiceConfig
+        {
+            TickDuration = TimeSpan.FromMilliseconds(250),
+            WheelSize = 512
+        });
         var fired = 0;
 
         timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
@@ -169,7 +174,7 @@ public class GameLoopServiceTests
             messageBus,
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
 
@@ -193,7 +198,7 @@ public class GameLoopServiceTests
             new MessageBusService(),
             new OutgoingPacketQueue(),
             new GameNetworkSessionService(),
-            new TimerWheelService(),
+            CreateTimerService(),
             new GameLoopTestOutboundPacketSender()
         );
         await _service.StartAsync();
@@ -237,4 +242,13 @@ public class GameLoopServiceTests
 
         return condition();
     }
+
+    private static TimerWheelService CreateTimerService()
+        => new(
+            new TimerServiceConfig
+            {
+                TickDuration = TimeSpan.FromMilliseconds(150),
+                WheelSize = 512
+            }
+        );
 }

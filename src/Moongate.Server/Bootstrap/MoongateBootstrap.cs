@@ -22,6 +22,7 @@ using Moongate.Server.Http;
 using Moongate.Server.Http.Interfaces;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services;
+using Moongate.Server.Services.Internal.Logging;
 using Moongate.Server.Json;
 using Moongate.Server.Services;
 using Moongate.UO.Data.Files;
@@ -38,7 +39,7 @@ public sealed class MoongateBootstrap : IDisposable
     private ILogger _logger;
 
     private DirectoriesConfig _directoriesConfig;
-
+    private IConsoleUiService _consoleUiService = new ConsoleUiService();
     private readonly MoongateConfig _moongateConfig;
 
     public MoongateBootstrap(MoongateConfig config)
@@ -190,7 +191,7 @@ public sealed class MoongateBootstrap : IDisposable
                             .MinimumLevel
                             .Is(_moongateConfig.LogLevel.ToSerilogLogLevel())
                             .WriteTo
-                            .Console()
+                            .Sink(new ConsoleUiSerilogSink(_consoleUiService))
                             .WriteTo
                             .File(
                                 appLogPath,
@@ -320,22 +321,20 @@ public sealed class MoongateBootstrap : IDisposable
         _container.RegisterInstance(_moongateConfig);
         _container.RegisterInstance(_directoriesConfig);
         _container.RegisterInstance(timerServiceConfig);
+        _container.RegisterInstance(_consoleUiService);
+
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
-        _container.RegisterDelegate<ITimerService>(
-            resolver =>
-            {
-                var config = resolver.Resolve<TimerServiceConfig>();
-                return new TimerWheelService(config.TickDuration, config.WheelSize);
-            },
-            Reuse.Singleton
-        );
+        _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
+
+
         _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
+        _container.RegisterMoongateService<IConsoleCommandService, ConsoleCommandService>(132);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);
         _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
         _container.RegisterMoongateService<IGameEventScriptBridgeService, GameEventScriptBridgeService>(140);
