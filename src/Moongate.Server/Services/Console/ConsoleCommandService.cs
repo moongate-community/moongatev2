@@ -189,38 +189,6 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
                 continue;
             }
 
-            if (key.Key == ConsoleKey.PageUp)
-            {
-                _consoleUiService.ScrollPageUp();
-                lockWarningShown = false;
-
-                continue;
-            }
-
-            if (key.Key == ConsoleKey.PageDown)
-            {
-                _consoleUiService.ScrollPageDown();
-                lockWarningShown = false;
-
-                continue;
-            }
-
-            if (key.Key == ConsoleKey.Home)
-            {
-                _consoleUiService.ScrollToTop();
-                lockWarningShown = false;
-
-                continue;
-            }
-
-            if (key.Key == ConsoleKey.End)
-            {
-                _consoleUiService.ScrollToBottom();
-                lockWarningShown = false;
-
-                continue;
-            }
-
             if (!char.IsControl(key.KeyChar))
             {
                 buffer.Append(key.KeyChar);

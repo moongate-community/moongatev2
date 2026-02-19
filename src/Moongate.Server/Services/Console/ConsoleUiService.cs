@@ -10,17 +10,14 @@ namespace Moongate.Server.Services.Console;
 /// </summary>
 public sealed class ConsoleUiService : IConsoleUiService
 {
-    private const int MaxBufferedLogLines = 50_000;
     private const string PromptPrefix = "moongate> ";
     private const string LockedPromptPrefix = "moongate [LOCKED]> ";
     private const char PromptUnlockCharacter = '*';
     private static readonly Style PropertyStyle = new(Color.Aqua);
 
     private readonly Lock _sync = new();
-    private readonly List<ConsoleLogLine> _logBuffer = [];
 
     private string _input = string.Empty;
-    private int _scrollOffset;
 
     public ConsoleUiService()
     {
@@ -45,7 +42,7 @@ public sealed class ConsoleUiService : IConsoleUiService
         {
             IsInputLocked = true;
             _input = string.Empty;
-            RenderUnsafe();
+            RenderPromptUnsafe();
         }
     }
 
@@ -59,7 +56,7 @@ public sealed class ConsoleUiService : IConsoleUiService
         lock (_sync)
         {
             IsInputLocked = false;
-            RenderUnsafe();
+            RenderPromptUnsafe();
         }
     }
 
@@ -73,66 +70,7 @@ public sealed class ConsoleUiService : IConsoleUiService
         lock (_sync)
         {
             _input = input;
-            RenderUnsafe();
-        }
-    }
-
-    public void ScrollPageUp()
-    {
-        if (!IsInteractive)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
-            _scrollOffset += pageSize;
-            RenderUnsafe();
-        }
-    }
-
-    public void ScrollPageDown()
-    {
-        if (!IsInteractive)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
-            _scrollOffset = Math.Max(0, _scrollOffset - pageSize);
-            RenderUnsafe();
-        }
-    }
-
-    public void ScrollToTop()
-    {
-        if (!IsInteractive)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            var pageSize = Math.Max(1, System.Console.WindowHeight - 1);
-            _scrollOffset = Math.Max(0, _logBuffer.Count - pageSize);
-            RenderUnsafe();
-        }
-    }
-
-    public void ScrollToBottom()
-    {
-        if (!IsInteractive)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            _scrollOffset = 0;
-            RenderUnsafe();
+            RenderPromptUnsafe();
         }
     }
 
@@ -151,27 +89,31 @@ public sealed class ConsoleUiService : IConsoleUiService
 
         lock (_sync)
         {
-            var wasViewingHistory = _scrollOffset > 0;
-            var addedLines = 0;
-
-            foreach (var item in SplitLines(line))
+            try
             {
-                _logBuffer.Add(CreateConsoleLogLine(item, level, highlightedValues));
-                addedLines++;
+                ClearPromptRowUnsafe();
+
+                foreach (var item in SplitLines(line))
+                {
+                    WriteFormattedLineUnsafe(item, level, highlightedValues);
+                }
+
+                RenderPromptUnsafe();
             }
-
-            TrimBufferToMaximum();
-
-            if (wasViewingHistory && addedLines > 0)
+            catch (IOException)
             {
-                _scrollOffset += addedLines;
+                IsInteractive = false;
+                System.Console.WriteLine(line);
             }
-
-            RenderUnsafe();
+            catch (ArgumentOutOfRangeException)
+            {
+                IsInteractive = false;
+                System.Console.WriteLine(line);
+            }
         }
     }
 
-    private static ConsoleLogLine CreateConsoleLogLine(
+    private static IReadOnlyList<ConsoleSegment> CreateSegments(
         string line,
         LogEventLevel level,
         IReadOnlyCollection<string>? highlightedValues
@@ -181,12 +123,12 @@ public sealed class ConsoleUiService : IConsoleUiService
 
         if (string.IsNullOrEmpty(line))
         {
-            return new([]);
+            return [];
         }
 
         if (highlightedValues is null || highlightedValues.Count == 0)
         {
-            return new([new(line, baseStyle)]);
+            return [new(line, baseStyle)];
         }
 
         var orderedHighlights = highlightedValues
@@ -197,7 +139,7 @@ public sealed class ConsoleUiService : IConsoleUiService
 
         if (orderedHighlights.Length == 0)
         {
-            return new([new(line, baseStyle)]);
+            return [new(line, baseStyle)];
         }
 
         var segments = new List<ConsoleSegment>();
@@ -267,7 +209,7 @@ public sealed class ConsoleUiService : IConsoleUiService
             segments.Add(new(line[start..index], baseStyle));
         }
 
-        return new(segments);
+        return segments;
     }
 
     private static Style GetStyle(LogEventLevel level)
@@ -297,35 +239,41 @@ public sealed class ConsoleUiService : IConsoleUiService
         return true;
     }
 
-    private void RenderUnsafe()
+    private void RenderPromptUnsafe()
     {
-        try
-        {
-            var width = Math.Max(1, System.Console.WindowWidth);
-            var promptRow = Math.Max(0, System.Console.WindowHeight - 1);
-            var maxOffset = Math.Max(0, _logBuffer.Count - promptRow);
-            _scrollOffset = Math.Clamp(_scrollOffset, 0, maxOffset);
-            var startIndex = Math.Max(0, _logBuffer.Count - promptRow - _scrollOffset);
+        var width = Math.Max(1, System.Console.WindowWidth);
+        var promptRow = GetPromptRowUnsafe();
+        var promptPrefix = IsInputLocked ? LockedPromptPrefix : PromptPrefix;
 
-            for (var row = 0; row < promptRow; row++)
-            {
-                var line = startIndex + row < _logBuffer.Count ? _logBuffer[startIndex + row] : default;
-                WriteRow(line, row, width);
-            }
+        System.Console.SetCursorPosition(0, promptRow);
+        System.Console.Write(new string(' ', width));
+        System.Console.SetCursorPosition(0, promptRow);
 
-            var promptPrefix = IsInputLocked ? LockedPromptPrefix : PromptPrefix;
-            WritePromptRow(promptPrefix + _input, promptRow, width);
-            var cursorColumn = Math.Min(width - 1, promptPrefix.Length + _input.Length);
-            System.Console.SetCursorPosition(cursorColumn, promptRow);
-        }
-        catch (IOException)
-        {
-            IsInteractive = false;
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            IsInteractive = false;
-        }
+        var line = promptPrefix + _input;
+        var visible = line.Length > width ? line[..width] : line;
+        AnsiConsole.Console.Write(new Text(visible, new(Color.Grey)));
+
+        var cursorColumn = Math.Min(width - 1, promptPrefix.Length + _input.Length);
+        System.Console.SetCursorPosition(cursorColumn, promptRow);
+    }
+
+    private void ClearPromptRowUnsafe()
+    {
+        var width = Math.Max(1, System.Console.WindowWidth);
+        var promptRow = GetPromptRowUnsafe();
+
+        System.Console.SetCursorPosition(0, promptRow);
+        System.Console.Write(new string(' ', width));
+        System.Console.SetCursorPosition(0, promptRow);
+    }
+
+    private static int GetPromptRowUnsafe()
+    {
+        var bufferHeight = Math.Max(1, System.Console.BufferHeight);
+        var windowHeight = Math.Max(1, System.Console.WindowHeight);
+        var row = System.Console.WindowTop + windowHeight - 1;
+
+        return Math.Clamp(row, 0, bufferHeight - 1);
     }
 
     private static IEnumerable<string> SplitLines(string line)
@@ -353,55 +301,33 @@ public sealed class ConsoleUiService : IConsoleUiService
         }
     }
 
-    private void TrimBufferToMaximum()
+    private static void WriteFormattedLineUnsafe(
+        string line,
+        LogEventLevel level,
+        IReadOnlyCollection<string>? highlightedValues
+    )
     {
-        if (_logBuffer.Count <= MaxBufferedLogLines)
+        var segments = CreateSegments(line, level, highlightedValues);
+
+        if (segments.Count == 0)
         {
+            System.Console.WriteLine();
+
             return;
         }
 
-        var removeCount = _logBuffer.Count - MaxBufferedLogLines;
-        _logBuffer.RemoveRange(0, removeCount);
-        _scrollOffset = Math.Max(0, _scrollOffset - removeCount);
-    }
-
-    private static void WritePromptRow(string line, int row, int width)
-    {
-        System.Console.SetCursorPosition(0, row);
-        System.Console.Write(new string(' ', width));
-        System.Console.SetCursorPosition(0, row);
-        var visible = line.Length > width ? line[..width] : line;
-        AnsiConsole.Console.Write(new Text(visible, new(Color.Grey)));
-    }
-
-    private static void WriteRow(ConsoleLogLine line, int row, int width)
-    {
-        System.Console.SetCursorPosition(0, row);
-        System.Console.Write(new string(' ', width));
-        System.Console.SetCursorPosition(0, row);
-
-        if (line.Segments is null || line.Segments.Count == 0)
+        for (var i = 0; i < segments.Count; i++)
         {
-            return;
-        }
-
-        var remaining = width;
-
-        foreach (var segment in line.Segments)
-        {
-            if (remaining <= 0)
-            {
-                break;
-            }
+            var segment = segments[i];
 
             if (segment.Text.Length == 0)
             {
                 continue;
             }
 
-            var visible = segment.Text.Length > remaining ? segment.Text[..remaining] : segment.Text;
-            AnsiConsole.Console.Write(new Text(visible, segment.Style));
-            remaining -= visible.Length;
+            AnsiConsole.Console.Write(new Text(segment.Text, segment.Style));
         }
+
+        System.Console.WriteLine();
     }
 }

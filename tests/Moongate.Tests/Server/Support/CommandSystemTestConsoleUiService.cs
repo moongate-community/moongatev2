@@ -15,14 +15,6 @@ public sealed class CommandSystemTestConsoleUiService : IConsoleUiService
 
     public void UpdateInput(string input) { }
 
-    public void ScrollPageUp() { }
-
-    public void ScrollPageDown() { }
-
-    public void ScrollToTop() { }
-
-    public void ScrollToBottom() { }
-
     public void LockInput()
     {
         IsInputLocked = true;
