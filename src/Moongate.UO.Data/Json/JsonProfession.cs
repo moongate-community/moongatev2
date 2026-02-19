@@ -5,14 +5,14 @@ namespace Moongate.UO.Data.Json;
 /// </summary>
 public class JsonProfession
 {
-    public string Name { get; set; } = string.Empty;
-    public string TrueName { get; set; } = string.Empty;
+    public string Name { get; set; }
+    public string TrueName { get; set; }
     public int NameId { get; set; }
     public int DescId { get; set; }
     public int Desc { get; set; }
     public bool TopLevel { get; set; }
     public int Gump { get; set; }
-    public string Type { get; set; } = string.Empty;
+    public string Type { get; set; }
     public JsonSkill[] Skills { get; set; } = [];
     public JsonStat[] Stats { get; set; } = [];
 }
@@ -22,7 +22,7 @@ public class JsonProfession
 /// </summary>
 public class JsonSkill
 {
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; }
     public int Value { get; set; }
 }
 
@@ -31,7 +31,7 @@ public class JsonSkill
 /// </summary>
 public class JsonStat
 {
-    public string Type { get; set; } = string.Empty;
+    public string Type { get; set; }
     public int Value { get; set; }
 }
 

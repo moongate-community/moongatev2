@@ -39,8 +39,34 @@ The project is actively in development and already includes:
 - Lua scripting runtime with module/function binding and `.luarc` generation support.
 - Embedded HTTP host (`Moongate.Server.Http`) for health/admin endpoints and OpenAPI/Scalar docs.
 - Dedicated HTTP rolling logs in the shared logs directory (`moongate_http-*.log`).
+- Snapshot+journal persistence module (`Moongate.Persistence`) integrated in server lifecycle.
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-18.md`.
+
+## Persistence
+
+Moongate uses a lightweight file-based persistence model implemented in `src/Moongate.Persistence`:
+
+- Snapshot file (`world.snapshot.bin`) for full world state checkpoints.
+- Append-only journal (`world.journal.bin`) for incremental operations between snapshots.
+- MemoryPack binary serialization for compact and fast read/write.
+- Per-operation checksums in journal entries to detect truncated/corrupted tails.
+- Thread-safe repositories for accounts, mobiles, and items.
+
+Runtime behavior:
+
+- On startup, `IPersistenceService.StartAsync()` loads snapshot (if present) and replays journal.
+- During runtime, repositories append operations to journal.
+- On save/stop, `SaveSnapshotAsync()` writes a new snapshot and resets the journal.
+
+Storage location:
+
+- Files are written under the server `save` directory (`DirectoriesConfig[DirectoryType.Save]`).
+
+Query support:
+
+- `IAccountRepository`, `IMobileRepository`, and `IItemRepository` expose `QueryAsync(...)`.
+- Queries are evaluated on immutable snapshots with ZLinq-backed projection/filtering.
 
 ## Solution Structure
 
@@ -95,13 +121,20 @@ Current automated coverage includes:
 - `LuaScriptEngineService` constants, callbacks, module calls, error path, and naming conversions.
 - `ScriptResultBuilder` success/error contract behavior.
 
-Example script callback (`scripts/init.lua`):
+Example script callback (for example in `<root>/scripts/init.lua`):
 
 ```lua
 function on_player_connected(p)
 	log.info("Anvedi che s'e connesson un client")
 end
 ```
+
+## Scripts
+
+Repository helper scripts in `scripts/`:
+
+- `scripts/build_image.sh`: builds the Docker image using `docker buildx`, with options for tag, platform, push, and no-cache.
+- `scripts/run_aot.sh`: publishes and runs the server with NativeAOT settings for local AOT verification.
 
 ## Docker
 

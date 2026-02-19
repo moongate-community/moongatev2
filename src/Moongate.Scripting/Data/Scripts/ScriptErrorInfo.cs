@@ -8,7 +8,7 @@ public class ScriptErrorInfo
     /// <summary>
     /// Gets or sets the error message.
     /// </summary>
-    public string Message { get; set; } = string.Empty;
+    public string Message { get; set; }
 
     /// <summary>
     /// Gets or sets the stack trace.

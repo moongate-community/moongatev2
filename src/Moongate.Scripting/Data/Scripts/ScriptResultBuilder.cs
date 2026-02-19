@@ -6,7 +6,7 @@ namespace Moongate.Scripting.Data.Scripts;
 public class ScriptResultBuilder
 {
     private object? _data;
-    private string _message = string.Empty;
+    private string? _message;
     private bool _success;
 
     /// <summary>
@@ -16,7 +16,7 @@ public class ScriptResultBuilder
         => new()
         {
             Success = _success,
-            Message = _message,
+            Message = _message ?? "",
             Data = _data
         };
 

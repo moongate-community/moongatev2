@@ -3,6 +3,7 @@ using Moongate.Persistence.Services.Persistence;
 using Moongate.Tests.TestSupport;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using Moongate.UO.Data.Types;
 
 namespace Moongate.Tests.Persistence;
 
@@ -106,6 +107,52 @@ public class PersistenceUnitOfWorkTests
 
         Assert.That(await secondUnitOfWork.Accounts.GetByUsernameAsync("before-snapshot"), Is.Not.Null);
         Assert.That(await secondUnitOfWork.Accounts.GetByUsernameAsync("after-snapshot"), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task InitializeAsync_ShouldPreserveAccountTypeAcrossSnapshotAndJournalReplay()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000030,
+                Username = "snapshot-privileged",
+                PasswordHash = "pw",
+                AccountType = AccountType.GameMaster
+            }
+        );
+
+        await unitOfWork.SaveSnapshotAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000031,
+                Username = "journal-privileged",
+                PasswordHash = "pw",
+                AccountType = AccountType.Administrator
+            }
+        );
+
+        var secondUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await secondUnitOfWork.InitializeAsync();
+
+        var snapshotAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("snapshot-privileged");
+        var journalAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("journal-privileged");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(snapshotAccount, Is.Not.Null);
+                Assert.That(journalAccount, Is.Not.Null);
+                Assert.That(snapshotAccount!.AccountType, Is.EqualTo(AccountType.GameMaster));
+                Assert.That(journalAccount!.AccountType, Is.EqualTo(AccountType.Administrator));
+            }
+        );
     }
 
     [Test]

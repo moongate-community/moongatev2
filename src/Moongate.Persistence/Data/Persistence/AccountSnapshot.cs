@@ -10,9 +10,11 @@ public sealed partial class AccountSnapshot
 {
     public uint Id { get; set; }
 
-    public string Username { get; set; } = string.Empty;
+    public string Username { get; set; }
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; set; }
+
+    public byte AccountType { get; set; }
 
     public long CreatedUtcTicks { get; set; }
 
