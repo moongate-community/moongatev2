@@ -26,7 +26,7 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
 
     public MetricsCollectionService(IEnumerable<IMetricProvider> providers, MoongateMetricsConfig config)
     {
-        _providers = providers.ToArray();
+        _providers = [.. providers];
         _config = config;
     }
 
@@ -66,7 +66,7 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
 
     public async Task StopAsync()
     {
-        _lifetimeCts.Cancel();
+        await _lifetimeCts.CancelAsync();
 
         try
         {

@@ -373,6 +373,7 @@ public sealed class MoongateBootstrap : IDisposable
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
+
         _container.RegisterDelegate<IGameLoopMetricsSource>(
             resolver => (IGameLoopMetricsSource)resolver.Resolve<IGameLoopService>(),
             Reuse.Singleton
