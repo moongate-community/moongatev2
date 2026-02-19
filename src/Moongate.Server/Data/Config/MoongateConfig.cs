@@ -21,4 +21,6 @@ public class MoongateConfig
     public MoongateGameConfig Game { get; set; } = new();
 
     public MoongateMetricsConfig Metrics { get; set; } = new();
+
+    public MoongatePersistenceConfig Persistence { get; set; } = new();
 }

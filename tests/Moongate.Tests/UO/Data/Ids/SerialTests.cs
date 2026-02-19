@@ -60,6 +60,14 @@ public class SerialTests
     }
 
     [Test]
+    public void IsItem_WhenValueIsMaxItemSerial_ShouldBeTrue()
+    {
+        var serial = new Serial(Serial.MaxItemSerial);
+
+        Assert.That(serial.IsItem, Is.True);
+    }
+
+    [Test]
     public void Parse_WhenInvalidString_ShouldThrowFormatException()
     {
         Assert.That(() => Serial.Parse("invalid"), Throws.TypeOf<FormatException>());

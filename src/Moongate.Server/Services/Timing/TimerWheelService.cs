@@ -2,6 +2,7 @@ using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Internal.Timers;
 using Moongate.Server.Interfaces.Services.Timing;
 using Serilog;
+using System.Threading;
 
 namespace Moongate.Server.Services.Timing;
 
@@ -90,29 +91,7 @@ public sealed class TimerWheelService : ITimerService
 
         foreach (var entry in dueEntries)
         {
-            try
-            {
-                entry.Callback();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
-            }
-
-            if (!entry.Repeat)
-            {
-                continue;
-            }
-
-            lock (_syncRoot)
-            {
-                if (entry.Cancelled || !_timersById.ContainsKey(entry.Id))
-                {
-                    continue;
-                }
-
-                ScheduleEntry(entry, entry.Interval);
-            }
+            _ = ExecuteEntryAsync(entry);
         }
     }
 
@@ -120,6 +99,28 @@ public sealed class TimerWheelService : ITimerService
         string name,
         TimeSpan interval,
         Action callback,
+        TimeSpan? delay = null,
+        bool repeat = false
+    )
+    {
+        ArgumentNullException.ThrowIfNull(callback);
+        return RegisterTimer(
+            name,
+            interval,
+            _ =>
+            {
+                callback();
+                return ValueTask.CompletedTask;
+            },
+            delay,
+            repeat
+        );
+    }
+
+    public string RegisterTimer(
+        string name,
+        TimeSpan interval,
+        Func<CancellationToken, ValueTask> callback,
         TimeSpan? delay = null,
         bool repeat = false
     )
@@ -147,7 +148,7 @@ public sealed class TimerWheelService : ITimerService
         {
             Id = Guid.NewGuid().ToString("N"),
             Name = name,
-            Callback = callback,
+            CallbackAsync = callback,
             Interval = interval,
             Repeat = repeat
         };
@@ -282,5 +283,56 @@ public sealed class TimerWheelService : ITimerService
         var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
 
         return Math.Max(1, ticks);
+    }
+
+    private async Task ExecuteEntryAsync(TimerEntry entry)
+    {
+        if (Interlocked.Exchange(ref entry.IsExecuting, 1) != 0)
+        {
+            if (entry.Repeat)
+            {
+                lock (_syncRoot)
+                {
+                    if (!entry.Cancelled && _timersById.ContainsKey(entry.Id))
+                    {
+                        ScheduleEntry(entry, entry.Interval);
+                    }
+                }
+            }
+
+            return;
+        }
+
+        try
+        {
+            _logger.Debug(
+                "Executing timer callback {TimerName} ({TimerId}) [Repeat={Repeat}]",
+                entry.Name,
+                entry.Id,
+                entry.Repeat
+            );
+            await entry.CallbackAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
+        }
+        finally
+        {
+            Volatile.Write(ref entry.IsExecuting, 0);
+        }
+
+        if (!entry.Repeat)
+        {
+            return;
+        }
+
+        lock (_syncRoot)
+        {
+            if (!entry.Cancelled && _timersById.ContainsKey(entry.Id))
+            {
+                ScheduleEntry(entry, entry.Interval);
+            }
+        }
     }
 }

@@ -66,12 +66,16 @@ public class LoginHandler : BasePacketListener
             accountLoginPacket.Account
         );
 
-        if (await _accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password) == null)
+        var account = await _accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password);
+
+        if (account == null)
         {
             Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
 
             return true;
         }
+
+        session.AccountId = account.Id;
 
         Enqueue(session, _serverListPacket);
 
@@ -96,7 +100,6 @@ public class LoginHandler : BasePacketListener
         Enqueue(session, new SupportFeaturesPacket());
         Enqueue(session, characterListPacket);
 
-        //session.SendPackets(new SupportFeaturesPacket());
 
         return true;
     }

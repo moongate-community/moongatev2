@@ -97,6 +97,7 @@ public sealed class MobileRepository : IMobileRepository
         {
             var clone = Clone(mobile);
             _stateStore.MobilesById[clone.Id] = clone;
+            _stateStore.LastMobileId = Math.Max(_stateStore.LastMobileId, (uint)clone.Id);
             entry = CreateEntry(PersistenceOperationType.UpsertMobile, JournalPayloadCodec.EncodeMobile(clone));
         }
 

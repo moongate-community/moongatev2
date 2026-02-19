@@ -23,6 +23,7 @@ public class AccountService : IAccountService
     {
         var account = new UOAccountEntity
         {
+            Id = _persistenceService.UnitOfWork.AllocateNextAccountId(),
             AccountType = accountType,
             Username = username,
             PasswordHash = HashUtils.HashPassword(password),

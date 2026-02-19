@@ -267,8 +267,37 @@ public class PersistenceUnitOfWorkTests
             new()
             {
                 Id = (Serial)0x00000010,
+                AccountId = (Serial)0x00000002,
+                Name = "snapshot-mobile",
+                MapId = 1,
+                Direction = DirectionType.East,
                 IsPlayer = true,
                 IsAlive = true,
+                Gender = GenderType.Female,
+                RaceIndex = 1,
+                ProfessionId = 2,
+                SkinHue = 0x0455,
+                HairStyle = 0x0203,
+                HairHue = 0x0304,
+                FacialHairStyle = 0x0000,
+                FacialHairHue = 0x0000,
+                Strength = 60,
+                Dexterity = 50,
+                Intelligence = 40,
+                Hits = 60,
+                Mana = 40,
+                Stamina = 50,
+                MaxHits = 60,
+                MaxMana = 40,
+                MaxStamina = 50,
+                IsWarMode = false,
+                IsHidden = false,
+                IsFrozen = false,
+                IsPoisoned = false,
+                IsBlessed = false,
+                Notoriety = Notoriety.Innocent,
+                CreatedUtc = new(2026, 2, 19, 12, 0, 0, DateTimeKind.Utc),
+                LastLoginUtc = new(2026, 2, 19, 13, 0, 0, DateTimeKind.Utc),
                 Location = new(10, 20, 0)
             }
         );
@@ -287,9 +316,41 @@ public class PersistenceUnitOfWorkTests
         var secondUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
         await secondUnitOfWork.InitializeAsync();
 
-        Assert.That(await secondUnitOfWork.Accounts.GetByUsernameAsync("snapshot-user"), Is.Not.Null);
-        Assert.That(await secondUnitOfWork.Mobiles.GetByIdAsync((Serial)0x00000010), Is.Not.Null);
-        Assert.That(await secondUnitOfWork.Items.GetByIdAsync((Serial)0x40000010), Is.Not.Null);
+        var loadedAccount = await secondUnitOfWork.Accounts.GetByUsernameAsync("snapshot-user");
+        var loadedMobile = await secondUnitOfWork.Mobiles.GetByIdAsync((Serial)0x00000010);
+        var loadedItem = await secondUnitOfWork.Items.GetByIdAsync((Serial)0x40000010);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(loadedAccount, Is.Not.Null);
+                Assert.That(loadedMobile, Is.Not.Null);
+                Assert.That(loadedItem, Is.Not.Null);
+
+                Assert.That(loadedMobile!.AccountId, Is.EqualTo((Serial)0x00000002));
+                Assert.That(loadedMobile.Name, Is.EqualTo("snapshot-mobile"));
+                Assert.That(loadedMobile.MapId, Is.EqualTo(1));
+                Assert.That(loadedMobile.Direction, Is.EqualTo(DirectionType.East));
+                Assert.That(loadedMobile.Gender, Is.EqualTo(GenderType.Female));
+                Assert.That(loadedMobile.RaceIndex, Is.EqualTo(1));
+                Assert.That(loadedMobile.ProfessionId, Is.EqualTo(2));
+                Assert.That(loadedMobile.SkinHue, Is.EqualTo(0x0455));
+                Assert.That(loadedMobile.HairStyle, Is.EqualTo(0x0203));
+                Assert.That(loadedMobile.HairHue, Is.EqualTo(0x0304));
+                Assert.That(loadedMobile.Strength, Is.EqualTo(60));
+                Assert.That(loadedMobile.Dexterity, Is.EqualTo(50));
+                Assert.That(loadedMobile.Intelligence, Is.EqualTo(40));
+                Assert.That(loadedMobile.Hits, Is.EqualTo(60));
+                Assert.That(loadedMobile.Mana, Is.EqualTo(40));
+                Assert.That(loadedMobile.Stamina, Is.EqualTo(50));
+                Assert.That(loadedMobile.MaxHits, Is.EqualTo(60));
+                Assert.That(loadedMobile.MaxMana, Is.EqualTo(40));
+                Assert.That(loadedMobile.MaxStamina, Is.EqualTo(50));
+                Assert.That(loadedMobile.Notoriety, Is.EqualTo(Notoriety.Innocent));
+                Assert.That(loadedMobile.CreatedUtc, Is.EqualTo(new DateTime(2026, 2, 19, 12, 0, 0, DateTimeKind.Utc)));
+                Assert.That(loadedMobile.LastLoginUtc, Is.EqualTo(new DateTime(2026, 2, 19, 13, 0, 0, DateTimeKind.Utc)));
+            }
+        );
     }
 
     [Test]
@@ -486,6 +547,85 @@ public class PersistenceUnitOfWorkTests
                 $"Missing account '{secondUsername}' after multi-instance writes."
             );
         }
+    }
+
+    [Test]
+    public async Task AllocateNextIds_ShouldReturnProgressiveValuesPerEntityType()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        var account1 = unitOfWork.AllocateNextAccountId();
+        var account2 = unitOfWork.AllocateNextAccountId();
+        var mobile1 = unitOfWork.AllocateNextMobileId();
+        var mobile2 = unitOfWork.AllocateNextMobileId();
+        var item1 = unitOfWork.AllocateNextItemId();
+        var item2 = unitOfWork.AllocateNextItemId();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(account1, Is.EqualTo((Serial)0x00000001));
+                Assert.That(account2, Is.EqualTo((Serial)0x00000002));
+                Assert.That(mobile1, Is.EqualTo((Serial)0x00000001));
+                Assert.That(mobile2, Is.EqualTo((Serial)0x00000002));
+                Assert.That(item1, Is.EqualTo((Serial)Serial.ItemOffset));
+                Assert.That(item2, Is.EqualTo((Serial)(Serial.ItemOffset + 1)));
+            }
+        );
+    }
+
+    [Test]
+    public async Task AllocateNextIds_AfterReload_ShouldContinueFromMaxPersistedIds()
+    {
+        using var tempDirectory = new TempDirectory();
+        var firstUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await firstUnitOfWork.InitializeAsync();
+
+        await firstUnitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000010,
+                Username = "allocator-account",
+                PasswordHash = "pw"
+            }
+        );
+
+        await firstUnitOfWork.Mobiles.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000020,
+                IsPlayer = true,
+                IsAlive = true
+            }
+        );
+
+        await firstUnitOfWork.Items.UpsertAsync(
+            new()
+            {
+                Id = (Serial)(Serial.ItemOffset + 10),
+                ItemId = 0x0EED
+            }
+        );
+
+        await firstUnitOfWork.SaveSnapshotAsync();
+
+        var secondUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await secondUnitOfWork.InitializeAsync();
+
+        var nextAccountId = secondUnitOfWork.AllocateNextAccountId();
+        var nextMobileId = secondUnitOfWork.AllocateNextMobileId();
+        var nextItemId = secondUnitOfWork.AllocateNextItemId();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(nextAccountId, Is.EqualTo((Serial)0x00000011));
+                Assert.That(nextMobileId, Is.EqualTo((Serial)0x00000021));
+                Assert.That(nextItemId, Is.EqualTo((Serial)(Serial.ItemOffset + 11)));
+            }
+        );
     }
 
     private static PersistenceUnitOfWork CreateUnitOfWork(string directory)

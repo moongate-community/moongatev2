@@ -2,33 +2,38 @@ using Moongate.Network.Packets.Attributes;
 using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
+using Moongate.UO.Data.Maps;
+using Moongate.UO.Data.Packets.Data;
+using Moongate.UO.Data.Professions;
+using Moongate.UO.Data.Races.Base;
 using Moongate.UO.Data.Types;
 
 namespace Moongate.Network.Packets.Incoming.Login;
 
 [PacketHandler(0xF8, PacketSizing.Fixed, Length = 106, Description = "Character Creation ( 7.0.16.0 )")]
-public class CharacterCreation70160Packet : BaseGameNetworkPacket
+public class CharacterCreationPacket : BaseGameNetworkPacket
 {
     public int Slot { get; private set; }
     public string CharacterName { get; private set; } = string.Empty;
     public ClientFlags ClientFlags { get; private set; }
     public int ProfessionId { get; private set; }
-    public List<CharacterCreationSkillValue> Skills { get; } = [];
+    public ProfessionInfo Profession { get; private set; } = new();
+    public List<SkillKeyValue> Skills { get; } = [];
     public int Intelligence { get; private set; }
     public int Strength { get; private set; }
     public int Dexterity { get; private set; }
     public GenderType Gender { get; private set; }
     public int RaceIndex { get; private set; }
-    public short SkinHue { get; private set; }
-    public short HairStyle { get; private set; }
-    public short HairHue { get; private set; }
-    public short FacialHairStyle { get; private set; }
-    public short FacialHairHue { get; private set; }
     public short StartingCityIndex { get; private set; }
-    public short ShirtHue { get; private set; }
-    public short PantsHue { get; private set; }
+    public HueStyle Hair { get; private set; } = new(0, 0);
+    public HueStyle FacialHair { get; private set; } = new(0, 0);
+    public CityInfo? StartingCity { get; private set; }
+    public Race? Race { get; private set; }
+    public HueStyle Shirt { get; private set; } = new(0, 0);
+    public HueStyle Skin { get; private set; } = new(0, 0);
+    public HueStyle Pants { get; private set; } = new(0, 0);
 
-    public CharacterCreation70160Packet()
+    public CharacterCreationPacket()
         : base(0xF8, 106) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
@@ -44,6 +49,8 @@ public class CharacterCreation70160Packet : BaseGameNetworkPacket
         reader.ReadInt32(); // Reserved
 
         ProfessionId = reader.ReadByte();
+        Profession = TryResolveProfession(ProfessionId);
+
         reader.ReadBytes(15);
 
         if (!TryParseGenderAndRace(reader.ReadByte(), out var gender, out var raceIndex))
@@ -53,6 +60,7 @@ public class CharacterCreation70160Packet : BaseGameNetworkPacket
 
         Gender = gender;
         RaceIndex = raceIndex;
+        Race = raceIndex >= 0 && raceIndex < Race.Races.Length ? Race.Races[raceIndex] : null;
 
         Strength = reader.ReadByte();
         Dexterity = reader.ReadByte();
@@ -64,20 +72,23 @@ public class CharacterCreation70160Packet : BaseGameNetworkPacket
         Skills.Add(new((UOSkillName)reader.ReadByte(), reader.ReadByte()));
         Skills.Add(new((UOSkillName)reader.ReadByte(), reader.ReadByte()));
 
-        SkinHue = reader.ReadInt16();
-        HairStyle = reader.ReadInt16();
-        HairHue = reader.ReadInt16();
-        FacialHairStyle = reader.ReadInt16();
-        FacialHairHue = reader.ReadInt16();
+        Skin = new(0x00, reader.ReadInt16());
+        Hair = new(reader.ReadInt16(), reader.ReadInt16());
+        FacialHair = new(reader.ReadInt16(), reader.ReadInt16());
 
         StartingCityIndex = reader.ReadInt16();
+        StartingCity =
+            StartingCityIndex >= 0 && StartingCityIndex < StartingCities.AvailableStartingCities.Length
+                ? StartingCities.AvailableStartingCities[StartingCityIndex]
+                : null;
+
         reader.ReadBytes(2);
         Slot = reader.ReadInt16();
 
         reader.ReadInt32(); // Reserved
 
-        ShirtHue = reader.ReadInt16();
-        PantsHue = reader.ReadInt16();
+        Shirt = new(0x00, reader.ReadInt16());
+        Pants = new(0x00, reader.ReadInt16());
 
         return true;
     }
@@ -117,5 +128,15 @@ public class CharacterCreation70160Packet : BaseGameNetworkPacket
                 raceIndex = -1;
                 return false;
         }
+    }
+
+    private static ProfessionInfo TryResolveProfession(int professionId)
+    {
+        if (ProfessionInfo.Professions is { Length: > 0 } && ProfessionInfo.GetProfession(professionId, out var profession))
+        {
+            return profession;
+        }
+
+        return new() { ID = professionId };
     }
 }

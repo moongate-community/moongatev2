@@ -97,6 +97,7 @@ public sealed class ItemRepository : IItemRepository
         {
             var clone = Clone(item);
             _stateStore.ItemsById[clone.Id] = clone;
+            _stateStore.LastItemId = Math.Max(_stateStore.LastItemId, (uint)clone.Id);
             entry = CreateEntry(PersistenceOperationType.UpsertItem, JournalPayloadCodec.EncodeItem(clone));
         }
 

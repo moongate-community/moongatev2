@@ -179,6 +179,11 @@ public sealed class MoongateBootstrap : IDisposable
             }
 
             _moongateConfig.LogPacketData = fileConfig.LogPacketData;
+
+            if (fileConfig.Persistence is not null)
+            {
+                _moongateConfig.Persistence = fileConfig.Persistence;
+            }
         }
     }
 

@@ -32,7 +32,7 @@ public readonly struct Serial
     public bool IsItem
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Value is >= ItemOffset and < MaxItemSerial;
+        get => Value is >= ItemOffset and <= MaxItemSerial;
     }
 
     public bool IsValid

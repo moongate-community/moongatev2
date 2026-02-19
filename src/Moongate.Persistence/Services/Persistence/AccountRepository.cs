@@ -45,6 +45,7 @@ public sealed class AccountRepository : IAccountRepository
                 clone.Username = normalizedUsername;
                 _stateStore.AccountsById[clone.Id] = clone;
                 _stateStore.AccountNameIndex[clone.Username] = clone.Id;
+                _stateStore.LastAccountId = Math.Max(_stateStore.LastAccountId, (uint)clone.Id);
 
                 inserted = true;
                 entry = CreateEntry(PersistenceOperationType.UpsertAccount, JournalPayloadCodec.EncodeAccount(clone));
@@ -185,6 +186,7 @@ public sealed class AccountRepository : IAccountRepository
 
             _stateStore.AccountsById[clone.Id] = clone;
             _stateStore.AccountNameIndex[clone.Username] = clone.Id;
+            _stateStore.LastAccountId = Math.Max(_stateStore.LastAccountId, (uint)clone.Id);
 
             entry = CreateEntry(PersistenceOperationType.UpsertAccount, JournalPayloadCodec.EncodeAccount(clone));
         }

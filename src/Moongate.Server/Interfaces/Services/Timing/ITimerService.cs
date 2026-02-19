@@ -28,6 +28,23 @@ public interface ITimerService
     );
 
     /// <summary>
+    /// Registers an asynchronous timer callback.
+    /// </summary>
+    /// <param name="name">Logical timer name.</param>
+    /// <param name="interval">Interval used as due-time for one-shot or period for repeating timers.</param>
+    /// <param name="callback">Asynchronous callback executed when timer expires.</param>
+    /// <param name="delay">Optional initial delay. If null, <paramref name="interval" /> is used.</param>
+    /// <param name="repeat">Whether the timer repeats.</param>
+    /// <returns>Unique timer identifier.</returns>
+    string RegisterTimer(
+        string name,
+        TimeSpan interval,
+        Func<CancellationToken, ValueTask> callback,
+        TimeSpan? delay = null,
+        bool repeat = false
+    );
+
+    /// <summary>
     /// Removes all registered timers.
     /// </summary>
     void UnregisterAllTimers();

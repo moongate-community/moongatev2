@@ -84,7 +84,11 @@ public class ProfessionInfo
         return false;
     }
 
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool VerifyProfession(int profIndex)
         => profIndex > 0 && profIndex < Professions.Length;
+
+    public override string ToString()
+        => $"{Name} (ID={ID}, Skills={_skills.Length}, Str={Stats[0]}, Dex={Stats[1]}, Int={Stats[2]})";
 }

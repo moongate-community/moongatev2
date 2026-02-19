@@ -89,4 +89,45 @@ public class TimerWheelServiceTests
         Assert.That(removed, Is.EqualTo(2));
         Assert.That(fired, Is.EqualTo(0));
     }
+
+    [Test]
+    public async Task RegisterTimer_AsyncCallback_ShouldExecuteWithoutOverlap()
+    {
+        var service = new TimerWheelService(
+            new TimerServiceConfig
+            {
+                TickDuration = TimeSpan.FromMilliseconds(50),
+                WheelSize = 64
+            }
+        );
+        var fired = 0;
+
+        service.RegisterTimer(
+            "repeat-async",
+            TimeSpan.FromMilliseconds(50),
+            async ct =>
+            {
+                Interlocked.Increment(ref fired);
+                await Task.Delay(200, ct);
+            },
+            repeat: true
+        );
+
+        for (var i = 0; i < 8; i++)
+        {
+            service.ProcessTick();
+            await Task.Delay(10);
+        }
+
+        var firstBurst = Volatile.Read(ref fired);
+
+        await Task.Delay(250);
+        service.ProcessTick();
+        await Task.Delay(30);
+
+        var secondBurst = Volatile.Read(ref fired);
+
+        Assert.That(firstBurst, Is.EqualTo(1));
+        Assert.That(secondBurst, Is.EqualTo(2));
+    }
 }

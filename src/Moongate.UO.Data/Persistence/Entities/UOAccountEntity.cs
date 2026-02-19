@@ -22,8 +22,8 @@ public class UOAccountEntity
 
     public AccountType AccountType { get; set; } = AccountType.Regular;
 
-
     public string Email { get; set; }
 
     public bool IsLocked { get; set; }
+
 }

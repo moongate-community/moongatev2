@@ -1,4 +1,5 @@
 using DryIoc;
+using Moongate.Server.Interfaces.Characters;
 using Moongate.Server.Interfaces.Services.Accounting;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Files;
@@ -8,6 +9,7 @@ using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
 using Moongate.Server.Interfaces.Services.Timing;
 using Moongate.Server.Services.Accounting;
+using Moongate.Server.Services.Characters;
 using Moongate.Server.Services.Events;
 using Moongate.Server.Services.Files;
 using Moongate.Server.Services.Lifecycle;
@@ -37,6 +39,7 @@ public static class AddBootstrapCoreServicesExtension
         container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
         container.Register<IAccountService, AccountService>(Reuse.Singleton);
+        container.Register<ICharacterService, CharacterService>(Reuse.Singleton);
 
         return container;
     }
