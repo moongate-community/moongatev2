@@ -6,17 +6,17 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <Description>Ultima Online domain data types, entities, and protocol-facing value objects used by Moongate.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Interfaces\"/>
+        <Folder Include="Interfaces\" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
+        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
     </ItemGroup>
 
 </Project>

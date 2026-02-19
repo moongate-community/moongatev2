@@ -6,8 +6,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <WarningsAsErrors/>
-        <WarningsNotAsErrors/>
+        <WarningsAsErrors />
+        <WarningsNotAsErrors />
         <LangVersion>latest</LangVersion>
         <NoWarn>CA1304;CA1862;CA1309;CA1707;CA1711;CA1822;CA1305;IL2026;IL2091;CA1513;IL2090;CA2211;IL2075;CA2208;CA1310;</NoWarn>
 
@@ -31,7 +31,7 @@
 
     <!-- Package Metadata -->
     <PropertyGroup>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <AssemblyVersion>0.1.0.0</AssemblyVersion>
         <FileVersion>0.1.0.0</FileVersion>
         <InformationalVersion>0.1.0</InformationalVersion>
