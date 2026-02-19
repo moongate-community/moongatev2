@@ -66,7 +66,7 @@ public class LoginHandler : BasePacketListener
             accountLoginPacket.Account
         );
 
-        if (_accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password) == null)
+        if (await _accountService.LoginAsync(accountLoginPacket.Account, accountLoginPacket.Password) == null)
         {
 
             Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
