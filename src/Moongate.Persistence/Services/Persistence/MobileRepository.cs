@@ -39,6 +39,19 @@ public sealed class MobileRepository : IMobileRepository
         }
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Mobile count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.MobilesById.Count;
+            _logger.Verbose("Mobile count completed Count={Count}", count);
+            return ValueTask.FromResult(count);
+        }
+    }
+
     public ValueTask<UOMobileEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Mobile get-by-id requested for Id={MobileId}", id);

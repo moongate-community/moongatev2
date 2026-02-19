@@ -14,6 +14,11 @@ public interface IMobileRepository
     ValueTask<IReadOnlyCollection<UOMobileEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the current number of persisted mobiles.
+    /// </summary>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a mobile by its serial identifier.
     /// </summary>
     ValueTask<UOMobileEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default);

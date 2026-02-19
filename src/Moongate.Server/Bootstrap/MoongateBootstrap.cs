@@ -24,7 +24,10 @@ using Moongate.Server.Json;
 using Moongate.Server.Services.Console;
 using Moongate.Server.Services.Console.Internal.Logging;
 using Moongate.Scripting.Modules;
+using Moongate.Server.Interfaces.Services.Accounting;
+using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.UO.Data.Files;
+using Moongate.UO.Data.Types;
 using Moongate.UO.Data.Version;
 using Serilog;
 using Serilog.Filters;
@@ -92,6 +95,8 @@ public sealed class MoongateBootstrap : IDisposable
             runningServices.Add(instance);
         }
 
+        await CheckDefaultAdminAccount();
+
         _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
         _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
 
@@ -109,6 +114,29 @@ public sealed class MoongateBootstrap : IDisposable
         }
 
         await StopAsync(runningServices);
+    }
+
+    private async Task CheckDefaultAdminAccount()
+    {
+        var persistenceService = _container.Resolve<IPersistenceService>();
+        var accountService = _container.Resolve<IAccountService>();
+
+        if (await persistenceService.UnitOfWork.Accounts.CountAsync() == 0)
+        {
+            var defaultAdminUsername = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_USERNAME") ?? "admin";
+            var defaultAdminPassword = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_PASSWORD") ?? "password";
+
+            await accountService.CreateAccountAsync(defaultAdminUsername, defaultAdminPassword, AccountType.Administrator);
+
+            _logger.Warning(
+                "No accounts found. Created default administrator account with username '{Username}' and password '{Password}'.",
+                defaultAdminUsername,
+                defaultAdminPassword
+            );
+        }
+
+        await persistenceService.SaveAsync();
+
     }
 
     private void CheckConfig()

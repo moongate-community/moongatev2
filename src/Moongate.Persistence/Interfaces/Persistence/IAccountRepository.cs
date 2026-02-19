@@ -19,6 +19,11 @@ public interface IAccountRepository
     ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns the current number of persisted accounts.
+    /// </summary>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets an account by its serial identifier.
     /// </summary>
     ValueTask<UOAccountEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default);

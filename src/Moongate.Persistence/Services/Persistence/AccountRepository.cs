@@ -81,6 +81,19 @@ public sealed class AccountRepository : IAccountRepository
         }
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Account count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.AccountsById.Count;
+            _logger.Verbose("Account count completed Count={Count}", count);
+            return ValueTask.FromResult(count);
+        }
+    }
+
     public ValueTask<UOAccountEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Account get-by-id requested for Id={AccountId}", id);

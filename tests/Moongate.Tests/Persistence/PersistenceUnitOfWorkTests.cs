@@ -333,6 +333,34 @@ public class PersistenceUnitOfWorkTests
     }
 
     [Test]
+    public async Task CountAsync_OnRepositories_ShouldReturnExpectedValues()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        await unitOfWork.Accounts.UpsertAsync(new() { Id = (Serial)0x1201, Username = "count-a", PasswordHash = "pw" });
+        await unitOfWork.Accounts.UpsertAsync(new() { Id = (Serial)0x1202, Username = "count-b", PasswordHash = "pw" });
+        await unitOfWork.Mobiles.UpsertAsync(new() { Id = (Serial)0x2201, IsPlayer = true, IsAlive = true });
+        await unitOfWork.Items.UpsertAsync(new() { Id = (Serial)0x3201, ItemId = 0x0EED });
+        await unitOfWork.Items.UpsertAsync(new() { Id = (Serial)0x3202, ItemId = 0x0F3F });
+        await unitOfWork.Items.UpsertAsync(new() { Id = (Serial)0x3203, ItemId = 0x0EED });
+
+        var accountCount = await unitOfWork.Accounts.CountAsync();
+        var mobileCount = await unitOfWork.Mobiles.CountAsync();
+        var itemCount = await unitOfWork.Items.CountAsync();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(accountCount, Is.EqualTo(2));
+                Assert.That(mobileCount, Is.EqualTo(1));
+                Assert.That(itemCount, Is.EqualTo(3));
+            }
+        );
+    }
+
+    [Test]
     public async Task QueryAsync_OnMobiles_ShouldReturnOnlyPlayers()
     {
         using var tempDirectory = new TempDirectory();
