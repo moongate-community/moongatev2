@@ -32,6 +32,14 @@ public sealed class PersistenceService : IPersistenceService
 
     public IPersistenceUnitOfWork UnitOfWork { get; }
 
+    public void Dispose()
+    {
+        if (UnitOfWork is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+    }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Persistence service save requested");
@@ -44,7 +52,10 @@ public sealed class PersistenceService : IPersistenceService
         _logger.Verbose("Persistence service start requested");
         await UnitOfWork.InitializeAsync();
         _logger.Verbose("Persistence service start completed");
-        _logger.Information("Persistence service started in directory: {SaveDirectory}", _directoriesConfig[DirectoryType.Save]);
+        _logger.Information(
+            "Persistence service started in directory: {SaveDirectory}",
+            _directoriesConfig[DirectoryType.Save]
+        );
     }
 
     public async Task StopAsync()
@@ -52,13 +63,5 @@ public sealed class PersistenceService : IPersistenceService
         _logger.Verbose("Persistence service stop requested");
         await UnitOfWork.SaveSnapshotAsync();
         _logger.Verbose("Persistence service stop completed");
-    }
-
-    public void Dispose()
-    {
-        if (UnitOfWork is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
     }
 }

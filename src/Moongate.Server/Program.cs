@@ -47,7 +47,7 @@ await ConsoleApp.RunAsync(
 
         await bootstrap.RunAsync(cancellationToken);
 
-        Console.WriteLine("Bye bye!");
+        Console.WriteLine("\nBye bye!");
     }
 );
 

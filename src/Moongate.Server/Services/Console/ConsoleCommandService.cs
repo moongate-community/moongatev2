@@ -15,9 +15,11 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
     private readonly IConsoleUiService _consoleUiService;
     private readonly IGameEventBusService _gameEventBusService;
     private readonly ILogger _logger = Log.ForContext<ConsoleCommandService>();
+    private readonly List<string> _commandHistory = [];
 
     private CancellationTokenSource _lifetimeCts = new();
     private Task _inputLoopTask = Task.CompletedTask;
+    private int _commandHistoryIndex = -1;
 
     public ConsoleCommandService(IConsoleUiService consoleUiService, IGameEventBusService gameEventBusService)
     {
@@ -112,6 +114,7 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
             {
                 await SubmitCommandAsync(buffer.ToString(), cancellationToken);
                 buffer.Clear();
+                _commandHistoryIndex = -1;
                 _consoleUiService.UpdateInput(string.Empty);
                 lockWarningShown = false;
 
@@ -134,7 +137,53 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
             if (key.Key == ConsoleKey.Escape)
             {
                 buffer.Clear();
+                _commandHistoryIndex = -1;
                 _consoleUiService.UpdateInput(string.Empty);
+                lockWarningShown = false;
+
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.UpArrow)
+            {
+                if (_commandHistory.Count == 0)
+                {
+                    continue;
+                }
+
+                if (_commandHistoryIndex < _commandHistory.Count - 1)
+                {
+                    _commandHistoryIndex++;
+                }
+
+                buffer.Clear();
+                buffer.Append(_commandHistory[_commandHistory.Count - 1 - _commandHistoryIndex]);
+                _consoleUiService.UpdateInput(buffer.ToString());
+                lockWarningShown = false;
+
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.DownArrow)
+            {
+                if (_commandHistory.Count == 0)
+                {
+                    continue;
+                }
+
+                if (_commandHistoryIndex > 0)
+                {
+                    _commandHistoryIndex--;
+                    buffer.Clear();
+                    buffer.Append(_commandHistory[_commandHistory.Count - 1 - _commandHistoryIndex]);
+                }
+                else
+                {
+                    _commandHistoryIndex = -1;
+                    buffer.Clear();
+                }
+
+                _consoleUiService.UpdateInput(buffer.ToString());
                 lockWarningShown = false;
 
                 continue;
@@ -157,6 +206,8 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
         {
             return;
         }
+
+        _commandHistory.Add(command);
 
         _logger.Verbose("Console command entered: {Command}", command);
 

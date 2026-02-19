@@ -17,9 +17,7 @@ public sealed class ConsoleUiSerilogSink : ILogEventSink
     private readonly MessageTemplateTextFormatter _formatter = new(OutputTemplate, CultureInfo.InvariantCulture);
 
     public ConsoleUiSerilogSink(IConsoleUiService consoleUiService)
-    {
-        _consoleUiService = consoleUiService;
-    }
+        => _consoleUiService = consoleUiService;
 
     public void Emit(LogEvent logEvent)
     {

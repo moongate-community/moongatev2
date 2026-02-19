@@ -32,20 +32,6 @@ public sealed class ConsoleUiService : IConsoleUiService
 
     public char UnlockCharacter => PromptUnlockCharacter;
 
-    public void UpdateInput(string input)
-    {
-        if (!IsInteractive)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            _input = input;
-            RenderUnsafe();
-        }
-    }
-
     public void LockInput()
     {
         if (!IsInteractive)
@@ -71,6 +57,20 @@ public sealed class ConsoleUiService : IConsoleUiService
         lock (_sync)
         {
             IsInputLocked = false;
+            RenderUnsafe();
+        }
+    }
+
+    public void UpdateInput(string input)
+    {
+        if (!IsInteractive)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            _input = input;
             RenderUnsafe();
         }
     }
@@ -307,7 +307,6 @@ public sealed class ConsoleUiService : IConsoleUiService
 
     private static void WriteRow(ConsoleLogLine line, int row, int width)
     {
-
         System.Console.SetCursorPosition(0, row);
         System.Console.Write(new string(' ', width));
         System.Console.SetCursorPosition(0, row);

@@ -21,10 +21,10 @@ using Moongate.Server.Handlers;
 using Moongate.Server.Http;
 using Moongate.Server.Http.Interfaces;
 using Moongate.Server.Interfaces.Listener;
-using Moongate.Server.Interfaces.Services;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Files;
+using Moongate.Server.Interfaces.Services.Lifecycle;
 using Moongate.Server.Interfaces.Services.Loop;
 using Moongate.Server.Interfaces.Services.Messaging;
 using Moongate.Server.Interfaces.Services.Network;
@@ -33,11 +33,11 @@ using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.Server.Interfaces.Services.Sessions;
 using Moongate.Server.Interfaces.Services.Timing;
 using Moongate.Server.Json;
-using Moongate.Server.Services;
 using Moongate.Server.Services.Console;
 using Moongate.Server.Services.Console.Internal.Logging;
 using Moongate.Server.Services.Events;
 using Moongate.Server.Services.Files;
+using Moongate.Server.Services.Lifecycle;
 using Moongate.Server.Services.Loop;
 using Moongate.Server.Services.Messaging;
 using Moongate.Server.Services.Network;
@@ -59,7 +59,7 @@ public sealed class MoongateBootstrap : IDisposable
     private ILogger _logger;
 
     private DirectoriesConfig _directoriesConfig;
-    private IConsoleUiService _consoleUiService = new ConsoleUiService();
+    private readonly IConsoleUiService _consoleUiService = new ConsoleUiService();
     private readonly MoongateConfig _moongateConfig;
 
     public MoongateBootstrap(MoongateConfig config)
@@ -115,9 +115,13 @@ public sealed class MoongateBootstrap : IDisposable
         _logger.Information("Server started in {StartupTime} ms", Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
         _logger.Information("Moongate server is running. Press Ctrl+C to stop.");
 
+        var serverLifetimeService = _container.Resolve<IServerLifetimeService>();
+        using var linkedCancellationTokenSource =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, serverLifetimeService.ShutdownToken);
+
         try
         {
-            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            await Task.Delay(Timeout.InfiniteTimeSpan, linkedCancellationTokenSource.Token);
         }
         catch (OperationCanceledException)
         {
@@ -345,15 +349,16 @@ public sealed class MoongateBootstrap : IDisposable
 
         _container.Register<IMessageBusService, MessageBusService>(Reuse.Singleton);
         _container.Register<IGameEventBusService, GameEventBusService>(Reuse.Singleton);
+        _container.Register<IServerLifetimeService, ServerLifetimeService>(Reuse.Singleton);
         _container.Register<IOutgoingPacketQueue, OutgoingPacketQueue>(Reuse.Singleton);
         _container.Register<IOutboundPacketSender, OutboundPacketSender>(Reuse.Singleton);
         _container.Register<IPacketDispatchService, PacketDispatchService>(Reuse.Singleton);
         _container.Register<IGameNetworkSessionService, GameNetworkSessionService>(Reuse.Singleton);
         _container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
 
-
         _container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
         _container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
+        _container.RegisterMoongateService<ICommandSystemService, CommandSystemService>(131);
         _container.RegisterMoongateService<IConsoleCommandService, ConsoleCommandService>(132);
         _container.RegisterMoongateService<INetworkService, NetworkService>(150);
         _container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);

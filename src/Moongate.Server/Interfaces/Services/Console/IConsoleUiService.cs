@@ -23,12 +23,6 @@ public interface IConsoleUiService
     char UnlockCharacter { get; }
 
     /// <summary>
-    /// Updates the command buffer shown in the prompt row.
-    /// </summary>
-    /// <param name="input">Current command text.</param>
-    void UpdateInput(string input);
-
-    /// <summary>
     /// Locks console input.
     /// </summary>
     void LockInput();
@@ -37,6 +31,12 @@ public interface IConsoleUiService
     /// Unlocks console input.
     /// </summary>
     void UnlockInput();
+
+    /// <summary>
+    /// Updates the command buffer shown in the prompt row.
+    /// </summary>
+    /// <param name="input">Current command text.</param>
+    void UpdateInput(string input);
 
     /// <summary>
     /// Writes one log line to the console output area.
