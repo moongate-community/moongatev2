@@ -52,7 +52,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
     }
 
-    public Task StartAsync()
+    public override Task StartAsync()
     {
         _loopThread = new Thread(RunLoop)
         {
@@ -64,7 +64,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         return Task.CompletedTask;
     }
 
-    public Task StopAsync()
+    public override Task StopAsync()
     {
         if (!_cancellationTokenSource.IsCancellationRequested)
         {

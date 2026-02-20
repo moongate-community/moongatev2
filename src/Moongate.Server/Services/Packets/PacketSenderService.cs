@@ -26,7 +26,7 @@ public sealed class PacketSenderService : BaseMoongateService, IPacketSenderServ
         _sessions = sessions;
     }
 
-    public new Task StartAsync()
+    public override Task StartAsync()
     {
         _thread = new Thread(RunLoop)
         {
@@ -38,7 +38,7 @@ public sealed class PacketSenderService : BaseMoongateService, IPacketSenderServ
         return Task.CompletedTask;
     }
 
-    public new Task StopAsync()
+    public override Task StopAsync()
     {
         if (!_cts.IsCancellationRequested)
         {
