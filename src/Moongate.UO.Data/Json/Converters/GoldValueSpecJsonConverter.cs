@@ -16,9 +16,7 @@ public sealed class GoldValueSpecJsonConverter : JsonConverter<GoldValueSpec>
         {
             JsonTokenType.Number => GoldValueSpec.FromValue(reader.GetInt32()),
             JsonTokenType.String => Parse(reader.GetString()),
-            _                    => throw new JsonException(
-                $"Unsupported token type for GoldValueSpec: {reader.TokenType}"
-            )
+            _                    => throw new JsonException($"Unsupported token type for GoldValueSpec: {reader.TokenType}")
         };
     }
 

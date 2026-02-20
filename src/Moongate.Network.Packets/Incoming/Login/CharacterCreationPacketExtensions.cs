@@ -11,7 +11,7 @@ namespace Moongate.Network.Packets.Incoming.Login;
 public static class CharacterCreationPacketExtensions
 {
     /// <summary>
-    /// Creates a new <see cref="UOMobileEntity"/> populated from this character creation packet.
+    /// Creates a new <see cref="UOMobileEntity" /> populated from this character creation packet.
     /// </summary>
     public static UOMobileEntity ToEntity(
         this CharacterCreationPacket packet,

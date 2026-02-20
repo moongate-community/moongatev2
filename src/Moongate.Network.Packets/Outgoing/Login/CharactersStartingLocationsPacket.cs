@@ -47,6 +47,7 @@ public class CharactersStartingLocationsPacket : BaseGameNetworkPacket
         if (mobiles is null)
         {
             FillCharacters((IReadOnlyList<CharacterEntry>?)null, size);
+
             return;
         }
 
@@ -54,7 +55,7 @@ public class CharactersStartingLocationsPacket : BaseGameNetworkPacket
 
         for (var i = 0; i < mobiles.Count; i++)
         {
-            characters.Add(new CharacterEntry(mobiles[i].Name ?? string.Empty));
+            characters.Add(new(mobiles[i].Name ?? string.Empty));
         }
 
         FillCharacters(characters, size);
@@ -82,7 +83,7 @@ public class CharactersStartingLocationsPacket : BaseGameNetworkPacket
             count = 5;
         }
 
-        var length = 11 + (89 * Cities.Count) + (count * 60);
+        var length = 11 + 89 * Cities.Count + count * 60;
 
         writer.Write(OpCode);
         writer.Write((ushort)length);

@@ -11,9 +11,7 @@ public sealed class PersistenceMetricsProvider : IMetricProvider
     private readonly IPersistenceMetricsSource _persistenceMetricsSource;
 
     public PersistenceMetricsProvider(IPersistenceMetricsSource persistenceMetricsSource)
-    {
-        _persistenceMetricsSource = persistenceMetricsSource;
-    }
+        => _persistenceMetricsSource = persistenceMetricsSource;
 
     public string ProviderName => "persistence";
 

@@ -25,7 +25,10 @@ public class LoginCharacterPacketTests
                 Assert.That(packet.ClientFlags, Is.EqualTo(ClientFlags.Trammel | ClientFlags.Malas));
                 Assert.That(packet.Unknown1, Is.EqualTo(0x01020304));
                 Assert.That(packet.LoginCount, Is.EqualTo(7));
-                Assert.That(packet.Unknown2, Is.EqualTo(new byte[16] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }));
+                Assert.That(
+                    packet.Unknown2,
+                    Is.EqualTo(new byte[16] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 })
+                );
                 Assert.That(packet.Slot, Is.EqualTo(2));
                 Assert.That(packet.ClientIp, Is.EqualTo(0x7F000001u));
             }

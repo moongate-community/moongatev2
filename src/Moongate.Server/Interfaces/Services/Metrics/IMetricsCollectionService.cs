@@ -9,14 +9,14 @@ namespace Moongate.Server.Interfaces.Services.Metrics;
 public interface IMetricsCollectionService : IMoongateService
 {
     /// <summary>
-    /// Returns the last collected snapshot.
-    /// </summary>
-    /// <returns>Current metrics snapshot.</returns>
-    MetricsSnapshot GetSnapshot();
-
-    /// <summary>
     /// Returns flattened metric entries by name.
     /// </summary>
     /// <returns>Dictionary keyed by metric name.</returns>
     IReadOnlyDictionary<string, MetricSample> GetAllMetrics();
+
+    /// <summary>
+    /// Returns the last collected snapshot.
+    /// </summary>
+    /// <returns>Current metrics snapshot.</returns>
+    MetricsSnapshot GetSnapshot();
 }

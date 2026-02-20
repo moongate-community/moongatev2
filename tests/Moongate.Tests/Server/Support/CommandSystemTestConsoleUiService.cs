@@ -13,8 +13,6 @@ public sealed class CommandSystemTestConsoleUiService : IConsoleUiService
 
     public char UnlockCharacter => '*';
 
-    public void UpdateInput(string input) { }
-
     public void LockInput()
     {
         IsInputLocked = true;
@@ -24,6 +22,8 @@ public sealed class CommandSystemTestConsoleUiService : IConsoleUiService
     {
         IsInputLocked = false;
     }
+
+    public void UpdateInput(string input) { }
 
     public void WriteLogLine(
         string line,

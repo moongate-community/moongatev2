@@ -13,6 +13,16 @@ public sealed class ItemTemplateService : IItemTemplateService
     public void Clear()
         => _templates.Clear();
 
+    public IReadOnlyList<ItemTemplateDefinition> GetAll()
+        => _templates.Values.OrderBy(static template => template.Id, StringComparer.OrdinalIgnoreCase).ToList();
+
+    public bool TryGet(string id, out ItemTemplateDefinition? definition)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
+        return _templates.TryGetValue(id, out definition);
+    }
+
     public void Upsert(ItemTemplateDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -30,14 +40,4 @@ public sealed class ItemTemplateService : IItemTemplateService
             Upsert(definition);
         }
     }
-
-    public bool TryGet(string id, out ItemTemplateDefinition? definition)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
-
-        return _templates.TryGetValue(id, out definition);
-    }
-
-    public IReadOnlyList<ItemTemplateDefinition> GetAll()
-        => _templates.Values.OrderBy(static template => template.Id, StringComparer.OrdinalIgnoreCase).ToList();
 }

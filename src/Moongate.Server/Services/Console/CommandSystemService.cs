@@ -44,6 +44,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         if (string.IsNullOrWhiteSpace(commandWithArgs))
         {
             _logger.Verbose("Ignoring empty command input from source {Source}", source);
+
             return;
         }
 
@@ -53,6 +54,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         if (tokens.Length == 0)
         {
             _logger.Verbose("Ignoring command input with no tokens from source {Source}", source);
+
             return;
         }
 

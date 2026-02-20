@@ -33,6 +33,36 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
 
     public IMobileRepository Mobiles { get; }
 
+    public Serial AllocateNextAccountId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastAccountId++;
+
+            return (Serial)_stateStore.LastAccountId;
+        }
+    }
+
+    public Serial AllocateNextItemId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastItemId++;
+
+            return (Serial)_stateStore.LastItemId;
+        }
+    }
+
+    public Serial AllocateNextMobileId()
+    {
+        lock (_stateStore.SyncRoot)
+        {
+            _stateStore.LastMobileId++;
+
+            return (Serial)_stateStore.LastMobileId;
+        }
+    }
+
     public async ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Persistence initialize requested");
@@ -45,8 +75,8 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
             _stateStore.MobilesById.Clear();
             _stateStore.ItemsById.Clear();
             _stateStore.LastSequenceId = 0;
-            _stateStore.LastAccountId = (uint)(Serial.MobileStart - 1);
-            _stateStore.LastMobileId = (uint)(Serial.MobileStart - 1);
+            _stateStore.LastAccountId = Serial.MobileStart - 1;
+            _stateStore.LastMobileId = Serial.MobileStart - 1;
             _stateStore.LastItemId = Serial.ItemOffset - 1;
 
             if (snapshot is not null)
@@ -98,33 +128,6 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
             _stateStore.ItemsById.Count,
             _stateStore.LastSequenceId
         );
-    }
-
-    public Serial AllocateNextAccountId()
-    {
-        lock (_stateStore.SyncRoot)
-        {
-            _stateStore.LastAccountId++;
-            return (Serial)_stateStore.LastAccountId;
-        }
-    }
-
-    public Serial AllocateNextMobileId()
-    {
-        lock (_stateStore.SyncRoot)
-        {
-            _stateStore.LastMobileId++;
-            return (Serial)_stateStore.LastMobileId;
-        }
-    }
-
-    public Serial AllocateNextItemId()
-    {
-        lock (_stateStore.SyncRoot)
-        {
-            _stateStore.LastItemId++;
-            return (Serial)_stateStore.LastItemId;
-        }
     }
 
     public async ValueTask SaveSnapshotAsync(CancellationToken cancellationToken = default)
@@ -210,11 +213,11 @@ public sealed class PersistenceUnitOfWork : IPersistenceUnitOfWork
     private void RecalculateLastEntityIds()
     {
         _stateStore.LastAccountId = _stateStore.AccountsById.Count == 0
-                                        ? (uint)(Serial.MobileStart - 1)
+                                        ? Serial.MobileStart - 1
                                         : _stateStore.AccountsById.Keys.Max(static id => (uint)id);
 
         _stateStore.LastMobileId = _stateStore.MobilesById.Count == 0
-                                       ? (uint)(Serial.MobileStart - 1)
+                                       ? Serial.MobileStart - 1
                                        : _stateStore.MobilesById.Keys.Max(static id => (uint)id);
 
         _stateStore.LastItemId = _stateStore.ItemsById.Count == 0

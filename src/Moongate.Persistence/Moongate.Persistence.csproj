@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MemoryPack" Version="1.21.4" />
-        <PackageReference Include="Serilog" Version="4.3.1" />
-        <PackageReference Include="ZLinq" Version="1.5.5" />
+        <PackageReference Include="MemoryPack" Version="1.21.4"/>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
+        <PackageReference Include="ZLinq" Version="1.5.5"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj" />
+        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
     </ItemGroup>
 
 </Project>

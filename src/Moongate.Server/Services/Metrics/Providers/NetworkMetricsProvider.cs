@@ -11,9 +11,7 @@ public sealed class NetworkMetricsProvider : IMetricProvider
     private readonly INetworkMetricsSource _networkMetricsSource;
 
     public NetworkMetricsProvider(INetworkMetricsSource networkMetricsSource)
-    {
-        _networkMetricsSource = networkMetricsSource;
-    }
+        => _networkMetricsSource = networkMetricsSource;
 
     public string ProviderName => "network";
 

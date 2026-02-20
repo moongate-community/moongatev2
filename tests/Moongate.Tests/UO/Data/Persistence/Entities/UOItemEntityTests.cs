@@ -1,4 +1,3 @@
-using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
 
@@ -21,7 +20,7 @@ public class UOItemEntityTests
             ItemId = 0x1515
         };
 
-        container.AddItem(item, new Point2D(12, 34));
+        container.AddItem(item, new(12, 34));
 
         Assert.Multiple(
             () =>

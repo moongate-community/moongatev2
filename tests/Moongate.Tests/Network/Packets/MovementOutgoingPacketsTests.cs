@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Movement;
 using Moongate.Network.Spans;
 using Moongate.UO.Data.Types;
@@ -10,7 +11,7 @@ public class MovementOutgoingPacketsTests
     [Test]
     public void MoveConfirmPacket_Write_ShouldSerializeSequenceAndNotoriety()
     {
-        var packet = new MoveConfirmPacket(sequence: 7, notoriety: 3);
+        var packet = new MoveConfirmPacket(7, 3);
 
         var data = Write(packet);
 
@@ -20,7 +21,7 @@ public class MovementOutgoingPacketsTests
     [Test]
     public void MoveDenyPacket_Write_ShouldSerializePositionDirectionAndZ()
     {
-        var packet = new MoveDenyPacket(sequence: 9, x: 1200, y: 1300, direction: DirectionType.South, z: -5);
+        var packet = new MoveDenyPacket(9, 1200, 1300, DirectionType.South, -5);
 
         var data = Write(packet);
 
@@ -39,16 +40,6 @@ public class MovementOutgoingPacketsTests
     }
 
     [Test]
-    public void MovePlayerPacket_Write_ShouldSerializeDirection()
-    {
-        var packet = new MovePlayerPacket(DirectionType.West | DirectionType.Running);
-
-        var data = Write(packet);
-
-        Assert.That(data, Is.EqualTo(new byte[] { 0x97, 0x86 }));
-    }
-
-    [Test]
     public void MovementSpeedControlPacket_Write_ShouldSerializeGeneralInformationSubcommand()
     {
         var packet = new MovementSpeedControlPacket(MovementSpeedControlType.Mount);
@@ -56,6 +47,16 @@ public class MovementOutgoingPacketsTests
         var data = Write(packet);
 
         Assert.That(data, Is.EqualTo(new byte[] { 0xBF, 0x00, 0x06, 0x00, 0x26, 0x01 }));
+    }
+
+    [Test]
+    public void MovePlayerPacket_Write_ShouldSerializeDirection()
+    {
+        var packet = new MovePlayerPacket(DirectionType.West | DirectionType.Running);
+
+        var data = Write(packet);
+
+        Assert.That(data, Is.EqualTo(new byte[] { 0x97, 0x86 }));
     }
 
     [Test]
@@ -77,7 +78,7 @@ public class MovementOutgoingPacketsTests
         );
     }
 
-    private static byte[] Write(Moongate.Network.Packets.Interfaces.IGameNetworkPacket packet)
+    private static byte[] Write(IGameNetworkPacket packet)
     {
         var writer = new SpanWriter(64, true);
         packet.Write(ref writer);

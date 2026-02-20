@@ -7,6 +7,7 @@ using Moongate.Network.Packets.Outgoing.World;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Characters;
+using Moongate.Server.Interfaces.Services.Entities;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
@@ -20,25 +21,23 @@ namespace Moongate.Server.Handlers;
 public class CharacterHandler : BasePacketListener, IGameEventListener<CharacterSelectedEvent>
 {
     private readonly ILogger _logger = Log.ForContext<CharacterHandler>();
-
     private readonly ICharacterService _characterService;
-
-private readonly IGameNetworkSessionService _gameNetworkSessionService;
+    private readonly IEntityFactoryService _entityFactoryService;
+    private readonly IGameNetworkSessionService _gameNetworkSessionService;
 
     public CharacterHandler(
         IOutgoingPacketQueue outgoingPacketQueue,
         ICharacterService characterService,
+        IEntityFactoryService entityFactoryService,
         IGameEventBusService gameEventBusService,
         IGameNetworkSessionService gameNetworkSessionService
     ) : base(outgoingPacketQueue)
     {
         _characterService = characterService;
+        _entityFactoryService = entityFactoryService;
         _gameNetworkSessionService = gameNetworkSessionService;
         gameEventBusService.RegisterListener(this);
-
-
     }
-
 
     public async Task HandleAsync(CharacterSelectedEvent gameEvent, CancellationToken cancellationToken = default)
     {
@@ -46,32 +45,6 @@ private readonly IGameNetworkSessionService _gameNetworkSessionService;
         {
             await HandleCharacterLoggedIn(gameSession, gameEvent.CharacterId);
         }
-    }
-
-    protected override async Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet)
-    {
-        if (packet is CharacterCreationPacket characterCreationPacket)
-        {
-            return await HandleCharacterCreationPacketAsync(session, characterCreationPacket);
-        }
-
-        return true;
-    }
-
-    private async Task<bool> HandleCharacterCreationPacketAsync(
-        GameSession session,
-        CharacterCreationPacket characterCreationPacket
-    )
-    {
-        var entity = characterCreationPacket.ToEntity(Serial.Zero, session.AccountId);
-
-        var newCharacter = await _characterService.CreateCharacterAsync(entity);
-
-        await _characterService.AddCharacterToAccountAsync(session.AccountId, newCharacter);
-
-        await HandleCharacterLoggedIn(session, newCharacter);
-
-        return true;
     }
 
     public async Task<bool> HandleCharacterLoggedIn(GameSession session, Serial characterId)
@@ -124,5 +97,29 @@ private readonly IGameNetworkSessionService _gameNetworkSessionService;
         return true;
     }
 
+    protected override async Task<bool> HandleCoreAsync(GameSession session, IGameNetworkPacket packet)
+    {
+        if (packet is CharacterCreationPacket characterCreationPacket)
+        {
+            return await HandleCharacterCreationPacketAsync(session, characterCreationPacket);
+        }
 
+        return true;
+    }
+
+    private async Task<bool> HandleCharacterCreationPacketAsync(
+        GameSession session,
+        CharacterCreationPacket characterCreationPacket
+    )
+    {
+        var entity = _entityFactoryService.CreatePlayerMobile(characterCreationPacket, session.AccountId);
+
+        var newCharacter = await _characterService.CreateCharacterAsync(entity);
+
+        await _characterService.AddCharacterToAccountAsync(session.AccountId, newCharacter);
+
+        await HandleCharacterLoggedIn(session, newCharacter);
+
+        return true;
+    }
 }

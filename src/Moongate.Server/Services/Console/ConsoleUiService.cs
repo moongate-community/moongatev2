@@ -113,6 +113,16 @@ public sealed class ConsoleUiService : IConsoleUiService
         }
     }
 
+    private void ClearPromptRowUnsafe()
+    {
+        var width = Math.Max(1, System.Console.WindowWidth);
+        var promptRow = GetPromptRowUnsafe();
+
+        System.Console.SetCursorPosition(0, promptRow);
+        System.Console.Write(new string(' ', width));
+        System.Console.SetCursorPosition(0, promptRow);
+    }
+
     private static IReadOnlyList<ConsoleSegment> CreateSegments(
         string line,
         LogEventLevel level,
@@ -212,6 +222,15 @@ public sealed class ConsoleUiService : IConsoleUiService
         return segments;
     }
 
+    private static int GetPromptRowUnsafe()
+    {
+        var bufferHeight = Math.Max(1, System.Console.BufferHeight);
+        var windowHeight = Math.Max(1, System.Console.WindowHeight);
+        var row = System.Console.WindowTop + windowHeight - 1;
+
+        return Math.Clamp(row, 0, bufferHeight - 1);
+    }
+
     private static Style GetStyle(LogEventLevel level)
         => level switch
         {
@@ -255,25 +274,6 @@ public sealed class ConsoleUiService : IConsoleUiService
 
         var cursorColumn = Math.Min(width - 1, promptPrefix.Length + _input.Length);
         System.Console.SetCursorPosition(cursorColumn, promptRow);
-    }
-
-    private void ClearPromptRowUnsafe()
-    {
-        var width = Math.Max(1, System.Console.WindowWidth);
-        var promptRow = GetPromptRowUnsafe();
-
-        System.Console.SetCursorPosition(0, promptRow);
-        System.Console.Write(new string(' ', width));
-        System.Console.SetCursorPosition(0, promptRow);
-    }
-
-    private static int GetPromptRowUnsafe()
-    {
-        var bufferHeight = Math.Max(1, System.Console.BufferHeight);
-        var windowHeight = Math.Max(1, System.Console.WindowHeight);
-        var row = System.Console.WindowTop + windowHeight - 1;
-
-        return Math.Clamp(row, 0, bufferHeight - 1);
     }
 
     private static IEnumerable<string> SplitLines(string line)

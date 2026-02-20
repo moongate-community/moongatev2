@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Moongate.Core.Json;
 using Moongate.UO.Data.Json.Context;
 using Moongate.UO.Data.Templates.Items;
 using Moongate.UO.Data.Types;
-using System.Text.Json;
 
 namespace Moongate.Tests.UO.Data.Templates;
 
@@ -16,7 +16,10 @@ public class ItemTemplatePolymorphicTests
         Assert.Multiple(
             () =>
             {
-                Assert.That(JsonContextTypeResolver.IsTypeRegistered(context, typeof(ItemTemplateDefinitionBase[])), Is.True);
+                Assert.That(
+                    JsonContextTypeResolver.IsTypeRegistered(context, typeof(ItemTemplateDefinitionBase[])),
+                    Is.True
+                );
                 Assert.That(JsonContextTypeResolver.IsTypeRegistered(context, typeof(ItemTemplateDefinition[])), Is.True);
             }
         );
@@ -26,28 +29,28 @@ public class ItemTemplatePolymorphicTests
     public void Deserialize_WithPolymorphicTypeItem_ShouldCreateItemTemplateDefinition()
     {
         var json = """
-        [
-          {
-            "type": "item",
-            "id": "leather_backpack",
-            "name": "Leather Backpack",
-            "category": "Container",
-            "description": "Durable leather backpack",
-            "tags": ["container", "backpack"],
-            "itemId": "0x0E76",
-            "hue": "hue(10:80)",
-            "goldValue": "dice(2d8+12)",
-            "weight": 4,
-            "dyeable": true,
-            "lootType": "Regular",
-            "stackable": false,
-            "gumpId": null,
-            "scriptId": "",
-            "isMovable": true,
-            "container": ["clothing", "jewelry"]
-          }
-        ]
-        """;
+                   [
+                     {
+                       "type": "item",
+                       "id": "leather_backpack",
+                       "name": "Leather Backpack",
+                       "category": "Container",
+                       "description": "Durable leather backpack",
+                       "tags": ["container", "backpack"],
+                       "itemId": "0x0E76",
+                       "hue": "hue(10:80)",
+                       "goldValue": "dice(2d8+12)",
+                       "weight": 4,
+                       "dyeable": true,
+                       "lootType": "Regular",
+                       "stackable": false,
+                       "gumpId": null,
+                       "scriptId": "",
+                       "isMovable": true,
+                       "container": ["clothing", "jewelry"]
+                     }
+                   ]
+                   """;
 
         var deserialized = JsonSerializer.Deserialize(
             json,
@@ -94,11 +97,13 @@ public class ItemTemplatePolymorphicTests
             var resolvedHue = item.Hue.Resolve();
             var resolvedGold = item.GoldValue.Resolve();
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(resolvedHue, Is.InRange(5, 55));
-                Assert.That(resolvedGold, Is.InRange(9, 16));
-            });
+            Assert.Multiple(
+                () =>
+                {
+                    Assert.That(resolvedHue, Is.InRange(5, 55));
+                    Assert.That(resolvedGold, Is.InRange(9, 16));
+                }
+            );
         }
     }
 }

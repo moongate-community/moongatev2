@@ -15,9 +15,7 @@ public sealed class Int32FlexibleJsonConverter : JsonConverter<int>
         {
             JsonTokenType.Number => reader.GetInt32(),
             JsonTokenType.String => Parse(reader.GetString()),
-            _                    => throw new JsonException(
-                $"Unsupported token type for int conversion: {reader.TokenType}"
-            )
+            _                    => throw new JsonException($"Unsupported token type for int conversion: {reader.TokenType}")
         };
     }
 

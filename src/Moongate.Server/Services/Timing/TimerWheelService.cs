@@ -1,19 +1,19 @@
+using System.Diagnostics;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Internal.Timers;
 using Moongate.Server.Data.Metrics;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Timing;
 using Serilog;
-using System.Diagnostics;
-using System.Threading;
 
 namespace Moongate.Server.Services.Timing;
 
 /// <summary>
 /// Hashed timer-wheel implementation driven by game-loop ticks.
 /// </summary>
-public sealed class TimerWheelService : ITimerService
-    , ITimerMetricsSource
+public sealed class TimerWheelService
+    : ITimerService
+      , ITimerMetricsSource
 {
     private readonly ILogger _logger = Log.ForContext<TimerWheelService>();
     private readonly TimeSpan _tickDuration;
@@ -49,6 +49,31 @@ public sealed class TimerWheelService : ITimerService
         {
             _wheel[i] = new();
         }
+    }
+
+    public TimerMetricsSnapshot GetMetricsSnapshot()
+    {
+        int activeTimerCount;
+
+        lock (_syncRoot)
+        {
+            activeTimerCount = _timersById.Count;
+        }
+
+        var executedCallbacks = Interlocked.Read(ref _totalExecutedCallbacks);
+        var totalElapsedTicks = Interlocked.Read(ref _totalCallbackElapsedTicks);
+        var averageCallbackDurationMs =
+            executedCallbacks == 0
+                ? 0
+                : TimeSpan.FromTicks(totalElapsedTicks / executedCallbacks).TotalMilliseconds;
+
+        return new(
+            activeTimerCount,
+            Interlocked.Read(ref _totalRegisteredTimers),
+            executedCallbacks,
+            Interlocked.Read(ref _callbackErrors),
+            averageCallbackDurationMs
+        );
     }
 
     public void ProcessTick()
@@ -112,12 +137,14 @@ public sealed class TimerWheelService : ITimerService
     )
     {
         ArgumentNullException.ThrowIfNull(callback);
+
         return RegisterTimer(
             name,
             interval,
             _ =>
             {
                 callback();
+
                 return ValueTask.CompletedTask;
             },
             delay,
@@ -236,64 +263,6 @@ public sealed class TimerWheelService : ITimerService
         }
     }
 
-    private bool RemoveEntryById(string timerId)
-    {
-        if (!_timersById.TryGetValue(timerId, out var entry))
-        {
-            return false;
-        }
-
-        entry.Cancelled = true;
-
-        if (entry.Node is not null)
-        {
-            _wheel[entry.SlotIndex].Remove(entry.Node);
-            entry.Node = null;
-        }
-
-        RemoveFromIndexes(entry);
-
-        return true;
-    }
-
-    private void RemoveFromIndexes(TimerEntry entry)
-    {
-        _timersById.Remove(entry.Id);
-
-        if (!_timerIdsByName.TryGetValue(entry.Name, out var ids))
-        {
-            return;
-        }
-
-        ids.Remove(entry.Id);
-
-        if (ids.Count == 0)
-        {
-            _timerIdsByName.Remove(entry.Name);
-        }
-    }
-
-    private void ScheduleEntry(TimerEntry entry, TimeSpan dueTime)
-    {
-        var ticks = ToWheelTicks(dueTime);
-        var targetTick = _currentTick + ticks;
-        var slotIndex = (int)(targetTick % _wheel.Length);
-        var rounds = (ticks - 1) / _wheel.Length;
-
-        entry.SlotIndex = slotIndex;
-        entry.RemainingRounds = rounds;
-        entry.Cancelled = false;
-
-        entry.Node = _wheel[slotIndex].AddLast(entry);
-    }
-
-    private long ToWheelTicks(TimeSpan dueTime)
-    {
-        var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
-
-        return Math.Max(1, ticks);
-    }
-
     private async Task ExecuteEntryAsync(TimerEntry entry)
     {
         if (Interlocked.Exchange(ref entry.IsExecuting, 1) != 0)
@@ -350,28 +319,61 @@ public sealed class TimerWheelService : ITimerService
         }
     }
 
-    public TimerMetricsSnapshot GetMetricsSnapshot()
+    private bool RemoveEntryById(string timerId)
     {
-        int activeTimerCount;
-
-        lock (_syncRoot)
+        if (!_timersById.TryGetValue(timerId, out var entry))
         {
-            activeTimerCount = _timersById.Count;
+            return false;
         }
 
-        var executedCallbacks = Interlocked.Read(ref _totalExecutedCallbacks);
-        var totalElapsedTicks = Interlocked.Read(ref _totalCallbackElapsedTicks);
-        var averageCallbackDurationMs =
-            executedCallbacks == 0
-                ? 0
-                : TimeSpan.FromTicks(totalElapsedTicks / executedCallbacks).TotalMilliseconds;
+        entry.Cancelled = true;
 
-        return new TimerMetricsSnapshot(
-            activeTimerCount,
-            Interlocked.Read(ref _totalRegisteredTimers),
-            executedCallbacks,
-            Interlocked.Read(ref _callbackErrors),
-            averageCallbackDurationMs
-        );
+        if (entry.Node is not null)
+        {
+            _wheel[entry.SlotIndex].Remove(entry.Node);
+            entry.Node = null;
+        }
+
+        RemoveFromIndexes(entry);
+
+        return true;
+    }
+
+    private void RemoveFromIndexes(TimerEntry entry)
+    {
+        _timersById.Remove(entry.Id);
+
+        if (!_timerIdsByName.TryGetValue(entry.Name, out var ids))
+        {
+            return;
+        }
+
+        ids.Remove(entry.Id);
+
+        if (ids.Count == 0)
+        {
+            _timerIdsByName.Remove(entry.Name);
+        }
+    }
+
+    private void ScheduleEntry(TimerEntry entry, TimeSpan dueTime)
+    {
+        var ticks = ToWheelTicks(dueTime);
+        var targetTick = _currentTick + ticks;
+        var slotIndex = (int)(targetTick % _wheel.Length);
+        var rounds = (ticks - 1) / _wheel.Length;
+
+        entry.SlotIndex = slotIndex;
+        entry.RemainingRounds = rounds;
+        entry.Cancelled = false;
+
+        entry.Node = _wheel[slotIndex].AddLast(entry);
+    }
+
+    private long ToWheelTicks(TimeSpan dueTime)
+    {
+        var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
+
+        return Math.Max(1, ticks);
     }
 }

@@ -1,8 +1,6 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
-using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Session;
-using Moongate.Server.Services;
 using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Messaging;
 using Moongate.Server.Services.Packets;
@@ -56,9 +54,9 @@ public class GameLoopServiceTests
 
         var tickAdvanced = await WaitUntilAsync(() => _service.GetMetricsSnapshot().TickCount > 0, TimeSpan.FromSeconds(2));
         var uptimeAdvanced = await WaitUntilAsync(
-            () => _service.GetMetricsSnapshot().Uptime > TimeSpan.Zero,
-            TimeSpan.FromSeconds(2)
-        );
+                                 () => _service.GetMetricsSnapshot().Uptime > TimeSpan.Zero,
+                                 TimeSpan.FromSeconds(2)
+                             );
 
         Assert.Multiple(
             () =>
@@ -140,11 +138,13 @@ public class GameLoopServiceTests
     [Test]
     public async Task StartAsync_ShouldProcessTimerWheelInProcessQueue()
     {
-        var timerService = new TimerWheelService(new TimerServiceConfig
-        {
-            TickDuration = TimeSpan.FromMilliseconds(250),
-            WheelSize = 512
-        });
+        var timerService = new TimerWheelService(
+            new()
+            {
+                TickDuration = TimeSpan.FromMilliseconds(250),
+                WheelSize = 512
+            }
+        );
         var fired = 0;
 
         timerService.RegisterTimer("test", TimeSpan.FromMilliseconds(250), () => Interlocked.Increment(ref fired));
@@ -213,9 +213,9 @@ public class GameLoopServiceTests
         await _service.StartAsync();
 
         var tickAdvanced = await WaitUntilAsync(
-            () => _service.GetMetricsSnapshot().TickCount > 0,
-            TimeSpan.FromSeconds(2)
-        );
+                               () => _service.GetMetricsSnapshot().TickCount > 0,
+                               TimeSpan.FromSeconds(2)
+                           );
         Assert.That(tickAdvanced, Is.True, "TickCount did not increase in time.");
 
         await _service.StopAsync();
@@ -238,6 +238,15 @@ public class GameLoopServiceTests
         _service = null;
     }
 
+    private static TimerWheelService CreateTimerService()
+        => new(
+            new()
+            {
+                TickDuration = TimeSpan.FromMilliseconds(150),
+                WheelSize = 512
+            }
+        );
+
     private static async Task<bool> WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
         var start = DateTime.UtcNow;
@@ -254,13 +263,4 @@ public class GameLoopServiceTests
 
         return condition();
     }
-
-    private static TimerWheelService CreateTimerService()
-        => new(
-            new TimerServiceConfig
-            {
-                TickDuration = TimeSpan.FromMilliseconds(150),
-                WheelSize = 512
-            }
-        );
 }

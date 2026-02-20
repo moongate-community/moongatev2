@@ -1,10 +1,10 @@
+using System.Buffers.Binary;
 using Moongate.Network.Packets.Attributes;
 using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
 using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Types;
-using System.Buffers.Binary;
 
 namespace Moongate.Network.Packets.Outgoing.Entity;
 
@@ -55,7 +55,7 @@ public class MobileIncomingPacket : BaseGameNetworkPacket
         writer.Write((short)Beheld.Location.Y);
         writer.Write((sbyte)Beheld.Location.Z);
         writer.Write((byte)Beheld.Direction);
-        writer.Write((short)Beheld.SkinHue);
+        writer.Write(Beheld.SkinHue);
         writer.Write(Beheld.GetPacketFlags(StygianAbyss));
         writer.Write((byte)Beheld.Notoriety);
 
@@ -148,5 +148,4 @@ public class MobileIncomingPacket : BaseGameNetworkPacket
            layer != ItemLayerType.ShopBuy &&
            layer != ItemLayerType.ShopSell &&
            layer != ItemLayerType.ShopResale;
-
 }

@@ -32,9 +32,7 @@ public sealed class ConsoleUiSerilogSink : ILogEventSink
         );
     }
 
-    private static HashSet<string> GetHighlightedValues(
-        IReadOnlyDictionary<string, LogEventPropertyValue> properties
-    )
+    private static HashSet<string> GetHighlightedValues(IReadOnlyDictionary<string, LogEventPropertyValue> properties)
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
 

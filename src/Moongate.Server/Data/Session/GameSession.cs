@@ -27,12 +27,12 @@ public sealed class GameSession
     public ClientVersion? ClientVersion { get; private set; }
 
     /// <summary>
-    ///  Gets or sets the account identifier associated with this session, when authenticated.
+    /// Gets or sets the account identifier associated with this session, when authenticated.
     /// </summary>
     public Serial AccountId { get; set; }
 
     /// <summary>
-    ///  Gets or sets the current ping sequence number for this session, used for latency monitoring and connection health checks.
+    /// Gets or sets the current ping sequence number for this session, used for latency monitoring and connection health checks.
     /// </summary>
     public byte PingSequence { get; set; }
 

@@ -43,7 +43,7 @@ public class PaperdollPacket : BaseGameNetworkPacket
 
         writer.WriteAscii(displayName, 60);
 
-        var flags = Mobile.GetPacketFlags(stygianAbyss: true);
+        var flags = Mobile.GetPacketFlags(true);
 
         if (Mobile.IsWarMode)
         {

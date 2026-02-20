@@ -1,5 +1,4 @@
 using Moongate.Server.Data.Events;
-using Moongate.Server.Services;
 using Moongate.Server.Services.Events;
 using Moongate.Tests.Server.Support;
 
@@ -7,6 +6,20 @@ namespace Moongate.Tests.Server;
 
 public class GameEventBusServiceTests
 {
+    [Test]
+    public async Task PublishAsync_ShouldDispatchCommandEnteredEventToTypedListener()
+    {
+        var bus = new GameEventBusService();
+        var listener = new GameEventBusTrackingCommandEnteredListener();
+        var commandEvent = new CommandEnteredEvent("help", 1000);
+
+        bus.RegisterListener(listener);
+        await bus.PublishAsync(commandEvent);
+
+        Assert.That(listener.Received.Count, Is.EqualTo(1));
+        Assert.That(listener.Received[0].CommandText, Is.EqualTo("help"));
+    }
+
     [Test]
     public async Task PublishAsync_ShouldNotifyRegisteredListeners()
     {
@@ -54,19 +67,5 @@ public class GameEventBusServiceTests
 
         Assert.That(tracking.Received.Count, Is.EqualTo(1));
         Assert.That(tracking.Received[0].SessionId, Is.EqualTo(7));
-    }
-
-    [Test]
-    public async Task PublishAsync_ShouldDispatchCommandEnteredEventToTypedListener()
-    {
-        var bus = new GameEventBusService();
-        var listener = new GameEventBusTrackingCommandEnteredListener();
-        var commandEvent = new CommandEnteredEvent("help", 1000);
-
-        bus.RegisterListener(listener);
-        await bus.PublishAsync(commandEvent);
-
-        Assert.That(listener.Received.Count, Is.EqualTo(1));
-        Assert.That(listener.Received[0].CommandText, Is.EqualTo("help"));
     }
 }

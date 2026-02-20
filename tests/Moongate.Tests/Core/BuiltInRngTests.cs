@@ -1,5 +1,4 @@
 using Moongate.Core.Random;
-using NUnit.Framework;
 using ShaiRandom.Generators;
 
 namespace Moongate.Tests.Core;

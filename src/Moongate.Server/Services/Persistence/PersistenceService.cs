@@ -61,6 +61,14 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
         }
     }
 
+    public PersistenceMetricsSnapshot GetMetricsSnapshot()
+    {
+        lock (_metricsSync)
+        {
+            return _metricsSnapshot;
+        }
+    }
+
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Persistence service save requested");
@@ -120,7 +128,7 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
     private async Task SaveSnapshotWithMetricsAsync(CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {
@@ -147,14 +155,6 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
             }
 
             throw;
-        }
-    }
-
-    public PersistenceMetricsSnapshot GetMetricsSnapshot()
-    {
-        lock (_metricsSync)
-        {
-            return _metricsSnapshot;
         }
     }
 }

@@ -1,5 +1,4 @@
 using DryIoc;
-using Moongate.Server.Services;
 using Moongate.Server.Services.Files;
 using Moongate.Tests.Server.Support;
 

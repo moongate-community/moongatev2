@@ -1,7 +1,7 @@
+using Moongate.Core.Extensions.Logger;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Metrics;
 using Moongate.Server.Interfaces.Services.Metrics;
-using Moongate.Core.Extensions.Logger;
 using Serilog;
 
 namespace Moongate.Server.Services.Metrics;
@@ -19,6 +19,7 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
     private readonly Lock _sync = new();
     private CancellationTokenSource _lifetimeCts = new();
     private Task _collectionTask = Task.CompletedTask;
+
     private MetricsSnapshot _snapshot = new(
         DateTimeOffset.MinValue,
         new Dictionary<string, MetricSample>(StringComparer.Ordinal)
@@ -28,6 +29,12 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
     {
         _providers = [.. providers];
         _config = config;
+    }
+
+    public void Dispose()
+    {
+        _lifetimeCts.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public IReadOnlyDictionary<string, MetricSample> GetAllMetrics()
@@ -78,20 +85,6 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
         }
     }
 
-    private async Task RunCollectionLoopAsync(CancellationToken cancellationToken)
-    {
-        await CollectOnceAsync(cancellationToken);
-
-        using var timer = new PeriodicTimer(
-            TimeSpan.FromMilliseconds(Math.Max(1, _config.IntervalMilliseconds))
-        );
-
-        while (await timer.WaitForNextTickAsync(cancellationToken))
-        {
-            await CollectOnceAsync(cancellationToken);
-        }
-    }
-
     private async Task CollectOnceAsync(CancellationToken cancellationToken)
     {
         var values = new Dictionary<string, MetricSample>(StringComparer.Ordinal);
@@ -127,20 +120,23 @@ public sealed class MetricsCollectionService : IMetricsCollectionService, IDispo
 
         lock (_sync)
         {
-            _snapshot = new MetricsSnapshot(now, values);
+            _snapshot = new(now, values);
         }
     }
 
     private static string CreateMetricKey(string providerName, string metricName)
-        => string.IsNullOrWhiteSpace(providerName)
-               ? metricName
-               : string.IsNullOrWhiteSpace(metricName)
-                   ? providerName
-                   : providerName + "." + metricName;
+        => string.IsNullOrWhiteSpace(providerName) ? metricName :
+           string.IsNullOrWhiteSpace(metricName) ? providerName : providerName + "." + metricName;
 
-    public void Dispose()
+    private async Task RunCollectionLoopAsync(CancellationToken cancellationToken)
     {
-        _lifetimeCts.Dispose();
-        GC.SuppressFinalize(this);
+        await CollectOnceAsync(cancellationToken);
+
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(Math.Max(1, _config.IntervalMilliseconds)));
+
+        while (await timer.WaitForNextTickAsync(cancellationToken))
+        {
+            await CollectOnceAsync(cancellationToken);
+        }
     }
 }

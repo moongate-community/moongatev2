@@ -1,8 +1,8 @@
+using System.Globalization;
 using Moongate.Server.Services.Console.Internal.Logging;
 using Moongate.Tests.Server.Support;
 using Serilog.Events;
 using Serilog.Parsing;
-using System.Globalization;
 
 namespace Moongate.Tests.Server;
 
@@ -14,14 +14,12 @@ public sealed class ConsoleUiSerilogSinkTests
         var consoleUiService = new ConsoleUiSerilogSinkTestConsoleUiService();
         var sink = new ConsoleUiSerilogSink(consoleUiService);
         var parser = new MessageTemplateParser();
-        var template = parser.Parse(
-            "Outbound packet Session={Session} OpCode={OpCode} Name={Name} Length={Length}"
-        );
+        var template = parser.Parse("Outbound packet Session={Session} OpCode={OpCode} Name={Name} Length={Length}");
 
         var logEvent = new LogEvent(
             DateTimeOffset.Parse("2026-02-19T17:55:06Z", CultureInfo.InvariantCulture),
             LogEventLevel.Information,
-            exception: null,
+            null,
             template,
             [
                 new("Session", new ScalarValue(2)),

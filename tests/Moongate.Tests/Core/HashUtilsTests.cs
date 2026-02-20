@@ -16,14 +16,17 @@ public class HashUtilsTests
     }
 
     [Test]
-    public void VerifyPassword_WhenPasswordMatches_ShouldReturnTrue()
+    public void HashPassword_WhenPasswordIsEmpty_ShouldThrowArgumentException()
     {
-        const string password = "MySecurePassword123!";
-        var hash = HashUtils.HashPassword(password);
+        Assert.That(() => HashUtils.HashPassword(string.Empty), Throws.TypeOf<ArgumentException>());
+    }
 
-        var isValid = HashUtils.VerifyPassword(password, hash);
+    [Test]
+    public void VerifyPassword_WhenHashFormatIsInvalid_ShouldReturnFalse()
+    {
+        var isValid = HashUtils.VerifyPassword("password", "invalid-hash-format");
 
-        Assert.That(isValid, Is.True);
+        Assert.That(isValid, Is.False);
     }
 
     [Test]
@@ -37,16 +40,13 @@ public class HashUtilsTests
     }
 
     [Test]
-    public void VerifyPassword_WhenHashFormatIsInvalid_ShouldReturnFalse()
+    public void VerifyPassword_WhenPasswordMatches_ShouldReturnTrue()
     {
-        var isValid = HashUtils.VerifyPassword("password", "invalid-hash-format");
+        const string password = "MySecurePassword123!";
+        var hash = HashUtils.HashPassword(password);
 
-        Assert.That(isValid, Is.False);
-    }
+        var isValid = HashUtils.VerifyPassword(password, hash);
 
-    [Test]
-    public void HashPassword_WhenPasswordIsEmpty_ShouldThrowArgumentException()
-    {
-        Assert.That(() => HashUtils.HashPassword(string.Empty), Throws.TypeOf<ArgumentException>());
+        Assert.That(isValid, Is.True);
     }
 }

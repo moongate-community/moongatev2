@@ -1,8 +1,8 @@
+using Moongate.UO.Data.Containers;
 using Moongate.UO.Data.Interfaces.FileLoaders;
 using Moongate.UO.Data.Interfaces.Templates;
-using Moongate.UO.Data.Templates.Mobiles;
-using Moongate.UO.Data.Containers;
 using Moongate.UO.Data.Templates.Items;
+using Moongate.UO.Data.Templates.Mobiles;
 using Serilog;
 
 namespace Moongate.Server.FileLoaders;
@@ -51,6 +51,53 @@ public sealed class TemplateValidationLoader : IFileLoader
         throw new InvalidOperationException($"Template validation failed with {errors.Count} error(s).");
     }
 
+    private void ValidateFixedEquipment(MobileTemplateDefinition mobile, List<string> errors)
+    {
+        foreach (var fixedEquipment in mobile.FixedEquipment)
+        {
+            if (string.IsNullOrWhiteSpace(fixedEquipment.ItemTemplateId))
+            {
+                errors.Add($"Mobile template '{mobile.Id}' has fixed equipment with empty itemTemplateId.");
+
+                continue;
+            }
+
+            if (!_itemTemplateService.TryGet(fixedEquipment.ItemTemplateId, out _))
+            {
+                errors.Add(
+                    $"Mobile template '{mobile.Id}' references missing fixed item template '{fixedEquipment.ItemTemplateId}'."
+                );
+            }
+        }
+    }
+
+    private static void ValidateItemContainerLayout(
+        ItemTemplateDefinition item,
+        List<string> errors
+    )
+    {
+        var isContainerTemplate = item.Tags.Any(
+            static tag => string.Equals(tag, "container", StringComparison.OrdinalIgnoreCase)
+        );
+
+        if (!isContainerTemplate)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(item.ContainerLayoutId))
+        {
+            errors.Add($"Item template '{item.Id}' is a container but has no containerLayoutId.");
+
+            return;
+        }
+
+        if (!ContainerLayoutSystem.ContainerSizesById.ContainsKey(item.ContainerLayoutId))
+        {
+            errors.Add($"Item template '{item.Id}' references unknown containerLayoutId '{item.ContainerLayoutId}'.");
+        }
+    }
+
     private void ValidateItems(List<string> errors)
     {
         foreach (var item in _itemTemplateService.GetAll())
@@ -79,35 +126,6 @@ public sealed class TemplateValidationLoader : IFileLoader
         }
     }
 
-    private static void ValidateItemContainerLayout(
-        ItemTemplateDefinition item,
-        List<string> errors
-    )
-    {
-        var isContainerTemplate = item.Tags.Any(
-            static tag => string.Equals(tag, "container", StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (!isContainerTemplate)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(item.ContainerLayoutId))
-        {
-            errors.Add($"Item template '{item.Id}' is a container but has no containerLayoutId.");
-
-            return;
-        }
-
-        if (!ContainerLayoutSystem.ContainerSizesById.ContainsKey(item.ContainerLayoutId))
-        {
-            errors.Add(
-                $"Item template '{item.Id}' references unknown containerLayoutId '{item.ContainerLayoutId}'."
-            );
-        }
-    }
-
     private void ValidateMobiles(List<string> errors)
     {
         foreach (var mobile in _mobileTemplateService.GetAll())
@@ -129,26 +147,6 @@ public sealed class TemplateValidationLoader : IFileLoader
 
             ValidateFixedEquipment(mobile, errors);
             ValidateRandomEquipment(mobile, errors);
-        }
-    }
-
-    private void ValidateFixedEquipment(MobileTemplateDefinition mobile, List<string> errors)
-    {
-        foreach (var fixedEquipment in mobile.FixedEquipment)
-        {
-            if (string.IsNullOrWhiteSpace(fixedEquipment.ItemTemplateId))
-            {
-                errors.Add($"Mobile template '{mobile.Id}' has fixed equipment with empty itemTemplateId.");
-
-                continue;
-            }
-
-            if (!_itemTemplateService.TryGet(fixedEquipment.ItemTemplateId, out _))
-            {
-                errors.Add(
-                    $"Mobile template '{mobile.Id}' references missing fixed item template '{fixedEquipment.ItemTemplateId}'."
-                );
-            }
         }
     }
 
