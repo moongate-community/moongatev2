@@ -24,6 +24,8 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval;
     private readonly Lock _metricsSync = new();
+
+    private Thread? _loopThread;
     private long _tickCount;
     private TimeSpan _uptime;
     private double _averageTickMs;
@@ -44,23 +46,12 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         _gameNetworkSessionService = gameNetworkSessionService;
         _timerService = timerService;
         _outboundPacketSender = outboundPacketSender;
-        _tickInterval = timerServiceConfig?.TickDuration ?? TimeSpan.FromMilliseconds(30);
+        _tickInterval = timerServiceConfig?.TickDuration ?? TimeSpan.FromMilliseconds(8);
 
         _logger.Information(
             "GameLoopService initialized with tick interval of {TickInterval} ms",
             _tickInterval.TotalMilliseconds
         );
-    }
-
-    public void Dispose()
-    {
-        if (!_cancellationTokenSource.IsCancellationRequested)
-        {
-            _cancellationTokenSource.Cancel();
-        }
-
-        _cancellationTokenSource.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     public GameLoopMetricsSnapshot GetMetricsSnapshot()
@@ -71,46 +62,62 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
     }
 
-    public async Task StartAsync()
+    public Task StartAsync()
     {
-        Task.Run(
-            async () =>
-            {
-                while (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    var tickStart = Stopwatch.GetTimestamp();
+        _loopThread = new Thread(RunLoop)
+        {
+            IsBackground = true,
+            Name = "GameLoop"
+        };
+        _loopThread.Start();
 
-                    await ProcessQueueAsync();
-
-                    var elapsed = Stopwatch.GetElapsedTime(tickStart);
-
-                    lock (_metricsSync)
-                    {
-                        _tickCount++;
-                        _uptime += elapsed;
-                        _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
-                    }
-
-                    var remaining = _tickInterval - elapsed;
-
-                    if (remaining > TimeSpan.Zero)
-                    {
-                        await Task.Delay(remaining, _cancellationTokenSource.Token);
-                    }
-                }
-            }
-        );
+        return Task.CompletedTask;
     }
 
-    public async Task StopAsync()
+    public Task StopAsync()
     {
         if (!_cancellationTokenSource.IsCancellationRequested)
         {
-            await _cancellationTokenSource.CancelAsync();
+            _cancellationTokenSource.Cancel();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void RunLoop()
+    {
+        while (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            var tickStart = Stopwatch.GetTimestamp();
+
+            ProcessTick();
+
+            var elapsed = Stopwatch.GetElapsedTime(tickStart);
+
+            lock (_metricsSync)
+            {
+                _tickCount++;
+                _uptime += elapsed;
+                _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
+            }
+
+            var remaining = _tickInterval - Stopwatch.GetElapsedTime(tickStart);
+
+            if (remaining.TotalMilliseconds >= 1.0)
+            {
+                Thread.Sleep((int)remaining.TotalMilliseconds);
+            }
         }
     }
 
-    private async Task DrainOutgoingPacketQueueAsync()
+    private void ProcessTick()
+    {
+        DrainPacketQueue();
+        _timerService.ProcessTick();
+        DrainOutgoingPacketQueue();
+    }
+
+    private void DrainOutgoingPacketQueue()
     {
         while (_outgoingPacketQueue.TryDequeue(out var outgoingPacket))
         {
@@ -128,7 +135,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
                 continue;
             }
 
-            await _outboundPacketSender.SendAsync(client, outgoingPacket, _cancellationTokenSource.Token);
+            _outboundPacketSender.Send(client, outgoingPacket);
         }
     }
 
@@ -140,10 +147,14 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
     }
 
-    private async Task ProcessQueueAsync()
+    public void Dispose()
     {
-        DrainPacketQueue();
-        _timerService.ProcessTick();
-        await DrainOutgoingPacketQueueAsync();
+        if (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
+        _cancellationTokenSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
