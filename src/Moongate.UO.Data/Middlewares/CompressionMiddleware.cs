@@ -19,15 +19,9 @@ public sealed class CompressionMiddleware : INetMiddleware
         _ = client;
         cancellationToken.ThrowIfCancellationRequested();
 
-        var input = data;
-        var result = NetworkCompression.ProcessReceive(ref input, out var output);
-
-        if (result.halt)
-        {
-            return ValueTask.FromResult(ReadOnlyMemory<byte>.Empty);
-        }
-
-        return ValueTask.FromResult(output);
+        // UO server enables transport compression for outbound packets only.
+        // Inbound payloads must remain untouched for protocol parsing.
+        return ValueTask.FromResult(data);
     }
 
     /// <inheritdoc />

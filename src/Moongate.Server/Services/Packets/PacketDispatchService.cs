@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Moongate.Network.Packets.Registry;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Interfaces.Listener;
 using Moongate.Server.Interfaces.Services.Packets;
@@ -8,6 +9,7 @@ namespace Moongate.Server.Services.Packets;
 
 public class PacketDispatchService : IPacketDispatchService
 {
+    private static readonly PacketRegistry _packetRegistry = CreatePacketRegistry();
     private readonly ILogger _logger = Log.ForContext<PacketDispatchService>();
     private readonly ConcurrentDictionary<byte, List<IPacketListener>> _packetListeners = new();
 
@@ -29,7 +31,18 @@ public class PacketDispatchService : IPacketDispatchService
 
         if (!_packetListeners.TryGetValue(opCode, out var listeners))
         {
-            _logger.Warning("No packet listeners for opcode 0x{OpCode:X2}", opCode);
+            if (_packetRegistry.TryGetDescriptor(opCode, out var descriptor))
+            {
+                _logger.Warning(
+                    "No packet listeners for opcode 0x{OpCode:X2} ({Description})",
+                    opCode,
+                    descriptor.Description
+                );
+            }
+            else
+            {
+                _logger.Warning("No packet listeners for opcode 0x{OpCode:X2}", opCode);
+            }
 
             return false;
         }
@@ -64,5 +77,13 @@ public class PacketDispatchService : IPacketDispatchService
         {
             _logger.Error(ex, "Listener failed for packet opcode 0x{OpCode:X2}", opCode);
         }
+    }
+
+    private static PacketRegistry CreatePacketRegistry()
+    {
+        var registry = new PacketRegistry();
+        PacketTable.Register(registry);
+
+        return registry;
     }
 }

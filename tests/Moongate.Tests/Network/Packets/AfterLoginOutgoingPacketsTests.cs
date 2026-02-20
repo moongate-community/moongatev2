@@ -195,10 +195,12 @@ public class AfterLoginOutgoingPacketsTests
     }
 
     [Test]
-    public void PaperdollPacket_Write_ShouldSerializeHeaderLengthAndFlags()
+    public void PaperdollPacket_Write_ShouldSerializeFixedPayload()
     {
         var mobile = CreateMobile();
-        var packet = new PaperdollPacket(mobile, "the brave");
+        mobile.IsWarMode = true;
+        mobile.Title = "the brave";
+        var packet = new PaperdollPacket(mobile);
 
         var data = Write(packet);
 
@@ -206,8 +208,9 @@ public class AfterLoginOutgoingPacketsTests
             () =>
             {
                 Assert.That(data[0], Is.EqualTo(0x88));
-                Assert.That(BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(1, 2)), Is.EqualTo((ushort)data.Length));
-                Assert.That(BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(3, 4)), Is.EqualTo(mobile.Id.Value));
+                Assert.That(data.Length, Is.EqualTo(66));
+                Assert.That(BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(1, 4)), Is.EqualTo(mobile.Id.Value));
+                Assert.That(data[65], Is.EqualTo(0x03));
             }
         );
     }

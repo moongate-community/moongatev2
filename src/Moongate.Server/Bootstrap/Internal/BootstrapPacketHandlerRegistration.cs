@@ -22,6 +22,7 @@ internal static class BootstrapPacketHandlerRegistration
         RegisterPacketHandler<CharacterHandler>(container, PacketDefinition.CharacterCreationPacket);
 
         RegisterPacketHandler<PingPongHandler>(container, PacketDefinition.PingMessagePacket);
+        RegisterPacketHandler<MovementHandler>(container, PacketDefinition.MoveRequestPacket);
     }
 
     private static void RegisterPacketHandler<T>(Container container, byte opCode) where T : IPacketListener

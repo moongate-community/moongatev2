@@ -32,9 +32,19 @@ public sealed class GameSession
     public Serial AccountId { get; set; }
 
     /// <summary>
+    ///  Gets or sets the currently active character identifier for this session, when a character is selected.
+    /// </summary>
+    public Serial CharacterId { get; set; }
+
+    /// <summary>
     /// Gets or sets the current ping sequence number for this session, used for latency monitoring and connection health checks.
     /// </summary>
     public byte PingSequence { get; set; }
+
+    /// <summary>
+    /// Gets or sets the movement sequence state used to validate move requests.
+    /// </summary>
+    public byte MoveSequence { get; set; } = 1;
 
     /// <summary>
     /// Stores the negotiated client version for this session.

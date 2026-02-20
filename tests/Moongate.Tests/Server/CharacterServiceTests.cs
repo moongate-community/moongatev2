@@ -6,7 +6,9 @@ using Moongate.Server.Services.Persistence;
 using Moongate.Server.Services.Timing;
 using Moongate.Tests.Server.Support;
 using Moongate.Tests.TestSupport;
+using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Ids;
+using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Services.Names;
 using Moongate.UO.Data.Services.Templates;
 using Moongate.UO.Data.Templates.Items;
@@ -153,6 +155,105 @@ public class CharacterServiceTests
     }
 
     [Test]
+    public async Task GetCharacterAsync_ShouldHydrateEquippedItemReferences_WhenCharacterHasEquippedItems()
+    {
+        using var temp = new TempDirectory();
+        var persistence = await CreatePersistenceServiceAsync(temp.Path);
+        var service = CreateCharacterService(
+            persistence,
+            new()
+        );
+        var characterId = (Serial)0x00000211;
+        var shirtId = (Serial)0x40000011;
+
+        await persistence.UnitOfWork.Mobiles.UpsertAsync(
+            new()
+            {
+                Id = characterId,
+                Name = "equipped-mobile",
+                IsPlayer = true,
+                EquippedItemIds =
+                {
+                    [ItemLayerType.Shirt] = shirtId
+                }
+            }
+        );
+
+        await persistence.UnitOfWork.Items.UpsertAsync(
+            new()
+            {
+                Id = shirtId,
+                ItemId = 0x1517,
+                Hue = 0x0444,
+                EquippedMobileId = characterId,
+                EquippedLayer = ItemLayerType.Shirt
+            }
+        );
+
+        var character = await service.GetCharacterAsync(characterId);
+
+        Assert.That(character, Is.Not.Null);
+        Assert.That(character!.TryGetEquippedReference(ItemLayerType.Shirt, out var reference), Is.True);
+        Assert.That(reference.ItemId, Is.EqualTo(0x1517));
+        Assert.That(reference.Hue, Is.EqualTo(0x0444));
+    }
+
+    [Test]
+    public async Task GetCharactersForAccountAsync_ShouldHydrateEquippedItemReferences_ForReturnedCharacters()
+    {
+        using var temp = new TempDirectory();
+        var persistence = await CreatePersistenceServiceAsync(temp.Path);
+        var service = CreateCharacterService(
+            persistence,
+            new()
+        );
+        var accountId = (Serial)0x00000141;
+        var characterId = (Serial)0x00000241;
+        var pantsId = (Serial)0x40000041;
+
+        await persistence.UnitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = accountId,
+                Username = "acc-hydrate-all",
+                PasswordHash = "pw",
+                CharacterIds = [characterId]
+            }
+        );
+
+        await persistence.UnitOfWork.Mobiles.UpsertAsync(
+            new()
+            {
+                Id = characterId,
+                Name = "hydrated-list-mobile",
+                IsPlayer = true,
+                EquippedItemIds =
+                {
+                    [ItemLayerType.Pants] = pantsId
+                }
+            }
+        );
+
+        await persistence.UnitOfWork.Items.UpsertAsync(
+            new()
+            {
+                Id = pantsId,
+                ItemId = 0x152E,
+                Hue = 0x0222,
+                EquippedMobileId = characterId,
+                EquippedLayer = ItemLayerType.Pants
+            }
+        );
+
+        var characters = await service.GetCharactersForAccountAsync(accountId);
+
+        Assert.That(characters, Has.Count.EqualTo(1));
+        Assert.That(characters[0].TryGetEquippedReference(ItemLayerType.Pants, out var reference), Is.True);
+        Assert.That(reference.ItemId, Is.EqualTo(0x152E));
+        Assert.That(reference.Hue, Is.EqualTo(0x0222));
+    }
+
+    [Test]
     public async Task GetCharactersForAccountAsync_ShouldReturnOnlyExistingMobiles()
     {
         using var temp = new TempDirectory();
@@ -188,6 +289,55 @@ public class CharacterServiceTests
 
         Assert.That(characters, Has.Count.EqualTo(1));
         Assert.That(characters[0].Id, Is.EqualTo(existingCharacterId));
+    }
+
+    [Test]
+    public async Task GetBackpackWithItemsAsync_ShouldReturnBackpackWithContainedItems()
+    {
+        using var temp = new TempDirectory();
+        var persistence = await CreatePersistenceServiceAsync(temp.Path);
+        var service = CreateCharacterService(
+            persistence,
+            new()
+        );
+        var characterId = (Serial)0x00000251;
+        var backpackId = (Serial)0x40000051;
+        var goldId = (Serial)0x40000052;
+
+        var character = new UOMobileEntity
+        {
+            Id = characterId,
+            Name = "pack-mobile",
+            IsPlayer = true,
+            BackpackId = backpackId
+        };
+
+        await persistence.UnitOfWork.Items.UpsertAsync(
+            new()
+            {
+                Id = backpackId,
+                ItemId = 0x0E75,
+                EquippedMobileId = characterId,
+                EquippedLayer = ItemLayerType.Backpack
+            }
+        );
+
+        await persistence.UnitOfWork.Items.UpsertAsync(
+            new()
+            {
+                Id = goldId,
+                ItemId = 0x0EED,
+                ParentContainerId = backpackId,
+                ContainerPosition = new(11, 22)
+            }
+        );
+
+        var backpack = await service.GetBackpackWithItemsAsync(character);
+
+        Assert.That(backpack, Is.Not.Null);
+        Assert.That(backpack!.Items.Count, Is.EqualTo(1));
+        Assert.That(backpack.Items[0].Item.Id, Is.EqualTo(goldId));
+        Assert.That(backpack.Items[0].Position, Is.EqualTo(new Point2D(11, 22)));
     }
 
     [Test]

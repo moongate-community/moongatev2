@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Moongate.Abstractions.Services.Base;
+using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Metrics;
 using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
@@ -21,7 +22,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     private readonly IOutboundPacketSender _outboundPacketSender;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
-    private readonly TimeSpan _tickInterval = TimeSpan.FromMilliseconds(150);
+    private readonly TimeSpan _tickInterval;
     private readonly Lock _metricsSync = new();
     private long _tickCount;
     private TimeSpan _uptime;
@@ -33,7 +34,8 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         IOutgoingPacketQueue outgoingPacketQueue,
         IGameNetworkSessionService gameNetworkSessionService,
         ITimerService timerService,
-        IOutboundPacketSender outboundPacketSender
+        IOutboundPacketSender outboundPacketSender,
+        TimerServiceConfig? timerServiceConfig = null
     )
     {
         _packetDispatchService = packetDispatchService;
@@ -42,6 +44,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         _gameNetworkSessionService = gameNetworkSessionService;
         _timerService = timerService;
         _outboundPacketSender = outboundPacketSender;
+        _tickInterval = timerServiceConfig?.TickDuration ?? TimeSpan.FromMilliseconds(30);
 
         _logger.Information(
             "GameLoopService initialized with tick interval of {TickInterval} ms",
