@@ -59,10 +59,8 @@ public class PacketDispatchService : IPacketDispatchService
             snapshot = listeners.ToArray();
         }
 
-        foreach (var listener in snapshot)
-        {
-            _ = NotifyListenerSafeAsync(opCode, gamePacket, listener);
-        }
+        var tasks = snapshot.Select(l => NotifyListenerSafeAsync(opCode, gamePacket, l));
+        Task.WhenAll(tasks).GetAwaiter().GetResult();
 
         return true;
     }
