@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Messaging;
@@ -21,10 +22,7 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            CreateTimerService(),
-            new GameLoopTestOutboundPacketSender()
+            CreateTimerService()
         );
 
         Assert.Multiple(
@@ -44,10 +42,7 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            CreateTimerService(),
-            new GameLoopTestOutboundPacketSender()
+            CreateTimerService()
         );
 
         await _service.StartAsync();
@@ -85,10 +80,7 @@ public class GameLoopServiceTests
         _service = new(
             packetDispatch,
             messageBus,
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            CreateTimerService(),
-            new GameLoopTestOutboundPacketSender()
+            CreateTimerService()
         );
 
         await _service.StartAsync();
@@ -104,35 +96,18 @@ public class GameLoopServiceTests
     }
 
     [Test]
-    public async Task StartAsync_ShouldDrainOutgoingPacketQueueAndSendPackets()
+    public void OutgoingPacketQueue_ShouldAcceptEnqueuedPackets()
     {
         var sessions = new GameNetworkSessionService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = sessions.GetOrCreate(client);
         var outgoingQueue = new OutgoingPacketQueue();
-        var sender = new GameLoopTestOutboundPacketSender();
+
         outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x20, 0));
 
-        _service = new(
-            new PacketDispatchService(),
-            new MessageBusService(),
-            outgoingQueue,
-            sessions,
-            CreateTimerService(),
-            sender
-        );
-
-        await _service.StartAsync();
-        var sent = await WaitUntilAsync(() => sender.SentPackets.Count == 1, TimeSpan.FromSeconds(2));
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(sent, Is.True, "Outbound packet was not sent in time.");
-                Assert.That(sender.SentPackets[0].SessionId, Is.EqualTo(session.SessionId));
-                Assert.That(sender.SentPackets[0].Packet.OpCode, Is.EqualTo(0x20));
-            }
-        );
+        Assert.That(outgoingQueue.TryDequeue(out var dequeued), Is.True);
+        Assert.That(dequeued.SessionId, Is.EqualTo(session.SessionId));
+        Assert.That(dequeued.Packet.OpCode, Is.EqualTo(0x20));
     }
 
     [Test]
@@ -152,10 +127,7 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            timerService,
-            new GameLoopTestOutboundPacketSender()
+            timerService
         );
 
         await _service.StartAsync();
@@ -181,10 +153,7 @@ public class GameLoopServiceTests
         _service = new(
             packetDispatch,
             messageBus,
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            CreateTimerService(),
-            new GameLoopTestOutboundPacketSender()
+            CreateTimerService()
         );
 
         await _service.StartAsync();
@@ -205,10 +174,7 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            new OutgoingPacketQueue(),
-            new GameNetworkSessionService(),
-            CreateTimerService(),
-            new GameLoopTestOutboundPacketSender()
+            CreateTimerService()
         );
         await _service.StartAsync();
 
