@@ -41,6 +41,21 @@ public class CharacterService : ICharacterService
         return character.Id;
     }
 
+    public async Task<UOMobileEntity?> GetCharacterAsync(Serial characterId)
+    {
+        var character = await _persistenceService.UnitOfWork.Mobiles.GetByIdAsync(characterId);
+
+        if (character is null)
+        {
+            _logger.Warning("Character {CharacterId} not found", characterId);
+            return null;
+        }
+
+        _logger.Debug("Loaded character {CharacterId}", characterId);
+
+        return character;
+    }
+
     public async Task<bool> AddCharacterToAccountAsync(Serial accountId, Serial characterId)
     {
         var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);

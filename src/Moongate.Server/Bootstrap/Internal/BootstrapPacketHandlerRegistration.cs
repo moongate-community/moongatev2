@@ -17,8 +17,11 @@ internal static class BootstrapPacketHandlerRegistration
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.AccountLoginPacket);
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.ServerSelectPacket);
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.GameLoginPacket);
+        RegisterPacketHandler<LoginHandler>(container, PacketDefinition.LoginCharacterPacket);
 
         RegisterPacketHandler<CharacterHandler>(container, PacketDefinition.CharacterCreationPacket);
+
+        RegisterPacketHandler<PingPongHandler>(container, PacketDefinition.PingMessagePacket);
     }
 
     private static void RegisterPacketHandler<T>(Container container, byte opCode) where T : IPacketListener

@@ -91,7 +91,22 @@ public sealed class MoongateBootstrap : IDisposable
             }
 
             _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
-            await instance.StartAsync();
+            try
+            {
+                await instance.StartAsync();
+            }
+            catch (Exception ex) when (serviceRegistration.ServiceType == typeof(IFileLoaderService))
+            {
+                _logger.Error(ex, "Startup aborted: file loader execution failed.");
+
+                if (ex is InvalidOperationException &&
+                    ex.Message.StartsWith("Template validation failed", StringComparison.Ordinal))
+                {
+                    _logger.Error("Template validation failed, server startup aborted.");
+                }
+
+                throw;
+            }
             runningServices.Add(instance);
         }
 

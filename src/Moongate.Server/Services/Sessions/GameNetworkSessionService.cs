@@ -14,6 +14,9 @@ public sealed class GameNetworkSessionService : IGameNetworkSessionService
     public void Clear()
         => _sessions.Clear();
 
+    public IReadOnlyCollection<GameSession> GetAll()
+        => _sessions.Values.ToArray();
+
     public GameSession GetOrCreate(MoongateTCPClient client)
     {
         var session = _sessions.GetOrAdd(client.SessionId, _ => new(new(client)));

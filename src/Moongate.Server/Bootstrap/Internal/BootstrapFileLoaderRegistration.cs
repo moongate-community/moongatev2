@@ -21,6 +21,9 @@ internal static class BootstrapFileLoaderRegistration
         fileLoaderService.AddFileLoader<MapLoader>();
         fileLoaderService.AddFileLoader<CliLocLoader>();
         fileLoaderService.AddFileLoader<ContainersDataLoader>();
+        fileLoaderService.AddFileLoader<ItemTemplateLoader>();
+        fileLoaderService.AddFileLoader<MobileTemplateLoader>();
+        fileLoaderService.AddFileLoader<TemplateValidationLoader>();
         fileLoaderService.AddFileLoader<RegionDataLoader>();
         fileLoaderService.AddFileLoader<WeatherDataLoader>();
         fileLoaderService.AddFileLoader<NamesLoader>();

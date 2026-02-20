@@ -16,6 +16,13 @@ public interface ICharacterService
     Task<Serial> CreateCharacterAsync(UOMobileEntity character);
 
     /// <summary>
+    /// Loads a character entity by serial.
+    /// </summary>
+    /// <param name="characterId">Character serial identifier.</param>
+    /// <returns>The character entity when found; otherwise <see langword="null"/>.</returns>
+    Task<UOMobileEntity?> GetCharacterAsync(Serial characterId);
+
+    /// <summary>
     /// Links an existing character to an account.
     /// </summary>
     /// <param name="accountId">Account serial identifier.</param>

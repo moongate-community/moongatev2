@@ -4,6 +4,8 @@ namespace Moongate.UO.Data.Json;
 
 public class JsonContainerSize
 {
+    public string Id { get; set; }
+
     public int ItemId { get; set; }
 
     public int Width { get; set; }
@@ -16,5 +18,5 @@ public class JsonContainerSize
     public int TotalSlots => Width * Height;
 
     public override string ToString()
-        => $"ItemId: {ItemId}, Width: {Width}, Height: {Height}, Name: {Name}, TotalSlots: {TotalSlots}";
+        => $"Id: {Id}, ItemId: {ItemId}, Width: {Width}, Height: {Height}, Name: {Name}, TotalSlots: {TotalSlots}";
 }

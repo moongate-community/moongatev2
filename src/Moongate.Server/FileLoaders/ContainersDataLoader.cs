@@ -22,6 +22,8 @@ public class ContainersDataLoader : IFileLoader
         var containersDirectory = Path.Combine(_directoriesConfig[DirectoryType.Data], "containers");
 
         var files = Directory.GetFiles(containersDirectory, "*.json");
+        ContainerLayoutSystem.ContainerSizes.Clear();
+        ContainerLayoutSystem.ContainerSizesById.Clear();
 
         foreach (var containerFile in files)
         {
@@ -35,8 +37,10 @@ public class ContainersDataLoader : IFileLoader
                 _logger.Debug("Adding {JsonContainerSize}", containerSize);
                 ContainerLayoutSystem.ContainerSizes.Add(
                     containerSize.ItemId,
-                    new(containerSize.Width, containerSize.Height, containerSize.Name)
+                    new(containerSize.Id, containerSize.Width, containerSize.Height, containerSize.Name)
                 );
+                ContainerLayoutSystem.ContainerSizesById[containerSize.Id] =
+                    new(containerSize.Id, containerSize.Width, containerSize.Height, containerSize.Name);
             }
         }
     }

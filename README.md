@@ -34,6 +34,7 @@ The project is actively in development and already includes:
 - Attribute-based packet mapping (`[PacketHandler(...)]`) with source generation.
 - Inbound message bus (`IMessageBusService`) for network thread -> game-loop crossing.
 - Domain event bus (`IGameEventBusService`) with initial events (`PlayerConnectedEvent`, `PlayerDisconnectedEvent`).
+- Outbound event listener abstraction (`IOutboundEventListener<TEvent>`) for domain-event -> network side effects.
 - Session split between transport (`GameNetworkSession`) and gameplay/protocol context (`GameSession`).
 - Unit tests for core server behaviors and packet infrastructure.
 - Lua scripting runtime with module/function binding and `.luarc` generation support.
@@ -76,6 +77,69 @@ Query support:
 - `IAccountRepository`, `IMobileRepository`, and `IItemRepository` expose `QueryAsync(...)`.
 - Queries are evaluated on immutable snapshots with ZLinq-backed projection/filtering.
 
+## Templates
+
+Moongate loads gameplay templates from `DirectoriesConfig[DirectoryType.Templates]`:
+
+- `templates/items/**/*.json` -> loaded by `ItemTemplateLoader` into `IItemTemplateService`
+- `templates/mobiles/**/*.json` -> loaded by `MobileTemplateLoader` into `IMobileTemplateService`
+
+Template values are data-driven and resolved at runtime using spec objects:
+
+- `HueSpec`: supports fixed values (`"4375"`, `"0x1117"`) and ranges (`"hue(5:55)"`)
+- `GoldValueSpec`: supports fixed values (`"0"`) and dice notation (`"dice(1d8+8)"`)
+
+Example item template:
+
+```json
+{
+  "type": "item",
+  "id": "leather_backpack",
+  "name": "Leather Backpack",
+  "category": "Container",
+  "itemId": "0x0E76",
+  "hue": "hue(10:80)",
+  "goldValue": "dice(2d8+12)",
+  "lootType": "Regular",
+  "stackable": false,
+  "isMovable": true
+}
+```
+
+Example startup item template:
+
+```json
+{
+  "type": "item",
+  "id": "inner_torso",
+  "category": "Start Clothes",
+  "itemId": "0x1F7B",
+  "hue": "4375",
+  "goldValue": "dice(1d4+1)",
+  "weight": 1
+}
+```
+
+Example mobile template:
+
+```json
+{
+  "type": "mobile",
+  "id": "orione",
+  "name": "Orione",
+  "category": "animals",
+  "body": "0xC9",
+  "skinHue": 779,
+  "hairStyle": 0,
+  "brain": "orion"
+}
+```
+
+Resolution model:
+
+- JSON loading parses to typed specs (`HueSpec`, `GoldValueSpec`)
+- final random values are resolved when creating runtime entities (not at JSON load time)
+
 ## Solution Structure
 
 - `src/Moongate.Server`: host/bootstrap, game loop, network orchestration, session/event services.
@@ -88,6 +152,16 @@ Query support:
 - `src/Moongate.Server.Http`: embedded ASP.NET Core host service used by the server bootstrap.
 - `tests/Moongate.Tests`: unit tests.
 - `docs/`: Obsidian knowledge base (plans, sprints, protocol notes, journal).
+
+## Event And Packet Separation
+
+Moongate uses a strict separation between inbound protocol parsing and outbound event projections:
+
+- `IPacketListener` handles inbound packets only (`Client -> Server`) and applies domain use-cases.
+- Domain services publish `IGameEvent` messages through `IGameEventBusService`.
+- `IOutboundEventListener<TEvent>` handles outbound side-effects from domain events (for example enqueueing packets).
+- `RegisterOutboundEventListener<TEvent, TListener>()` is the bootstrap helper to register outbound listeners as hosted services with priority.
+- `IOutgoingPacketQueue` and `IOutboundPacketSender` deliver outbound packets on the game-loop/network boundary.
 
 ## Requirements
 

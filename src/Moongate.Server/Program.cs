@@ -32,6 +32,7 @@ await ConsoleApp.RunAsync(
         JsonUtils.AddJsonConverter(new SerialConverter());
 
         JsonUtils.RegisterJsonContext(MoongateUOJsonSerializationContext.Default);
+        JsonUtils.RegisterJsonContext(MoongateUOTemplateJsonContext.Default);
         JsonUtils.RegisterJsonContext(MoongateServerJsonContext.Default);
         JsonUtils.RegisterJsonContext(MoongateLuaScriptJsonContext.Default);
 
