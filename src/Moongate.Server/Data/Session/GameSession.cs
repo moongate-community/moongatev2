@@ -32,6 +32,11 @@ public sealed class GameSession
     public Serial AccountId { get; set; }
 
     /// <summary>
+    ///  Gets or sets the current ping sequence number for this session, used for latency monitoring and connection health checks.
+    /// </summary>
+    public byte PingSequence { get; set; }
+
+    /// <summary>
     /// Stores the negotiated client version for this session.
     /// </summary>
     /// <param name="clientVersion">Client version metadata.</param>

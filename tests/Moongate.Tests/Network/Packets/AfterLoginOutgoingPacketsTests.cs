@@ -9,6 +9,7 @@ using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Types;
+using UOMap = Moongate.UO.Data.Maps.Map;
 
 namespace Moongate.Tests.Network.Packets;
 
@@ -60,6 +61,25 @@ public class AfterLoginOutgoingPacketsTests
         var beholder = CreateMobile();
         var beheld = CreateMobile();
         var packet = new MobileIncomingPacket(beholder, beheld);
+
+        var data = Write(packet);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(data[0], Is.EqualTo(0x78));
+                Assert.That(BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(1, 2)), Is.EqualTo((ushort)data.Length));
+                Assert.That(BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(data.Length - 4, 4)), Is.EqualTo(0u));
+            }
+        );
+    }
+
+    [Test]
+    public void MobileDrawPacket_Write_ShouldSerializeHeaderAndTerminator()
+    {
+        var beholder = CreateMobile();
+        var beheld = CreateMobile();
+        var packet = new MobileDrawPacket(beholder, beheld, stygianAbyss: true, newMobileIncoming: true);
 
         var data = Write(packet);
 
@@ -235,6 +255,26 @@ public class AfterLoginOutgoingPacketsTests
                 Assert.That(data[5], Is.EqualTo(2));
             }
         );
+    }
+
+    [Test]
+    public void GeneralInformationFactory_CreateSetCursorHueSetMap_WithByte_ShouldSerializeMapId()
+    {
+        var packet = GeneralInformationFactory.CreateSetCursorHueSetMap(4);
+
+        var data = Write(packet);
+
+        Assert.That(data, Is.EqualTo(new byte[] { 0xBF, 0x00, 0x06, 0x00, 0x08, 0x04 }));
+    }
+
+    [Test]
+    public void GeneralInformationFactory_CreateSetCursorHueSetMap_WithNullMap_ShouldSerializeDefaultMapIdZero()
+    {
+        var packet = GeneralInformationFactory.CreateSetCursorHueSetMap((UOMap?)null);
+
+        var data = Write(packet);
+
+        Assert.That(data, Is.EqualTo(new byte[] { 0xBF, 0x00, 0x06, 0x00, 0x08, 0x00 }));
     }
 
     [Test]

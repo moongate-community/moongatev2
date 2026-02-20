@@ -3,6 +3,7 @@ using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
 using Moongate.UO.Data.Types;
+using UOMap = Moongate.UO.Data.Maps.Map;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
@@ -25,6 +26,9 @@ public class GeneralInformationPacket : BaseGameNetworkPacket
 
     public static GeneralInformationPacket CreateSetCursorHueSetMap(byte mapId)
         => new(GeneralInformationSubcommandType.SetCursorHueSetMap, new byte[] { mapId });
+
+    public static GeneralInformationPacket CreateSetCursorHueSetMap(UOMap? map)
+        => CreateSetCursorHueSetMap((byte)(map?.MapID ?? 0));
 
     public override void Write(ref SpanWriter writer)
     {

@@ -13,6 +13,32 @@ namespace Moongate.Tests.Server;
 public class CharacterServiceTests
 {
     [Test]
+    public async Task GetCharacterAsync_ShouldReturnCharacter_WhenExists()
+    {
+        using var temp = new TempDirectory();
+        var persistence = await CreatePersistenceServiceAsync(temp.Path);
+        var service = new CharacterService(
+            persistence,
+            new Support.GameEventScriptBridgeTestGameEventBusService()
+        );
+        var characterId = (Serial)0x00000210;
+
+        await persistence.UnitOfWork.Mobiles.UpsertAsync(
+            new()
+            {
+                Id = characterId,
+                Name = "single-mobile",
+                IsPlayer = true
+            }
+        );
+
+        var character = await service.GetCharacterAsync(characterId);
+
+        Assert.That(character, Is.Not.Null);
+        Assert.That(character!.Id, Is.EqualTo(characterId));
+    }
+
+    [Test]
     public async Task AddCharacterToAccountAsync_ShouldAddCharacterId_WhenAccountExists()
     {
         using var temp = new TempDirectory();
