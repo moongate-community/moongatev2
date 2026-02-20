@@ -17,6 +17,7 @@ internal static class BootstrapPacketHandlerRegistration
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.AccountLoginPacket);
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.ServerSelectPacket);
         RegisterPacketHandler<LoginHandler>(container, PacketDefinition.GameLoginPacket);
+        RegisterPacketHandler<LoginHandler>(container, PacketDefinition.LoginCharacterPacket);
 
         RegisterPacketHandler<CharacterHandler>(container, PacketDefinition.CharacterCreationPacket);
 

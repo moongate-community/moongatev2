@@ -2,9 +2,11 @@ using System.Net;
 using Moongate.Network.Packets.Incoming.Login;
 using Moongate.Network.Packets.Interfaces;
 using Moongate.Network.Packets.Outgoing.Login;
+using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Characters;
 using Moongate.Server.Interfaces.Services.Accounting;
+using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
 using Moongate.UO.Data.Maps;
@@ -20,15 +22,18 @@ public class LoginHandler : BasePacketListener
     private readonly IAccountService _accountService;
     private readonly ICharacterService _characterService;
     private readonly ServerListPacket _serverListPacket;
+    private readonly IGameEventBusService _gameEventBusService;
 
     public LoginHandler(
         IOutgoingPacketQueue outgoingPacketQueue,
         IAccountService accountService,
-        ICharacterService characterService
+        ICharacterService characterService,
+        IGameEventBusService gameEventBusService
     ) : base(outgoingPacketQueue)
     {
         _accountService = accountService;
         _characterService = characterService;
+        _gameEventBusService = gameEventBusService;
         _serverListPacket = new();
         _serverListPacket.Shards.Add(
             new()
@@ -61,6 +66,35 @@ public class LoginHandler : BasePacketListener
         {
             return await HandleGameLoginPacketAsync(session, gameLoginPacket);
         }
+
+        if (packet is LoginCharacterPacket loginCharacterPacket)
+        {
+            return await HandleLoginCharacterPacketAsync(session, loginCharacterPacket);
+        }
+
+        return true;
+    }
+
+    private async Task<bool> HandleLoginCharacterPacketAsync(GameSession session, LoginCharacterPacket loginCharacterPacket)
+    {
+        var characters = await _characterService.GetCharactersForAccountAsync(session.AccountId);
+
+        var character = characters.FirstOrDefault(c => c.Name == loginCharacterPacket.CharacterName);
+
+        if (character == null)
+        {
+            _logger.Warning(
+                "Character {CharacterName} not found for account {AccountId}",
+                loginCharacterPacket.CharacterName,
+                session.AccountId
+            );
+
+            return true;
+        }
+
+        await _gameEventBusService.PublishAsync(
+            new CharacterSelectedEvent(session.SessionId, character.Id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+        );
 
         return true;
     }
@@ -96,6 +130,17 @@ public class LoginHandler : BasePacketListener
             session.SessionId,
             gameLoginPacket.AccountName
         );
+
+        var account = await _accountService.LoginAsync(gameLoginPacket.AccountName, gameLoginPacket.Password);
+
+        if (account == null)
+        {
+            Enqueue(session, new LoginDeniedPacket(UOLoginDeniedReason.IncorrectNameOrPassword));
+
+            return true;
+        }
+
+        session.AccountId = account.Id;
 
         session.NetworkSession.EnableCompression();
 
