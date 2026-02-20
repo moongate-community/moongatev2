@@ -52,8 +52,6 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
     {
         var character = await _characterService.GetCharacterAsync(characterId);
 
-        session.CharacterId = characterId;
-
         if (character == null)
         {
             _logger.Error(
@@ -64,6 +62,13 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
 
             return false;
         }
+
+        session.CharacterId = characterId;
+        session.MoveSequence = 0;
+        session.SelfNotoriety = (byte)character.Notoriety;
+        session.IsMounted = character.IsMounted;
+        session.MoveCredit = 0;
+        session.MoveTime = Environment.TickCount64;
 
         _logger.Information(
             "Character {CharacterName} (ID: {CharacterId}) logged in for session {SessionId}",
