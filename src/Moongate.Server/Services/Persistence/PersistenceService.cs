@@ -53,14 +53,6 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
 
     public IPersistenceUnitOfWork UnitOfWork { get; }
 
-    public void Dispose()
-    {
-        if (UnitOfWork is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-    }
-
     public PersistenceMetricsSnapshot GetMetricsSnapshot()
     {
         lock (_metricsSync)
@@ -89,11 +81,11 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
         _dbSaveTimerId ??= _timerService.RegisterTimer(
             "db_save",
             TimeSpan.FromSeconds(Math.Max(1, _persistenceConfig.SaveIntervalSeconds)),
-            async ct =>
+            () =>
             {
                 try
                 {
-                    await SaveSnapshotWithMetricsAsync(ct);
+                    SaveSnapshotWithMetricsAsync().GetAwaiter().GetResult();
                     _logger.Debug("Automatic DB save completed in {ElapsedMs} ms", GetMetricsSnapshot().LastSaveDurationMs);
                 }
                 catch (Exception ex)
@@ -155,6 +147,14 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
             }
 
             throw;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (UnitOfWork is IDisposable disposable)
+        {
+            disposable.Dispose();
         }
     }
 }

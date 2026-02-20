@@ -34,21 +34,15 @@ public sealed class TimerWheelService
         var wheelSize = config.WheelSize;
 
         if (_tickDuration <= TimeSpan.Zero)
-        {
             throw new ArgumentOutOfRangeException(nameof(_tickDuration), "Tick duration must be positive.");
-        }
 
         if (wheelSize <= 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(wheelSize), "Wheel size must be positive.");
-        }
 
         _wheel = new LinkedList<TimerEntry>[wheelSize];
 
         for (var i = 0; i < _wheel.Length; i++)
-        {
             _wheel[i] = new();
-        }
     }
 
     public TimerMetricsSnapshot GetMetricsSnapshot()
@@ -97,7 +91,6 @@ public sealed class TimerWheelService
                     bucket.Remove(node);
                     entry.Node = null;
                     node = next;
-
                     continue;
                 }
 
@@ -105,7 +98,6 @@ public sealed class TimerWheelService
                 {
                     entry.RemainingRounds--;
                     node = next;
-
                     continue;
                 }
 
@@ -114,18 +106,14 @@ public sealed class TimerWheelService
                 dueEntries.Add(entry);
 
                 if (!entry.Repeat)
-                {
                     RemoveFromIndexes(entry);
-                }
 
                 node = next;
             }
         }
 
         foreach (var entry in dueEntries)
-        {
-            _ = ExecuteEntryAsync(entry);
-        }
+            ExecuteEntry(entry);
     }
 
     public string RegisterTimer(
@@ -136,54 +124,24 @@ public sealed class TimerWheelService
         bool repeat = false
     )
     {
-        ArgumentNullException.ThrowIfNull(callback);
-
-        return RegisterTimer(
-            name,
-            interval,
-            _ =>
-            {
-                callback();
-
-                return ValueTask.CompletedTask;
-            },
-            delay,
-            repeat
-        );
-    }
-
-    public string RegisterTimer(
-        string name,
-        TimeSpan interval,
-        Func<CancellationToken, ValueTask> callback,
-        TimeSpan? delay = null,
-        bool repeat = false
-    )
-    {
         if (string.IsNullOrWhiteSpace(name))
-        {
             throw new ArgumentException("Timer name cannot be empty.", nameof(name));
-        }
 
         if (interval <= TimeSpan.Zero)
-        {
             throw new ArgumentOutOfRangeException(nameof(interval), "Interval must be positive.");
-        }
 
         ArgumentNullException.ThrowIfNull(callback);
 
         var dueTime = delay ?? interval;
 
         if (dueTime <= TimeSpan.Zero)
-        {
             throw new ArgumentOutOfRangeException(nameof(delay), "Delay must be positive.");
-        }
 
         var entry = new TimerEntry
         {
             Id = Guid.NewGuid().ToString("N"),
             Name = name,
-            CallbackAsync = callback,
+            Callback = callback,
             Interval = interval,
             Repeat = repeat
         };
@@ -200,7 +158,6 @@ public sealed class TimerWheelService
             }
 
             ids.Add(entry.Id);
-
             ScheduleEntry(entry, dueTime);
         }
 
@@ -215,18 +172,14 @@ public sealed class TimerWheelService
             _timerIdsByName.Clear();
 
             foreach (var bucket in _wheel)
-            {
                 bucket.Clear();
-            }
         }
     }
 
     public bool UnregisterTimer(string timerId)
     {
         if (string.IsNullOrWhiteSpace(timerId))
-        {
             return false;
-        }
 
         lock (_syncRoot)
         {
@@ -237,16 +190,12 @@ public sealed class TimerWheelService
     public int UnregisterTimersByName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-        {
             return 0;
-        }
 
         lock (_syncRoot)
         {
             if (!_timerIdsByName.TryGetValue(name, out var ids) || ids.Count == 0)
-            {
                 return 0;
-            }
 
             var timerIds = ids.ToArray();
             var removed = 0;
@@ -254,33 +203,15 @@ public sealed class TimerWheelService
             foreach (var timerId in timerIds)
             {
                 if (RemoveEntryById(timerId))
-                {
                     removed++;
-                }
             }
 
             return removed;
         }
     }
 
-    private async Task ExecuteEntryAsync(TimerEntry entry)
+    private void ExecuteEntry(TimerEntry entry)
     {
-        if (Interlocked.Exchange(ref entry.IsExecuting, 1) != 0)
-        {
-            if (entry.Repeat)
-            {
-                lock (_syncRoot)
-                {
-                    if (!entry.Cancelled && _timersById.ContainsKey(entry.Id))
-                    {
-                        ScheduleEntry(entry, entry.Interval);
-                    }
-                }
-            }
-
-            return;
-        }
-
         var startedAt = Stopwatch.GetTimestamp();
 
         try
@@ -291,7 +222,8 @@ public sealed class TimerWheelService
                 entry.Id,
                 entry.Repeat
             );
-            await entry.CallbackAsync(CancellationToken.None);
+
+            entry.Callback();
             Interlocked.Increment(ref _totalExecutedCallbacks);
             Interlocked.Add(ref _totalCallbackElapsedTicks, Stopwatch.GetTimestamp() - startedAt);
         }
@@ -300,31 +232,21 @@ public sealed class TimerWheelService
             Interlocked.Increment(ref _callbackErrors);
             _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
         }
-        finally
-        {
-            Volatile.Write(ref entry.IsExecuting, 0);
-        }
 
         if (!entry.Repeat)
-        {
             return;
-        }
 
         lock (_syncRoot)
         {
             if (!entry.Cancelled && _timersById.ContainsKey(entry.Id))
-            {
                 ScheduleEntry(entry, entry.Interval);
-            }
         }
     }
 
     private bool RemoveEntryById(string timerId)
     {
         if (!_timersById.TryGetValue(timerId, out var entry))
-        {
             return false;
-        }
 
         entry.Cancelled = true;
 
@@ -344,16 +266,12 @@ public sealed class TimerWheelService
         _timersById.Remove(entry.Id);
 
         if (!_timerIdsByName.TryGetValue(entry.Name, out var ids))
-        {
             return;
-        }
 
         ids.Remove(entry.Id);
 
         if (ids.Count == 0)
-        {
             _timerIdsByName.Remove(entry.Name);
-        }
     }
 
     private void ScheduleEntry(TimerEntry entry, TimeSpan dueTime)
@@ -366,14 +284,12 @@ public sealed class TimerWheelService
         entry.SlotIndex = slotIndex;
         entry.RemainingRounds = rounds;
         entry.Cancelled = false;
-
         entry.Node = _wheel[slotIndex].AddLast(entry);
     }
 
     private long ToWheelTicks(TimeSpan dueTime)
     {
         var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
-
         return Math.Max(1, ticks);
     }
 }

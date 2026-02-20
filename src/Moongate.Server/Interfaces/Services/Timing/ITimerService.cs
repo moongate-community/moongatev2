@@ -11,7 +11,7 @@ public interface ITimerService
     void ProcessTick();
 
     /// <summary>
-    /// Registers a timer.
+    /// Registers a synchronous timer callback.
     /// </summary>
     /// <param name="name">Logical timer name.</param>
     /// <param name="interval">Interval used as due-time for one-shot or period for repeating timers.</param>
@@ -28,23 +28,6 @@ public interface ITimerService
     );
 
     /// <summary>
-    /// Registers an asynchronous timer callback.
-    /// </summary>
-    /// <param name="name">Logical timer name.</param>
-    /// <param name="interval">Interval used as due-time for one-shot or period for repeating timers.</param>
-    /// <param name="callback">Asynchronous callback executed when timer expires.</param>
-    /// <param name="delay">Optional initial delay. If null, <paramref name="interval" /> is used.</param>
-    /// <param name="repeat">Whether the timer repeats.</param>
-    /// <returns>Unique timer identifier.</returns>
-    string RegisterTimer(
-        string name,
-        TimeSpan interval,
-        Func<CancellationToken, ValueTask> callback,
-        TimeSpan? delay = null,
-        bool repeat = false
-    );
-
-    /// <summary>
     /// Removes all registered timers.
     /// </summary>
     void UnregisterAllTimers();
@@ -52,14 +35,10 @@ public interface ITimerService
     /// <summary>
     /// Removes a timer by id.
     /// </summary>
-    /// <param name="timerId">Timer id.</param>
-    /// <returns><c>true</c> when removed; otherwise <c>false</c>.</returns>
     bool UnregisterTimer(string timerId);
 
     /// <summary>
     /// Removes all timers sharing the provided name.
     /// </summary>
-    /// <param name="name">Timer name.</param>
-    /// <returns>Number of removed timers.</returns>
     int UnregisterTimersByName(string name);
 }
