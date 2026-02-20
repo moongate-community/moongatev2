@@ -4,6 +4,20 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.6.0"></a>
+## [0.6.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.6.0) (2026-02-20)
+
+### Features
+
+* **events,uo:** add outbound listener base and runtime equipment references ([2f4c147](https://www.github.com/moongate-community/moongatev2/commit/2f4c14740c3c433f3e2989cf5791ae3a08733875))
+* **network:** add ping packet handling and movement/general info packets ([ceb67e8](https://www.github.com/moongate-community/moongatev2/commit/ceb67e83846940c1fd730fc726c8da16c7258bfd))
+* **network-packets:** add after-login outgoing packet serialization ([63f75f4](https://www.github.com/moongate-community/moongatev2/commit/63f75f4cabac81067be1612e98bbf9f5320cefc6))
+* **server:** implement login character packet flow ([0407571](https://www.github.com/moongate-community/moongatev2/commit/04075715e92256f386c01c7cdeecd2c9a047cee6))
+
+### Bug Fixes
+
+* **logging:** avoid timestamp highlighting collisions in console sink ([c261c89](https://www.github.com/moongate-community/moongatev2/commit/c261c89a330928677b09739159d17d33cce50cb4))
+
 <a name="0.5.0"></a>
 ## [0.5.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.5.0) (2026-02-19)
 
