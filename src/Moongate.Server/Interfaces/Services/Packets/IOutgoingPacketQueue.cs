@@ -16,9 +16,16 @@ public interface IOutgoingPacketQueue
     void Enqueue(long sessionId, IGameNetworkPacket packet);
 
     /// <summary>
-    /// Attempts to dequeue the next outbound packet.
+    /// Attempts to dequeue the next outbound packet without blocking.
     /// </summary>
     /// <param name="gamePacket">Dequeued outbound packet.</param>
     /// <returns><c>true</c> if an item was dequeued; otherwise <c>false</c>.</returns>
     bool TryDequeue(out OutgoingGamePacket gamePacket);
+
+    /// <summary>
+    /// Asynchronously waits until data is available or the token is cancelled.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><c>true</c> if data is available; <c>false</c> if the channel is closed.</returns>
+    Task<bool> WaitToReadAsync(CancellationToken cancellationToken);
 }
