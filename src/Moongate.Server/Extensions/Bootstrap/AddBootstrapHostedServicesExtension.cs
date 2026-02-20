@@ -8,6 +8,7 @@ using Moongate.Server.Interfaces.Services.Files;
 using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Network;
+using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.Server.Services.Console;
 using Moongate.Server.Services.Events;
@@ -15,6 +16,7 @@ using Moongate.Server.Services.Files;
 using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Metrics;
 using Moongate.Server.Services.Network;
+using Moongate.Server.Services.Packets;
 using Moongate.Server.Services.Persistence;
 
 namespace Moongate.Server.Extensions.Bootstrap;
@@ -32,6 +34,7 @@ public static class AddBootstrapHostedServicesExtension
         container.RegisterMoongateService<IPersistenceService, PersistenceService>(110);
         container.RegisterMoongateService<IFileLoaderService, FileLoaderService>(120);
         container.RegisterMoongateService<IGameLoopService, GameLoopService>(130);
+        container.RegisterMoongateService<IPacketSenderService, PacketSenderService>(131);
         container.RegisterMoongateService<ICommandSystemService, CommandSystemService>(131);
         container.RegisterMoongateService<IConsoleCommandService, ConsoleCommandService>(132);
         container.RegisterMoongateService<IMetricsCollectionService, MetricsCollectionService>(135);
