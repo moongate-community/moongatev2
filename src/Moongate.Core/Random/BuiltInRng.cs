@@ -1,30 +1,31 @@
 using System.Runtime.CompilerServices;
+using ShaiRandom.Generators;
 
 namespace Moongate.Core.Random;
 
 public static class BuiltInRng
 {
-    public static System.Random Generator { get; private set; } = new();
+    public static IEnhancedRandom Generator { get; private set; } = new MizuchiRandom();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next()
-        => Generator.Next();
+        => Generator.NextInt();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int maxValue)
-        => Generator.Next(maxValue);
+        => Generator.NextInt(maxValue);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int minValue, int count)
-        => minValue + Generator.Next(count);
+        => minValue + Generator.NextInt(count);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Next(long maxValue)
-        => Generator.NextInt64(maxValue);
+        => Generator.NextLong(maxValue);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long Next(long minValue, long count)
-        => minValue + Generator.NextInt64(count);
+        => minValue + Generator.NextLong(count);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void NextBytes(Span<byte> buffer)
@@ -36,8 +37,8 @@ public static class BuiltInRng
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long NextLong()
-        => Generator.NextInt64();
+        => Generator.NextLong();
 
     public static void Reset()
-        => Generator = new();
+        => Generator = new MizuchiRandom();
 }

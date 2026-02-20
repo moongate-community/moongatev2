@@ -17,6 +17,8 @@ using Moongate.Server.Services.Messaging;
 using Moongate.Server.Services.Packets;
 using Moongate.Server.Services.Sessions;
 using Moongate.Server.Services.Timing;
+using Moongate.UO.Data.Interfaces.Templates;
+using Moongate.UO.Data.Services.Templates;
 
 namespace Moongate.Server.Extensions.Bootstrap;
 
@@ -40,6 +42,8 @@ public static class AddBootstrapCoreServicesExtension
         container.Register<ITimerService, TimerWheelService>(Reuse.Singleton);
         container.Register<IAccountService, AccountService>(Reuse.Singleton);
         container.Register<ICharacterService, CharacterService>(Reuse.Singleton);
+        container.Register<IItemTemplateService, ItemTemplateService>(Reuse.Singleton);
+        container.Register<IMobileTemplateService, MobileTemplateService>(Reuse.Singleton);
 
         return container;
     }
