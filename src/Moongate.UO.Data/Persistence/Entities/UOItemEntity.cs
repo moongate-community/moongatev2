@@ -18,6 +18,8 @@ public class UOItemEntity : IItemEntity
 
     public int ItemId { get; set; }
 
+    public int Hue { get; set; }
+
     public int? GumpId { get; set; }
 
     /// <summary>

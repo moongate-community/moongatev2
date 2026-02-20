@@ -34,6 +34,7 @@ The project is actively in development and already includes:
 - Attribute-based packet mapping (`[PacketHandler(...)]`) with source generation.
 - Inbound message bus (`IMessageBusService`) for network thread -> game-loop crossing.
 - Domain event bus (`IGameEventBusService`) with initial events (`PlayerConnectedEvent`, `PlayerDisconnectedEvent`).
+- Outbound event listener abstraction (`IOutboundEventListener<TEvent>`) for domain-event -> network side effects.
 - Session split between transport (`GameNetworkSession`) and gameplay/protocol context (`GameSession`).
 - Unit tests for core server behaviors and packet infrastructure.
 - Lua scripting runtime with module/function binding and `.luarc` generation support.
@@ -88,6 +89,16 @@ Query support:
 - `src/Moongate.Server.Http`: embedded ASP.NET Core host service used by the server bootstrap.
 - `tests/Moongate.Tests`: unit tests.
 - `docs/`: Obsidian knowledge base (plans, sprints, protocol notes, journal).
+
+## Event And Packet Separation
+
+Moongate uses a strict separation between inbound protocol parsing and outbound event projections:
+
+- `IPacketListener` handles inbound packets only (`Client -> Server`) and applies domain use-cases.
+- Domain services publish `IGameEvent` messages through `IGameEventBusService`.
+- `IOutboundEventListener<TEvent>` handles outbound side-effects from domain events (for example enqueueing packets).
+- `RegisterOutboundEventListener<TEvent, TListener>()` is the bootstrap helper to register outbound listeners as hosted services with priority.
+- `IOutgoingPacketQueue` and `IOutboundPacketSender` deliver outbound packets on the game-loop/network boundary.
 
 ## Requirements
 

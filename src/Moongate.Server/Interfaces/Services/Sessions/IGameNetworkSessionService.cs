@@ -19,6 +19,12 @@ public interface IGameNetworkSessionService
     void Clear();
 
     /// <summary>
+    /// Gets a snapshot of all active sessions.
+    /// </summary>
+    /// <returns>Read-only active session collection.</returns>
+    IReadOnlyCollection<GameSession> GetAll();
+
+    /// <summary>
     /// Gets an existing session or creates one for the specified client.
     /// </summary>
     /// <param name="client">Client connection.</param>

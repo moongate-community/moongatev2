@@ -62,6 +62,26 @@ public sealed partial class MobileSnapshot
 
     public int MaxStamina { get; set; }
 
+    public int Level { get; set; }
+
+    public long Experience { get; set; }
+
+    public int SkillPoints { get; set; }
+
+    public int StatPoints { get; set; }
+
+    public int FireResistance { get; set; }
+
+    public int ColdResistance { get; set; }
+
+    public int PoisonResistance { get; set; }
+
+    public int EnergyResistance { get; set; }
+
+    public int Luck { get; set; }
+
+    public int? BaseBodyId { get; set; }
+
     public uint BackpackId { get; set; }
 
     public byte[] EquippedLayers { get; set; } = [];
@@ -74,9 +94,19 @@ public sealed partial class MobileSnapshot
 
     public bool IsFrozen { get; set; }
 
+    public bool IsParalyzed { get; set; }
+
+    public bool IsFlying { get; set; }
+
+    public bool IgnoreMobiles { get; set; }
+
     public bool IsPoisoned { get; set; }
 
     public bool IsBlessed { get; set; }
+
+    public bool IsInvulnerable { get; set; }
+
+    public bool IsMounted { get; set; }
 
     public byte Notoriety { get; set; }
 
