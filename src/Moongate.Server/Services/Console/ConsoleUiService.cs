@@ -216,7 +216,7 @@ public sealed class ConsoleUiService : IConsoleUiService
         => level switch
         {
             LogEventLevel.Verbose     => new(Color.Grey),
-            LogEventLevel.Debug       => new(Color.Silver),
+            LogEventLevel.Debug       => new(Color.Grey),
             LogEventLevel.Information => new(Color.White),
             LogEventLevel.Warning     => new(Color.Yellow),
             LogEventLevel.Error       => new(Color.Red),

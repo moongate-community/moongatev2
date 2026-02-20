@@ -56,6 +56,7 @@ public class MoongateUOJsonSerializationContextTests
             {
                 Assert.That(containers, Is.Not.Null);
                 Assert.That(containers.Length, Is.GreaterThan(0));
+                Assert.That(containers.All(static container => !string.IsNullOrWhiteSpace(container.Id)), Is.True);
                 Assert.That(names, Is.Not.Null);
                 Assert.That(names.Length, Is.GreaterThan(0));
                 Assert.That(regions, Is.Not.Null);

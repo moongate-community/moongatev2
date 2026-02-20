@@ -6,6 +6,8 @@ namespace Moongate.UO.Data.Templates.Items;
 
 public class ItemTemplateDefinition : ItemTemplateDefinitionBase
 {
+    public string? ContainerLayoutId { get; set; }
+
     public List<string> Container { get; set; } = [];
 
     public string Description { get; set; }

@@ -15,6 +15,11 @@ public class ContainerLayoutSystem
     public static readonly Dictionary<int, ContainerSize> ContainerSizes = new();
 
     /// <summary>
+    /// Container size definitions by stable profile id.
+    /// </summary>
+    public static readonly Dictionary<string, ContainerSize> ContainerSizesById = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// Enhanced version of your original function with intelligent positioning
     /// </summary>
     public static void AddContainerItems(
@@ -116,7 +121,7 @@ public class ContainerLayoutSystem
         }
 
         /// Default to standard backpack size if unknown
-        return new(7, 4, "Unknown Container");
+        return new("unknown", 7, 4, "Unknown Container");
     }
 
     /// <summary>
