@@ -2,15 +2,66 @@ using Moongate.Network.Packets.Attributes;
 using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
+using Moongate.UO.Data.Types;
 
 namespace Moongate.Network.Packets.Incoming.System;
 
 [PacketHandler(0xBF, PacketSizing.Variable, Description = "General Information Packet")]
 public class GeneralInformationPacket : BaseGameNetworkPacket
 {
+    public GeneralInformationSubcommandType SubcommandType { get; set; }
+
+    public ReadOnlyMemory<byte> SubcommandData { get; set; } = ReadOnlyMemory<byte>.Empty;
+
     public GeneralInformationPacket()
         : base(0xBF) { }
 
+    public GeneralInformationPacket(GeneralInformationSubcommandType subcommandType, ReadOnlyMemory<byte> subcommandData)
+        : this()
+    {
+        SubcommandType = subcommandType;
+        SubcommandData = subcommandData;
+    }
+
+    public static GeneralInformationPacket CreateSetCursorHueSetMap(byte mapId)
+        => new(GeneralInformationSubcommandType.SetCursorHueSetMap, new byte[] { mapId });
+
+    public override void Write(ref SpanWriter writer)
+    {
+        writer.Write(OpCode);
+        writer.Write((ushort)(5 + SubcommandData.Length));
+        writer.Write((ushort)SubcommandType);
+
+        if (!SubcommandData.IsEmpty)
+        {
+            writer.Write(SubcommandData.Span);
+        }
+    }
+
     protected override bool ParsePayload(ref SpanReader reader)
-        => true;
+    {
+        if (reader.Remaining < 4)
+        {
+            return false;
+        }
+
+        var length = reader.ReadUInt16();
+
+        if (length < 5)
+        {
+            return false;
+        }
+
+        SubcommandType = (GeneralInformationSubcommandType)reader.ReadUInt16();
+        var dataLength = length - 5;
+
+        if (dataLength > reader.Remaining)
+        {
+            return false;
+        }
+
+        SubcommandData = dataLength == 0 ? ReadOnlyMemory<byte>.Empty : reader.ReadBytes(dataLength);
+
+        return true;
+    }
 }
