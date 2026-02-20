@@ -67,6 +67,38 @@ public sealed class AccountRepository : IAccountRepository
         return inserted;
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Account count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.AccountsById.Count;
+            _logger.Verbose("Account count completed Count={Count}", count);
+
+            return ValueTask.FromResult(count);
+        }
+    }
+
+    public ValueTask<bool> ExistsAsync(
+        Func<UOAccountEntity, bool> predicate,
+        CancellationToken cancellationToken = default
+    )
+    {
+        _logger.Verbose("Account exists query requested");
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        lock (_stateStore.SyncRoot)
+        {
+            var exists = _stateStore.AccountsById.Values.AsValueEnumerable().Any(predicate);
+            _logger.Verbose("Account exists query completed Exists={Exists}", exists);
+
+            return ValueTask.FromResult(exists);
+        }
+    }
+
     public ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Account get-all requested");
@@ -79,19 +111,6 @@ public sealed class AccountRepository : IAccountRepository
                     .. _stateStore.AccountsById.Values.Select(Clone)
                 ]
             );
-        }
-    }
-
-    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.Verbose("Account count requested");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        lock (_stateStore.SyncRoot)
-        {
-            var count = _stateStore.AccountsById.Count;
-            _logger.Verbose("Account count completed Count={Count}", count);
-            return ValueTask.FromResult(count);
         }
     }
 
@@ -124,21 +143,28 @@ public sealed class AccountRepository : IAccountRepository
         }
     }
 
-    public ValueTask<bool> ExistsAsync(
+    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
         Func<UOAccountEntity, bool> predicate,
+        Func<UOAccountEntity, TResult> selector,
         CancellationToken cancellationToken = default
     )
     {
-        _logger.Verbose("Account exists query requested");
+        _logger.Verbose("Account query requested");
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        UOAccountEntity[] snapshot;
 
         lock (_stateStore.SyncRoot)
         {
-            var exists = _stateStore.AccountsById.Values.AsValueEnumerable().Any(predicate);
-            _logger.Verbose("Account exists query completed Exists={Exists}", exists);
-            return ValueTask.FromResult(exists);
+            snapshot = [.. _stateStore.AccountsById.Values.Select(Clone)];
         }
+
+        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Account query completed with Count={Count}", results.Length);
+
+        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
@@ -193,29 +219,6 @@ public sealed class AccountRepository : IAccountRepository
 
         await _journalService.AppendAsync(entry, cancellationToken);
         _logger.Verbose("Account upsert completed for Id={AccountId} Username={Username}", account.Id, normalizedUsername);
-    }
-
-    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
-        Func<UOAccountEntity, bool> predicate,
-        Func<UOAccountEntity, TResult> selector,
-        CancellationToken cancellationToken = default
-    )
-    {
-        _logger.Verbose("Account query requested");
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(selector);
-
-        UOAccountEntity[] snapshot;
-
-        lock (_stateStore.SyncRoot)
-        {
-            snapshot = [.. _stateStore.AccountsById.Values.Select(Clone)];
-        }
-
-        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
-        _logger.Verbose("Account query completed with Count={Count}", results.Length);
-        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     private static UOAccountEntity Clone(UOAccountEntity account)

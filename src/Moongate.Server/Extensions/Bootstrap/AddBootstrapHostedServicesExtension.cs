@@ -1,5 +1,7 @@
 using DryIoc;
 using Moongate.Abstractions.Extensions;
+using Moongate.Scripting.Interfaces;
+using Moongate.Scripting.Services;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Files;
@@ -14,8 +16,6 @@ using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Metrics;
 using Moongate.Server.Services.Network;
 using Moongate.Server.Services.Persistence;
-using Moongate.Scripting.Interfaces;
-using Moongate.Scripting.Services;
 
 namespace Moongate.Server.Extensions.Bootstrap;
 

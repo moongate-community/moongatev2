@@ -14,14 +14,22 @@ public interface IAccountRepository
     ValueTask<bool> AddAsync(UOAccountEntity account, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns all persisted accounts.
-    /// </summary>
-    ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Returns the current number of persisted accounts.
     /// </summary>
     ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns true when at least one account matches the predicate.
+    /// </summary>
+    ValueTask<bool> ExistsAsync(
+        Func<UOAccountEntity, bool> predicate,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns all persisted accounts.
+    /// </summary>
+    ValueTask<IReadOnlyCollection<UOAccountEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets an account by its serial identifier.
@@ -34,10 +42,11 @@ public interface IAccountRepository
     ValueTask<UOAccountEntity?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns true when at least one account matches the predicate.
+    /// Runs a projection query over account entities.
     /// </summary>
-    ValueTask<bool> ExistsAsync(
+    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
         Func<UOAccountEntity, bool> predicate,
+        Func<UOAccountEntity, TResult> selector,
         CancellationToken cancellationToken = default
     );
 
@@ -50,13 +59,4 @@ public interface IAccountRepository
     /// Inserts or updates an account.
     /// </summary>
     ValueTask UpsertAsync(UOAccountEntity account, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Runs a projection query over account entities.
-    /// </summary>
-    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
-        Func<UOAccountEntity, bool> predicate,
-        Func<UOAccountEntity, TResult> selector,
-        CancellationToken cancellationToken = default
-    );
 }

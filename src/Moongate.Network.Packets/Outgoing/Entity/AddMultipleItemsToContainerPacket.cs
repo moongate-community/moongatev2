@@ -27,7 +27,7 @@ public class AddMultipleItemsToContainerPacket : BaseGameNetworkPacket
 
         var items = Container.Items;
         var totalItems = items.Count;
-        var length = 5 + (totalItems * 20);
+        var length = 5 + totalItems * 20;
 
         writer.Write(OpCode);
         writer.Write((ushort)length);

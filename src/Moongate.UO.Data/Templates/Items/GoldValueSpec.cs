@@ -21,15 +21,15 @@ public readonly record struct GoldValueSpec
 
     public bool IsDiceExpression => DiceExpression is not null;
 
-    public static GoldValueSpec FromValue(int value)
-        => new(value, null);
-
     public static GoldValueSpec FromDiceExpression(string expression)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expression);
 
         return new(0, expression);
     }
+
+    public static GoldValueSpec FromValue(int value)
+        => new(value, null);
 
     public int Resolve(IEnhancedRandom? rng = null)
     {

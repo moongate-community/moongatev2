@@ -130,6 +130,7 @@ internal static class SnapshotMapper
         };
 
         var length = Math.Min(snapshot.EquippedLayers.Length, snapshot.EquippedItemIds.Length);
+
         for (var i = 0; i < length; i++)
         {
             entity.EquippedItemIds[(ItemLayerType)snapshot.EquippedLayers[i]] = (Serial)snapshot.EquippedItemIds[i];

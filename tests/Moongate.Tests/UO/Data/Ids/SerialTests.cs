@@ -20,6 +20,14 @@ public class SerialTests
     }
 
     [Test]
+    public void IsItem_WhenValueIsMaxItemSerial_ShouldBeTrue()
+    {
+        var serial = new Serial(Serial.MaxItemSerial);
+
+        Assert.That(serial.IsItem, Is.True);
+    }
+
+    [Test]
     public void Operators_ShouldSupportArithmeticAndComparison()
     {
         var left = new Serial(10);
@@ -57,14 +65,6 @@ public class SerialTests
         Assert.That(serial.Value, Is.EqualTo(0x40000001));
         Assert.That(serial.IsItem, Is.True);
         Assert.That(serial.IsMobile, Is.False);
-    }
-
-    [Test]
-    public void IsItem_WhenValueIsMaxItemSerial_ShouldBeTrue()
-    {
-        var serial = new Serial(Serial.MaxItemSerial);
-
-        Assert.That(serial.IsItem, Is.True);
     }
 
     [Test]

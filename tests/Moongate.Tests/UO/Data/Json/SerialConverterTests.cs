@@ -15,7 +15,7 @@ public class SerialConverterTests
         reader.Read();
         var converter = new SerialConverter();
 
-        var serial = converter.Read(ref reader, typeof(Serial), new JsonSerializerOptions());
+        var serial = converter.Read(ref reader, typeof(Serial), new());
 
         Assert.That(serial.Value, Is.EqualTo(uint.MaxValue));
     }

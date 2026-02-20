@@ -23,7 +23,9 @@ public class DrawContainerAndAddItemCombinedPacket : BaseGameNetworkPacket
     {
         if (Container is null)
         {
-            throw new InvalidOperationException("Container must be set before writing DrawContainerAndAddItemCombinedPacket.");
+            throw new InvalidOperationException(
+                "Container must be set before writing DrawContainerAndAddItemCombinedPacket."
+            );
         }
 
         var drawContainer = new DrawContainerPacket(Container);

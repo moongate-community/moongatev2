@@ -8,6 +8,20 @@ namespace Moongate.Tests.Server;
 public class CommandSystemServiceTests
 {
     [Test]
+    public async Task HandleAsync_WhenExitCommandEntered_ShouldRequestShutdown()
+    {
+        var gameEventBusService = new GameEventBusService();
+        var consoleUiService = new CommandSystemTestConsoleUiService();
+        var serverLifetimeService = new CommandSystemTestServerLifetimeService();
+        var service = new CommandSystemService(consoleUiService, gameEventBusService, serverLifetimeService);
+        await service.StartAsync();
+
+        await gameEventBusService.PublishAsync(new CommandEnteredEvent("exit", 1));
+
+        Assert.That(serverLifetimeService.IsShutdownRequested, Is.True);
+    }
+
+    [Test]
     public async Task HandleAsync_WhenHelpCommandEntered_ShouldPrintCommandList()
     {
         var gameEventBusService = new GameEventBusService();
@@ -21,21 +35,6 @@ public class CommandSystemServiceTests
         Assert.That(consoleUiService.Lines.Count, Is.GreaterThan(0));
         Assert.That(consoleUiService.Lines[^1].Message, Does.Contain("Available commands:"));
         Assert.That(consoleUiService.Lines[^1].Message, Does.Contain("exit"));
-    }
-
-    [Test]
-    public async Task HandleAsync_WhenQuestionMarkAliasEntered_ShouldPrintCommandList()
-    {
-        var gameEventBusService = new GameEventBusService();
-        var consoleUiService = new CommandSystemTestConsoleUiService();
-        var serverLifetimeService = new CommandSystemTestServerLifetimeService();
-        var service = new CommandSystemService(consoleUiService, gameEventBusService, serverLifetimeService);
-        await service.StartAsync();
-
-        await gameEventBusService.PublishAsync(new CommandEnteredEvent("?", 1));
-
-        Assert.That(consoleUiService.Lines.Count, Is.GreaterThan(0));
-        Assert.That(consoleUiService.Lines[^1].Message, Does.Contain("Available commands:"));
     }
 
     [Test]
@@ -54,7 +53,7 @@ public class CommandSystemServiceTests
     }
 
     [Test]
-    public async Task HandleAsync_WhenExitCommandEntered_ShouldRequestShutdown()
+    public async Task HandleAsync_WhenQuestionMarkAliasEntered_ShouldPrintCommandList()
     {
         var gameEventBusService = new GameEventBusService();
         var consoleUiService = new CommandSystemTestConsoleUiService();
@@ -62,9 +61,10 @@ public class CommandSystemServiceTests
         var service = new CommandSystemService(consoleUiService, gameEventBusService, serverLifetimeService);
         await service.StartAsync();
 
-        await gameEventBusService.PublishAsync(new CommandEnteredEvent("exit", 1));
+        await gameEventBusService.PublishAsync(new CommandEnteredEvent("?", 1));
 
-        Assert.That(serverLifetimeService.IsShutdownRequested, Is.True);
+        Assert.That(consoleUiService.Lines.Count, Is.GreaterThan(0));
+        Assert.That(consoleUiService.Lines[^1].Message, Does.Contain("Available commands:"));
     }
 
     [Test]

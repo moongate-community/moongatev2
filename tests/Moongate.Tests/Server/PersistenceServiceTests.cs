@@ -6,53 +6,50 @@ using Moongate.Server.Services.Persistence;
 using Moongate.Server.Services.Timing;
 using Moongate.Tests.TestSupport;
 using Moongate.UO.Data.Ids;
-using Moongate.UO.Data.Persistence.Entities;
 
 namespace Moongate.Tests.Server;
 
 public class PersistenceServiceTests
 {
-    [Test]
-    public async Task StartAsync_AndStopAsync_ShouldPersistDataAcrossRestart()
+    private sealed class TimerServiceSpy : ITimerService
     {
-        using var temp = new TempDirectory();
-        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+        public TimeSpan? LastInterval { get; private set; }
 
-        var first = CreatePersistenceService(directories);
-        await first.StartAsync();
+        public void ProcessTick() { }
 
-        await first.UnitOfWork.Accounts.UpsertAsync(
-            new UOAccountEntity
-            {
-                Id = (Serial)0x00000033,
-                Username = "persist-user",
-                PasswordHash = "pw"
-            }
-        );
+        public string RegisterTimer(
+            string name,
+            TimeSpan interval,
+            Action callback,
+            TimeSpan? delay = null,
+            bool repeat = false
+        )
+        {
+            LastInterval = interval;
 
-        await first.StopAsync();
+            return "timer-spy";
+        }
 
-        var second = CreatePersistenceService(directories);
-        await second.StartAsync();
+        public string RegisterTimer(
+            string name,
+            TimeSpan interval,
+            Func<CancellationToken, ValueTask> callback,
+            TimeSpan? delay = null,
+            bool repeat = false
+        )
+        {
+            LastInterval = interval;
 
-        var loaded = await second.UnitOfWork.Accounts.GetByUsernameAsync("persist-user");
+            return "timer-spy";
+        }
 
-        Assert.That(loaded, Is.Not.Null);
-        Assert.That(loaded!.Id, Is.EqualTo((Serial)0x00000033));
-    }
+        public void UnregisterAllTimers() { }
 
-    [Test]
-    public async Task SaveAsync_ShouldWriteSnapshotFileInSaveDirectory()
-    {
-        using var temp = new TempDirectory();
-        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
-        var service = CreatePersistenceService(directories);
+        public bool UnregisterTimer(string timerId)
+            => true;
 
-        await service.StartAsync();
-        await service.SaveAsync();
-
-        var snapshotPath = Path.Combine(directories[DirectoryType.Save], "world.snapshot.bin");
-        Assert.That(File.Exists(snapshotPath), Is.True);
+        public int UnregisterTimersByName(string name)
+            => 0;
     }
 
     [Test]
@@ -78,6 +75,49 @@ public class PersistenceServiceTests
     }
 
     [Test]
+    public async Task SaveAsync_ShouldWriteSnapshotFileInSaveDirectory()
+    {
+        using var temp = new TempDirectory();
+        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+        var service = CreatePersistenceService(directories);
+
+        await service.StartAsync();
+        await service.SaveAsync();
+
+        var snapshotPath = Path.Combine(directories[DirectoryType.Save], "world.snapshot.bin");
+        Assert.That(File.Exists(snapshotPath), Is.True);
+    }
+
+    [Test]
+    public async Task StartAsync_AndStopAsync_ShouldPersistDataAcrossRestart()
+    {
+        using var temp = new TempDirectory();
+        var directories = new DirectoriesConfig(temp.Path, Enum.GetNames<DirectoryType>());
+
+        var first = CreatePersistenceService(directories);
+        await first.StartAsync();
+
+        await first.UnitOfWork.Accounts.UpsertAsync(
+            new()
+            {
+                Id = (Serial)0x00000033,
+                Username = "persist-user",
+                PasswordHash = "pw"
+            }
+        );
+
+        await first.StopAsync();
+
+        var second = CreatePersistenceService(directories);
+        await second.StartAsync();
+
+        var loaded = await second.UnitOfWork.Accounts.GetByUsernameAsync("persist-user");
+
+        Assert.That(loaded, Is.Not.Null);
+        Assert.That(loaded!.Id, Is.EqualTo((Serial)0x00000033));
+    }
+
+    [Test]
     public async Task StartAsync_ShouldUseConfiguredSaveInterval()
     {
         using var temp = new TempDirectory();
@@ -85,7 +125,7 @@ public class PersistenceServiceTests
         var timerSpy = new TimerServiceSpy();
         var config = new MoongateConfig
         {
-            Persistence = new MoongatePersistenceConfig
+            Persistence = new()
             {
                 SaveIntervalSeconds = 12
             }
@@ -101,53 +141,12 @@ public class PersistenceServiceTests
         => new(
             directoriesConfig,
             new TimerWheelService(
-                new TimerServiceConfig
+                new()
                 {
                     TickDuration = TimeSpan.FromMilliseconds(250),
                     WheelSize = 512
                 }
             ),
-            new MoongateConfig()
+            new()
         );
-
-    private sealed class TimerServiceSpy : ITimerService
-    {
-        public TimeSpan? LastInterval { get; private set; }
-
-        public void ProcessTick()
-        {
-        }
-
-        public string RegisterTimer(
-            string name,
-            TimeSpan interval,
-            Action callback,
-            TimeSpan? delay = null,
-            bool repeat = false
-        )
-        {
-            LastInterval = interval;
-            return "timer-spy";
-        }
-
-        public string RegisterTimer(
-            string name,
-            TimeSpan interval,
-            Func<CancellationToken, ValueTask> callback,
-            TimeSpan? delay = null,
-            bool repeat = false
-        )
-        {
-            LastInterval = interval;
-            return "timer-spy";
-        }
-
-        public void UnregisterAllTimers()
-        {
-        }
-
-        public bool UnregisterTimer(string timerId) => true;
-
-        public int UnregisterTimersByName(string name) => 0;
-    }
 }

@@ -1,6 +1,6 @@
+using Moongate.Scripting.Interfaces;
 using Moongate.Server.Data.Metrics;
 using Moongate.Server.Interfaces.Services.Metrics;
-using Moongate.Scripting.Interfaces;
 
 namespace Moongate.Server.Services.Metrics.Providers;
 
@@ -12,9 +12,7 @@ public sealed class ScriptEngineMetricsProvider : IMetricProvider
     private readonly IScriptEngineService _scriptEngineService;
 
     public ScriptEngineMetricsProvider(IScriptEngineService scriptEngineService)
-    {
-        _scriptEngineService = scriptEngineService;
-    }
+        => _scriptEngineService = scriptEngineService;
 
     public string ProviderName => "scripting";
 

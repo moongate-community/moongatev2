@@ -6,8 +6,10 @@ namespace Moongate.Tests.Server;
 public class MetricsProvidersTests
 {
     private static readonly string[] GameLoopMetricNames = ["ticks.total", "tick.duration.avg_ms", "uptime.ms"];
+
     private static readonly string[] NetworkMetricNames =
         ["sessions.active", "packets.parsed.total", "bytes.received.total", "parser.errors.total"];
+
     private static readonly string[] ScriptingMetricNames =
     [
         "execution.time_ms",
@@ -17,6 +19,7 @@ public class MetricsProvidersTests
         "cache.misses.total",
         "cache.entries.total"
     ];
+
     private static readonly string[] PersistenceMetricNames =
     [
         "snapshot.saves.total",
@@ -63,17 +66,6 @@ public class MetricsProvidersTests
     }
 
     [Test]
-    public async Task ScriptEngineMetricsProvider_ShouldExposeExpectedMetricNames()
-    {
-        var provider = new ScriptEngineMetricsProvider(new GameEventScriptBridgeTestScriptEngineService());
-
-        var samples = await provider.CollectAsync();
-        var names = samples.Select(sample => sample.Name).ToArray();
-
-        Assert.That(names, Is.EquivalentTo(ScriptingMetricNames));
-    }
-
-    [Test]
     public async Task PersistenceMetricsProvider_ShouldExposeExpectedMetricNames()
     {
         var provider = new PersistenceMetricsProvider(
@@ -90,5 +82,16 @@ public class MetricsProvidersTests
         var names = samples.Select(sample => sample.Name).ToArray();
 
         Assert.That(names, Is.EquivalentTo(PersistenceMetricNames));
+    }
+
+    [Test]
+    public async Task ScriptEngineMetricsProvider_ShouldExposeExpectedMetricNames()
+    {
+        var provider = new ScriptEngineMetricsProvider(new GameEventScriptBridgeTestScriptEngineService());
+
+        var samples = await provider.CollectAsync();
+        var names = samples.Select(sample => sample.Name).ToArray();
+
+        Assert.That(names, Is.EquivalentTo(ScriptingMetricNames));
     }
 }

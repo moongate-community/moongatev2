@@ -1,5 +1,6 @@
-namespace Moongate.Persistence.Interfaces.Persistence;
 using Moongate.UO.Data.Ids;
+
+namespace Moongate.Persistence.Interfaces.Persistence;
 
 /// <summary>
 /// Coordinates repositories and persistence lifecycle for world state.
@@ -22,6 +23,21 @@ public interface IPersistenceUnitOfWork
     IItemRepository Items { get; }
 
     /// <summary>
+    /// Allocates the next progressive account serial identifier.
+    /// </summary>
+    Serial AllocateNextAccountId();
+
+    /// <summary>
+    /// Allocates the next progressive item serial identifier.
+    /// </summary>
+    Serial AllocateNextItemId();
+
+    /// <summary>
+    /// Allocates the next progressive mobile serial identifier.
+    /// </summary>
+    Serial AllocateNextMobileId();
+
+    /// <summary>
     /// Loads state from snapshot and replays journal entries.
     /// </summary>
     ValueTask InitializeAsync(CancellationToken cancellationToken = default);
@@ -30,19 +46,4 @@ public interface IPersistenceUnitOfWork
     /// Writes a new snapshot and resets the journal.
     /// </summary>
     ValueTask SaveSnapshotAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Allocates the next progressive account serial identifier.
-    /// </summary>
-    Serial AllocateNextAccountId();
-
-    /// <summary>
-    /// Allocates the next progressive mobile serial identifier.
-    /// </summary>
-    Serial AllocateNextMobileId();
-
-    /// <summary>
-    /// Allocates the next progressive item serial identifier.
-    /// </summary>
-    Serial AllocateNextItemId();
 }

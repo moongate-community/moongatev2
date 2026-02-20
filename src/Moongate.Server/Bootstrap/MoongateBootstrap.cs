@@ -10,22 +10,22 @@ using Moongate.Core.Json;
 using Moongate.Core.Types;
 using Moongate.Scripting.Data.Config;
 using Moongate.Scripting.Extensions.Scripts;
+using Moongate.Scripting.Modules;
 using Moongate.Server.Bootstrap.Internal;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Http;
 using Moongate.Server.Http.Data;
 using Moongate.Server.Http.Interfaces;
+using Moongate.Server.Interfaces.Services.Accounting;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Files;
 using Moongate.Server.Interfaces.Services.Lifecycle;
 using Moongate.Server.Interfaces.Services.Metrics;
+using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.Server.Json;
 using Moongate.Server.Services.Console;
 using Moongate.Server.Services.Console.Internal.Logging;
-using Moongate.Scripting.Modules;
-using Moongate.Server.Interfaces.Services.Accounting;
-using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.UO.Data.Files;
 using Moongate.UO.Data.Types;
 using Moongate.UO.Data.Version;
@@ -91,6 +91,7 @@ public sealed class MoongateBootstrap : IDisposable
             }
 
             _logger.Verbose("Starting {ServiceTypeFullName}", serviceRegistration.ImplementationType.Name);
+
             try
             {
                 await instance.StartAsync();
@@ -129,28 +130,6 @@ public sealed class MoongateBootstrap : IDisposable
         }
 
         await StopAsync(runningServices);
-    }
-
-    private async Task CheckDefaultAdminAccount()
-    {
-        var persistenceService = _container.Resolve<IPersistenceService>();
-        var accountService = _container.Resolve<IAccountService>();
-
-        if (await persistenceService.UnitOfWork.Accounts.CountAsync() == 0)
-        {
-            var defaultAdminUsername = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_USERNAME") ?? "admin";
-            var defaultAdminPassword = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_PASSWORD") ?? "password";
-
-            await accountService.CreateAccountAsync(defaultAdminUsername, defaultAdminPassword, AccountType.Administrator);
-
-            _logger.Warning(
-                "No accounts found. Created default administrator account with username '{Username}' and password '{Password}'.",
-                defaultAdminUsername,
-                defaultAdminPassword
-            );
-        }
-
-        await persistenceService.SaveAsync();
     }
 
     private void CheckConfig()
@@ -202,6 +181,28 @@ public sealed class MoongateBootstrap : IDisposable
         }
     }
 
+    private async Task CheckDefaultAdminAccount()
+    {
+        var persistenceService = _container.Resolve<IPersistenceService>();
+        var accountService = _container.Resolve<IAccountService>();
+
+        if (await persistenceService.UnitOfWork.Accounts.CountAsync() == 0)
+        {
+            var defaultAdminUsername = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_USERNAME") ?? "admin";
+            var defaultAdminPassword = Environment.GetEnvironmentVariable("MOONGATE_ADMIN_PASSWORD") ?? "password";
+
+            await accountService.CreateAccountAsync(defaultAdminUsername, defaultAdminPassword, AccountType.Administrator);
+
+            _logger.Warning(
+                "No accounts found. Created default administrator account with username '{Username}' and password '{Password}'.",
+                defaultAdminUsername,
+                defaultAdminPassword
+            );
+        }
+
+        await persistenceService.SaveAsync();
+    }
+
     private void CheckDirectoryConfig()
     {
         if (string.IsNullOrWhiteSpace(_moongateConfig.RootDirectory))
@@ -232,6 +233,13 @@ public sealed class MoongateBootstrap : IDisposable
         UoFiles.RootDir = _moongateConfig.UODirectory.ResolvePathAndEnvs();
         UoFiles.ReLoadDirectory();
         _logger.Information("UO Directory configured in {UODirectory}", UoFiles.RootDir);
+    }
+
+    private MoongateHttpMetricsSnapshot? CreateHttpMetricsSnapshot()
+    {
+        var snapshotFactory = _container.Resolve<IMetricsHttpSnapshotFactory>();
+
+        return snapshotFactory.CreateSnapshot();
     }
 
     private void CreateLogger()
@@ -350,13 +358,6 @@ public sealed class MoongateBootstrap : IDisposable
     private void RegisterServices()
     {
         BootstrapServiceRegistration.Register(_container, _moongateConfig, _directoriesConfig, _consoleUiService);
-    }
-
-    private MoongateHttpMetricsSnapshot? CreateHttpMetricsSnapshot()
-    {
-        var snapshotFactory = _container.Resolve<IMetricsHttpSnapshotFactory>();
-
-        return snapshotFactory.CreateSnapshot();
     }
 
     private async Task StopAsync(List<IMoongateService> runningServices)

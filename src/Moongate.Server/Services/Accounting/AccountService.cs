@@ -15,8 +15,15 @@ public class AccountService : IAccountService
     private readonly IPersistenceService _persistenceService;
 
     public AccountService(IPersistenceService persistenceService)
+        => _persistenceService = persistenceService;
+
+    public async Task<bool> CheckAccountExistsAsync(string username)
     {
-        _persistenceService = persistenceService;
+        var exists = await _persistenceService.UnitOfWork.Accounts.ExistsAsync(a => a.Username == username);
+
+        _logger.Information("Checked existence of account with username {Username}: {Exists}", username, exists);
+
+        return exists;
     }
 
     public async Task CreateAccountAsync(string username, string password, AccountType accountType = AccountType.Regular)
@@ -56,13 +63,20 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<bool> CheckAccountExistsAsync(string username)
+    public async Task<UOAccountEntity?> GetAccountAsync(Serial accountId)
     {
-        var exists = await _persistenceService.UnitOfWork.Accounts.ExistsAsync(a => a.Username == username);
+        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
 
-        _logger.Information("Checked existence of account with username {Username}: {Exists}", username, exists);
+        if (account != null)
+        {
+            _logger.Information("Retrieved account with ID {AccountId}", accountId);
+        }
+        else
+        {
+            _logger.Warning("No account found with ID {AccountId}", accountId);
+        }
 
-        return exists;
+        return account;
     }
 
     public async Task<UOAccountEntity?> LoginAsync(string username, string password)
@@ -94,22 +108,6 @@ public class AccountService : IAccountService
         await _persistenceService.UnitOfWork.Accounts.UpsertAsync(account);
 
         _logger.Information("Successful login for account with username {Username}", username);
-
-        return account;
-    }
-
-    public async Task<UOAccountEntity?> GetAccountAsync(Serial accountId)
-    {
-        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
-
-        if (account != null)
-        {
-            _logger.Information("Retrieved account with ID {AccountId}", accountId);
-        }
-        else
-        {
-            _logger.Warning("No account found with ID {AccountId}", accountId);
-        }
 
         return account;
     }

@@ -8,6 +8,55 @@ namespace Moongate.Tests.Network.Packets;
 public class CharacterCreationPacketTests
 {
     [Test]
+    public void ToEntity_ShouldMapPacketIntoMobileEntity()
+    {
+        var payload = BuildPayload();
+        var packet = new CharacterCreationPacket();
+        _ = packet.TryParse(payload);
+
+        var mobile = packet.ToEntity((Serial)0x1001, (Serial)0x2001);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(mobile.Id, Is.EqualTo((Serial)0x1001));
+                Assert.That(mobile.AccountId, Is.EqualTo((Serial)0x2001));
+                Assert.That(mobile.Name, Is.EqualTo("TestCharacter"));
+                Assert.That(mobile.IsPlayer, Is.True);
+                Assert.That(mobile.IsAlive, Is.True);
+                Assert.That(mobile.Gender, Is.EqualTo(GenderType.Female));
+                Assert.That(mobile.RaceIndex, Is.EqualTo(1));
+                Assert.That(mobile.ProfessionId, Is.EqualTo(2));
+                Assert.That(mobile.SkinHue, Is.EqualTo(0x0455));
+                Assert.That(mobile.HairStyle, Is.EqualTo(0x0203));
+                Assert.That(mobile.HairHue, Is.EqualTo(0x0304));
+                Assert.That(mobile.FacialHairStyle, Is.EqualTo(0x0506));
+                Assert.That(mobile.FacialHairHue, Is.EqualTo(0x0708));
+                Assert.That(mobile.Strength, Is.EqualTo(60));
+                Assert.That(mobile.Dexterity, Is.EqualTo(50));
+                Assert.That(mobile.Intelligence, Is.EqualTo(40));
+                Assert.That(mobile.Hits, Is.EqualTo(60));
+                Assert.That(mobile.MaxHits, Is.EqualTo(60));
+                Assert.That(mobile.Stamina, Is.EqualTo(50));
+                Assert.That(mobile.MaxStamina, Is.EqualTo(50));
+                Assert.That(mobile.Mana, Is.EqualTo(40));
+                Assert.That(mobile.MaxMana, Is.EqualTo(40));
+            }
+        );
+    }
+
+    [Test]
+    public void TryParse_WithInvalidGenderRaceByte_ShouldReturnFalse()
+    {
+        var payload = BuildPayload(0xFF);
+        var packet = new CharacterCreationPacket();
+
+        var parsed = packet.TryParse(payload);
+
+        Assert.That(parsed, Is.False);
+    }
+
+    [Test]
     public void TryParse_WithValidPayload_ShouldPopulateFields()
     {
         var payload = BuildPayload();
@@ -42,55 +91,6 @@ public class CharacterCreationPacketTests
                 Assert.That(packet.Shirt.Hue, Is.EqualTo(0x0888));
                 Assert.That(packet.Pants.Style, Is.EqualTo(0));
                 Assert.That(packet.Pants.Hue, Is.EqualTo(0x0999));
-            }
-        );
-    }
-
-    [Test]
-    public void TryParse_WithInvalidGenderRaceByte_ShouldReturnFalse()
-    {
-        var payload = BuildPayload(genderAndRace: 0xFF);
-        var packet = new CharacterCreationPacket();
-
-        var parsed = packet.TryParse(payload);
-
-        Assert.That(parsed, Is.False);
-    }
-
-    [Test]
-    public void ToEntity_ShouldMapPacketIntoMobileEntity()
-    {
-        var payload = BuildPayload();
-        var packet = new CharacterCreationPacket();
-        _ = packet.TryParse(payload);
-
-        var mobile = packet.ToEntity((Serial)0x1001, (Serial)0x2001);
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(mobile.Id, Is.EqualTo((Serial)0x1001));
-                Assert.That(mobile.AccountId, Is.EqualTo((Serial)0x2001));
-                Assert.That(mobile.Name, Is.EqualTo("TestCharacter"));
-                Assert.That(mobile.IsPlayer, Is.True);
-                Assert.That(mobile.IsAlive, Is.True);
-                Assert.That(mobile.Gender, Is.EqualTo(GenderType.Female));
-                Assert.That(mobile.RaceIndex, Is.EqualTo(1));
-                Assert.That(mobile.ProfessionId, Is.EqualTo(2));
-                Assert.That(mobile.SkinHue, Is.EqualTo(0x0455));
-                Assert.That(mobile.HairStyle, Is.EqualTo(0x0203));
-                Assert.That(mobile.HairHue, Is.EqualTo(0x0304));
-                Assert.That(mobile.FacialHairStyle, Is.EqualTo(0x0506));
-                Assert.That(mobile.FacialHairHue, Is.EqualTo(0x0708));
-                Assert.That(mobile.Strength, Is.EqualTo(60));
-                Assert.That(mobile.Dexterity, Is.EqualTo(50));
-                Assert.That(mobile.Intelligence, Is.EqualTo(40));
-                Assert.That(mobile.Hits, Is.EqualTo(60));
-                Assert.That(mobile.MaxHits, Is.EqualTo(60));
-                Assert.That(mobile.Stamina, Is.EqualTo(50));
-                Assert.That(mobile.MaxStamina, Is.EqualTo(50));
-                Assert.That(mobile.Mana, Is.EqualTo(40));
-                Assert.That(mobile.MaxMana, Is.EqualTo(40));
             }
         );
     }
@@ -155,6 +155,7 @@ public class CharacterCreationPacketTests
 
         var result = writer.ToArray();
         writer.Dispose();
+
         return result;
     }
 }

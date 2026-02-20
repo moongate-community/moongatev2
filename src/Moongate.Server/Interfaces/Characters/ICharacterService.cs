@@ -9,6 +9,16 @@ namespace Moongate.Server.Interfaces.Characters;
 public interface ICharacterService
 {
     /// <summary>
+    /// Links an existing character to an account.
+    /// </summary>
+    /// <param name="accountId">Account serial identifier.</param>
+    /// <param name="characterId">Character serial identifier.</param>
+    /// <returns>
+    /// <see langword="true" /> when the association is created; otherwise <see langword="false" />.
+    /// </returns>
+    Task<bool> AddCharacterToAccountAsync(Serial accountId, Serial characterId);
+
+    /// <summary>
     /// Creates and persists a new character, returning the allocated character serial.
     /// </summary>
     /// <param name="character">Character entity to create.</param>
@@ -19,28 +29,8 @@ public interface ICharacterService
     /// Loads a character entity by serial.
     /// </summary>
     /// <param name="characterId">Character serial identifier.</param>
-    /// <returns>The character entity when found; otherwise <see langword="null"/>.</returns>
+    /// <returns>The character entity when found; otherwise <see langword="null" />.</returns>
     Task<UOMobileEntity?> GetCharacterAsync(Serial characterId);
-
-    /// <summary>
-    /// Links an existing character to an account.
-    /// </summary>
-    /// <param name="accountId">Account serial identifier.</param>
-    /// <param name="characterId">Character serial identifier.</param>
-    /// <returns>
-    /// <see langword="true"/> when the association is created; otherwise <see langword="false"/>.
-    /// </returns>
-    Task<bool> AddCharacterToAccountAsync(Serial accountId, Serial characterId);
-
-    /// <summary>
-    /// Removes an existing account-character association.
-    /// </summary>
-    /// <param name="accountId">Account serial identifier.</param>
-    /// <param name="characterId">Character serial identifier.</param>
-    /// <returns>
-    /// <see langword="true"/> when the association is removed; otherwise <see langword="false"/>.
-    /// </returns>
-    Task<bool> RemoveCharacterFromAccountAsync(Serial accountId, Serial characterId);
 
     /// <summary>
     /// Loads all existing character entities linked to an account.
@@ -48,4 +38,14 @@ public interface ICharacterService
     /// <param name="accountId">Account serial identifier.</param>
     /// <returns>The list of linked character entities.</returns>
     Task<List<UOMobileEntity>> GetCharactersForAccountAsync(Serial accountId);
+
+    /// <summary>
+    /// Removes an existing account-character association.
+    /// </summary>
+    /// <param name="accountId">Account serial identifier.</param>
+    /// <param name="characterId">Character serial identifier.</param>
+    /// <returns>
+    /// <see langword="true" /> when the association is removed; otherwise <see langword="false" />.
+    /// </returns>
+    Task<bool> RemoveCharacterFromAccountAsync(Serial accountId, Serial characterId);
 }

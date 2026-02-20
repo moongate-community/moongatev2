@@ -2,7 +2,6 @@ using System.Net.Sockets;
 using Moongate.Network.Client;
 using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
-using Moongate.Server.Services;
 using Moongate.Server.Services.Messaging;
 using Moongate.Tests.Server.Support;
 

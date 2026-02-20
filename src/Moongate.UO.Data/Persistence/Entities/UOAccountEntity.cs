@@ -25,5 +25,4 @@ public class UOAccountEntity
     public string Email { get; set; }
 
     public bool IsLocked { get; set; }
-
 }

@@ -6,6 +6,20 @@ namespace Moongate.Tests.Core;
 public class DiceNotationTests
 {
     [Test]
+    public void MinRollAndMaxRoll_ForSimpleDiceExpression_ShouldMatchExpectedBounds()
+    {
+        var expression = Dice.Parse("2d6+3");
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(expression.MinRoll(), Is.EqualTo(5));
+                Assert.That(expression.MaxRoll(), Is.EqualTo(15));
+            }
+        );
+    }
+
+    [Test]
     public void Parse_WhenExpressionIsValid_ShouldReturnExpression()
     {
         var expression = Dice.Parse("2d6+3");
@@ -14,15 +28,9 @@ public class DiceNotationTests
     }
 
     [Test]
-    public void MinRollAndMaxRoll_ForSimpleDiceExpression_ShouldMatchExpectedBounds()
+    public void Parse_WhenKeepIsNotAppliedToDice_ShouldThrowInvalidSyntaxException()
     {
-        var expression = Dice.Parse("2d6+3");
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(expression.MinRoll(), Is.EqualTo(5));
-            Assert.That(expression.MaxRoll(), Is.EqualTo(15));
-        });
+        Assert.That(() => Dice.Parse("1k1"), Throws.TypeOf<InvalidSyntaxException>());
     }
 
     [Test]
@@ -39,12 +47,6 @@ public class DiceNotationTests
     }
 
     [Test]
-    public void Roll_WhenMultiplicityIsNegative_ShouldThrowInvalidMultiplicityException()
-    {
-        Assert.That(() => Dice.Roll("-1d6"), Throws.TypeOf<InvalidMultiplicityException>());
-    }
-
-    [Test]
     public void Roll_WhenDieHasZeroSides_ShouldThrowImpossibleDieException()
     {
         Assert.That(() => Dice.Roll("1d0"), Throws.TypeOf<ImpossibleDieException>());
@@ -57,8 +59,8 @@ public class DiceNotationTests
     }
 
     [Test]
-    public void Parse_WhenKeepIsNotAppliedToDice_ShouldThrowInvalidSyntaxException()
+    public void Roll_WhenMultiplicityIsNegative_ShouldThrowInvalidMultiplicityException()
     {
-        Assert.That(() => Dice.Parse("1k1"), Throws.TypeOf<InvalidSyntaxException>());
+        Assert.That(() => Dice.Roll("-1d6"), Throws.TypeOf<InvalidMultiplicityException>());
     }
 }

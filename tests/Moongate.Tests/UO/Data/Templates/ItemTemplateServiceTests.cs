@@ -8,9 +8,19 @@ public class ItemTemplateServiceTests
 {
     private ItemTemplateService _service = null!;
 
+    [Test]
+    public void Clear_ShouldRemoveAllTemplates()
+    {
+        _service.Upsert(CreateTemplate("item.shirt", "Shirt"));
+
+        _service.Clear();
+
+        Assert.That(_service.Count, Is.Zero);
+    }
+
     [SetUp]
     public void SetUp()
-        => _service = new ItemTemplateService();
+        => _service = new();
 
     [Test]
     public void Upsert_ShouldRegisterTemplate()
@@ -19,12 +29,14 @@ public class ItemTemplateServiceTests
 
         _service.Upsert(template);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(_service.Count, Is.EqualTo(1));
-            Assert.That(_service.TryGet("item.shirt", out var resolved), Is.True);
-            Assert.That(resolved?.Name, Is.EqualTo("Shirt"));
-        });
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(_service.Count, Is.EqualTo(1));
+                Assert.That(_service.TryGet("item.shirt", out var resolved), Is.True);
+                Assert.That(resolved?.Name, Is.EqualTo("Shirt"));
+            }
+        );
     }
 
     [Test]
@@ -35,11 +47,13 @@ public class ItemTemplateServiceTests
 
         _service.TryGet("item.shirt", out var resolved);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(_service.Count, Is.EqualTo(1));
-            Assert.That(resolved?.Name, Is.EqualTo("New Shirt"));
-        });
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(_service.Count, Is.EqualTo(1));
+                Assert.That(resolved?.Name, Is.EqualTo("New Shirt"));
+            }
+        );
     }
 
     [Test]
@@ -48,16 +62,6 @@ public class ItemTemplateServiceTests
         _service.UpsertRange([CreateTemplate("item.shirt", "Shirt"), CreateTemplate("item.pants", "Pants")]);
 
         Assert.That(_service.Count, Is.EqualTo(2));
-    }
-
-    [Test]
-    public void Clear_ShouldRemoveAllTemplates()
-    {
-        _service.Upsert(CreateTemplate("item.shirt", "Shirt"));
-
-        _service.Clear();
-
-        Assert.That(_service.Count, Is.Zero);
     }
 
     private static ItemTemplateDefinition CreateTemplate(string id, string name)

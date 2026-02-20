@@ -1,11 +1,10 @@
+using Moongate.UO.Data.Bodies;
 using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Interfaces.Entities;
-using Moongate.UO.Data.Maps;
 using Moongate.UO.Data.Professions;
 using Moongate.UO.Data.Races.Base;
 using Moongate.UO.Data.Types;
-using Moongate.UO.Data.Bodies;
 using UoMap = Moongate.UO.Data.Maps.Map;
 
 namespace Moongate.UO.Data.Persistence.Entities;
@@ -134,8 +133,7 @@ public class UOMobileEntity : IMobileEntity
     /// Gets runtime equipped-item snapshots keyed by equipment layer.
     /// This cache is not used for persistence.
     /// </summary>
-    public IReadOnlyDictionary<ItemLayerType, ItemReference> EquippedItemReferences
-        => _equippedItemReferences;
+    public IReadOnlyDictionary<ItemLayerType, ItemReference> EquippedItemReferences => _equippedItemReferences;
 
     public bool IsWarMode { get; set; }
 
@@ -162,20 +160,6 @@ public class UOMobileEntity : IMobileEntity
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
     public DateTime LastLoginUtc { get; set; } = DateTime.UtcNow;
-
-    /// <summary>
-    /// Recomputes max stat caps from base stats and clamps current values.
-    /// </summary>
-    public void RecalculateMaxStats()
-    {
-        MaxHits = Math.Max(1, Strength);
-        MaxMana = Math.Max(1, Intelligence);
-        MaxStamina = Math.Max(1, Dexterity);
-
-        Hits = Math.Min(Hits, MaxHits);
-        Mana = Math.Min(Mana, MaxMana);
-        Stamina = Math.Min(Stamina, MaxStamina);
-    }
 
     /// <summary>
     /// Associates an equipped item with this mobile and updates item ownership metadata.
@@ -209,70 +193,24 @@ public class UOMobileEntity : IMobileEntity
     public void EquipItem(ItemLayerType layer, UOItemEntity item)
         => AddEquippedItem(layer, item);
 
-    /// <summary>
-    /// Unequips an item layer and optionally clears metadata on a provided item instance.
-    /// </summary>
-    /// <param name="layer">Layer to unequip.</param>
-    /// <param name="item">Optional equipped item instance to clear metadata on.</param>
-    /// <returns><c>true</c> when a layer entry existed and was removed.</returns>
-    public bool UnequipItem(ItemLayerType layer, UOItemEntity? item = null)
+    public virtual Body GetBody()
     {
-        var removed = EquippedItemIds.Remove(layer);
-        _equippedItemReferences.Remove(layer);
-
-        if (removed && item is not null)
+        if (BaseBody is Body baseBody)
         {
-            item.EquippedMobileId = Serial.Zero;
-            item.EquippedLayer = null;
-        }
-
-        return removed;
-    }
-
-    /// <summary>
-    /// Hydrates runtime equipped-item references from resolved item entities.
-    /// </summary>
-    /// <param name="equippedItems">Resolved equipped items for this mobile.</param>
-    public void HydrateEquipmentRuntime(IEnumerable<UOItemEntity> equippedItems)
-    {
-        ArgumentNullException.ThrowIfNull(equippedItems);
-
-        _equippedItemReferences.Clear();
-
-        foreach (var item in equippedItems)
-        {
-            if (item.EquippedMobileId != Id)
+            if (baseBody == 0x00)
             {
-                continue;
+                var raceForAliveBody = Race;
+
+                return raceForAliveBody is null ? 0x00 : (Body)raceForAliveBody.Body(this);
             }
 
-            var layer = item.EquippedLayer;
-
-            if (layer is null)
-            {
-                continue;
-            }
-
-            _equippedItemReferences[layer.Value] = new(item.Id, item.ItemId, item.Hue);
+            return baseBody;
         }
+
+        var fallbackRace = Race ?? (Race.Races.Length > 0 ? Race.Races[0] : null);
+
+        return fallbackRace is null ? 0x00 : (Body)fallbackRace.Body(this);
     }
-
-    /// <summary>
-    /// Gets whether an item is equipped in the specified layer.
-    /// </summary>
-    /// <param name="layer">Equipment layer.</param>
-    /// <returns><c>true</c> when equipped.</returns>
-    public bool HasEquippedItem(ItemLayerType layer)
-        => EquippedItemIds.ContainsKey(layer);
-
-    /// <summary>
-    /// Tries to get runtime equipped-item reference for a layer.
-    /// </summary>
-    /// <param name="layer">Equipment layer.</param>
-    /// <param name="itemReference">Resolved runtime reference when found.</param>
-    /// <returns><c>true</c> when runtime reference is available.</returns>
-    public bool TryGetEquippedReference(ItemLayerType layer, out ItemReference itemReference)
-        => _equippedItemReferences.TryGetValue(layer, out itemReference);
 
     /// <summary>
     /// Gets runtime equipped-item reference for a layer, if present.
@@ -344,31 +282,91 @@ public class UOMobileEntity : IMobileEntity
         return flags;
     }
 
-    public virtual Body GetBody()
-    {
-        if (BaseBody is Body baseBody)
-        {
-            if (baseBody == (Body)0x00)
-            {
-                var raceForAliveBody = Race;
+    /// <summary>
+    /// Gets whether an item is equipped in the specified layer.
+    /// </summary>
+    /// <param name="layer">Equipment layer.</param>
+    /// <returns><c>true</c> when equipped.</returns>
+    public bool HasEquippedItem(ItemLayerType layer)
+        => EquippedItemIds.ContainsKey(layer);
 
-                return raceForAliveBody is null ? (Body)0x00 : (Body)raceForAliveBody.Body(this);
+    /// <summary>
+    /// Hydrates runtime equipped-item references from resolved item entities.
+    /// </summary>
+    /// <param name="equippedItems">Resolved equipped items for this mobile.</param>
+    public void HydrateEquipmentRuntime(IEnumerable<UOItemEntity> equippedItems)
+    {
+        ArgumentNullException.ThrowIfNull(equippedItems);
+
+        _equippedItemReferences.Clear();
+
+        foreach (var item in equippedItems)
+        {
+            if (item.EquippedMobileId != Id)
+            {
+                continue;
             }
 
-            return baseBody;
+            var layer = item.EquippedLayer;
+
+            if (layer is null)
+            {
+                continue;
+            }
+
+            _equippedItemReferences[layer.Value] = new(item.Id, item.ItemId, item.Hue);
         }
+    }
 
-        var fallbackRace = Race ?? (Race.Races.Length > 0 ? Race.Races[0] : null);
+    public void OverrideBody(Body body)
+        => SetBody(body);
 
-        return fallbackRace is null ? (Body)0x00 : (Body)fallbackRace.Body(this);
+    /// <summary>
+    /// Recomputes max stat caps from base stats and clamps current values.
+    /// </summary>
+    public void RecalculateMaxStats()
+    {
+        MaxHits = Math.Max(1, Strength);
+        MaxMana = Math.Max(1, Intelligence);
+        MaxStamina = Math.Max(1, Dexterity);
+
+        Hits = Math.Min(Hits, MaxHits);
+        Mana = Math.Min(Mana, MaxMana);
+        Stamina = Math.Min(Stamina, MaxStamina);
     }
 
     public void SetBody(Body body)
         => BaseBody = body;
 
-    public void OverrideBody(Body body)
-        => SetBody(body);
-
     public override string ToString()
         => $"Mobile(Id={Id}, IsPlayer={IsPlayer}, Location={Location})";
+
+    /// <summary>
+    /// Tries to get runtime equipped-item reference for a layer.
+    /// </summary>
+    /// <param name="layer">Equipment layer.</param>
+    /// <param name="itemReference">Resolved runtime reference when found.</param>
+    /// <returns><c>true</c> when runtime reference is available.</returns>
+    public bool TryGetEquippedReference(ItemLayerType layer, out ItemReference itemReference)
+        => _equippedItemReferences.TryGetValue(layer, out itemReference);
+
+    /// <summary>
+    /// Unequips an item layer and optionally clears metadata on a provided item instance.
+    /// </summary>
+    /// <param name="layer">Layer to unequip.</param>
+    /// <param name="item">Optional equipped item instance to clear metadata on.</param>
+    /// <returns><c>true</c> when a layer entry existed and was removed.</returns>
+    public bool UnequipItem(ItemLayerType layer, UOItemEntity? item = null)
+    {
+        var removed = EquippedItemIds.Remove(layer);
+        _equippedItemReferences.Remove(layer);
+
+        if (removed && item is not null)
+        {
+            item.EquippedMobileId = Serial.Zero;
+            item.EquippedLayer = null;
+        }
+
+        return removed;
+    }
 }

@@ -6,16 +6,6 @@ namespace Moongate.Tests.Network.Packets;
 public class PingMessagePacketTests
 {
     [Test]
-    public void Write_ShouldSerializeOpCodeAndSequence()
-    {
-        var packet = new PingMessagePacket(0x7B);
-
-        var data = Write(packet);
-
-        Assert.That(data, Is.EqualTo(new byte[] { 0x73, 0x7B }));
-    }
-
-    [Test]
     public void TryParse_ShouldPopulateSequence()
     {
         var packet = new PingMessagePacket();
@@ -29,6 +19,16 @@ public class PingMessagePacketTests
                 Assert.That(packet.Sequence, Is.EqualTo(0x2A));
             }
         );
+    }
+
+    [Test]
+    public void Write_ShouldSerializeOpCodeAndSequence()
+    {
+        var packet = new PingMessagePacket(0x7B);
+
+        var data = Write(packet);
+
+        Assert.That(data, Is.EqualTo(new byte[] { 0x73, 0x7B }));
     }
 
     private static byte[] Write(PingMessagePacket packet)

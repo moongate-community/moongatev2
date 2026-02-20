@@ -9,19 +9,28 @@ namespace Moongate.Persistence.Interfaces.Persistence;
 public interface IItemRepository
 {
     /// <summary>
-    /// Returns all persisted items.
-    /// </summary>
-    ValueTask<IReadOnlyCollection<UOItemEntity>> GetAllAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Returns the current number of persisted items.
     /// </summary>
     ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns all persisted items.
+    /// </summary>
+    ValueTask<IReadOnlyCollection<UOItemEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets an item by its serial identifier.
     /// </summary>
     ValueTask<UOItemEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs a projection query over item entities.
+    /// </summary>
+    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOItemEntity, bool> predicate,
+        Func<UOItemEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Removes an item by its serial identifier.
@@ -32,13 +41,4 @@ public interface IItemRepository
     /// Inserts or updates an item.
     /// </summary>
     ValueTask UpsertAsync(UOItemEntity item, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Runs a projection query over item entities.
-    /// </summary>
-    ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
-        Func<UOItemEntity, bool> predicate,
-        Func<UOItemEntity, TResult> selector,
-        CancellationToken cancellationToken = default
-    );
 }

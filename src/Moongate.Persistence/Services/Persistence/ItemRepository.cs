@@ -24,6 +24,20 @@ public sealed class ItemRepository : IItemRepository
         _journalService = journalService;
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Item count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.ItemsById.Count;
+            _logger.Verbose("Item count completed Count={Count}", count);
+
+            return ValueTask.FromResult(count);
+        }
+    }
+
     public ValueTask<IReadOnlyCollection<UOItemEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Item get-all requested");
@@ -39,19 +53,6 @@ public sealed class ItemRepository : IItemRepository
         }
     }
 
-    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.Verbose("Item count requested");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        lock (_stateStore.SyncRoot)
-        {
-            var count = _stateStore.ItemsById.Count;
-            _logger.Verbose("Item count completed Count={Count}", count);
-            return ValueTask.FromResult(count);
-        }
-    }
-
     public ValueTask<UOItemEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Item get-by-id requested for Id={ItemId}", id);
@@ -61,6 +62,30 @@ public sealed class ItemRepository : IItemRepository
         {
             return ValueTask.FromResult(_stateStore.ItemsById.TryGetValue(id, out var item) ? Clone(item) : null);
         }
+    }
+
+    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOItemEntity, bool> predicate,
+        Func<UOItemEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    )
+    {
+        _logger.Verbose("Item query requested");
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        UOItemEntity[] snapshot;
+
+        lock (_stateStore.SyncRoot)
+        {
+            snapshot = [.. _stateStore.ItemsById.Values.Select(Clone)];
+        }
+
+        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Item query completed with Count={Count}", results.Length);
+
+        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
@@ -103,29 +128,6 @@ public sealed class ItemRepository : IItemRepository
 
         await _journalService.AppendAsync(entry, cancellationToken);
         _logger.Verbose("Item upsert completed for Id={ItemId}", item.Id);
-    }
-
-    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
-        Func<UOItemEntity, bool> predicate,
-        Func<UOItemEntity, TResult> selector,
-        CancellationToken cancellationToken = default
-    )
-    {
-        _logger.Verbose("Item query requested");
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(selector);
-
-        UOItemEntity[] snapshot;
-
-        lock (_stateStore.SyncRoot)
-        {
-            snapshot = [.. _stateStore.ItemsById.Values.Select(Clone)];
-        }
-
-        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
-        _logger.Verbose("Item query completed with Count={Count}", results.Length);
-        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     private static UOItemEntity Clone(UOItemEntity item)

@@ -60,6 +60,14 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         GC.SuppressFinalize(this);
     }
 
+    public GameLoopMetricsSnapshot GetMetricsSnapshot()
+    {
+        lock (_metricsSync)
+        {
+            return new(_tickCount, _uptime, _averageTickMs);
+        }
+    }
+
     public async Task StartAsync()
     {
         Task.Run(
@@ -134,13 +142,5 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         DrainPacketQueue();
         _timerService.ProcessTick();
         await DrainOutgoingPacketQueueAsync();
-    }
-
-    public GameLoopMetricsSnapshot GetMetricsSnapshot()
-    {
-        lock (_metricsSync)
-        {
-            return new(_tickCount, _uptime, _averageTickMs);
-        }
     }
 }

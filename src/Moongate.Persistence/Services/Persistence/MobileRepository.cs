@@ -24,6 +24,20 @@ public sealed class MobileRepository : IMobileRepository
         _journalService = journalService;
     }
 
+    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.Verbose("Mobile count requested");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        lock (_stateStore.SyncRoot)
+        {
+            var count = _stateStore.MobilesById.Count;
+            _logger.Verbose("Mobile count completed Count={Count}", count);
+
+            return ValueTask.FromResult(count);
+        }
+    }
+
     public ValueTask<IReadOnlyCollection<UOMobileEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Mobile get-all requested");
@@ -39,19 +53,6 @@ public sealed class MobileRepository : IMobileRepository
         }
     }
 
-    public ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.Verbose("Mobile count requested");
-        cancellationToken.ThrowIfCancellationRequested();
-
-        lock (_stateStore.SyncRoot)
-        {
-            var count = _stateStore.MobilesById.Count;
-            _logger.Verbose("Mobile count completed Count={Count}", count);
-            return ValueTask.FromResult(count);
-        }
-    }
-
     public ValueTask<UOMobileEntity?> GetByIdAsync(Serial id, CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Mobile get-by-id requested for Id={MobileId}", id);
@@ -61,6 +62,30 @@ public sealed class MobileRepository : IMobileRepository
         {
             return ValueTask.FromResult(_stateStore.MobilesById.TryGetValue(id, out var mobile) ? Clone(mobile) : null);
         }
+    }
+
+    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
+        Func<UOMobileEntity, bool> predicate,
+        Func<UOMobileEntity, TResult> selector,
+        CancellationToken cancellationToken = default
+    )
+    {
+        _logger.Verbose("Mobile query requested");
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(selector);
+
+        UOMobileEntity[] snapshot;
+
+        lock (_stateStore.SyncRoot)
+        {
+            snapshot = [.. _stateStore.MobilesById.Values.Select(Clone)];
+        }
+
+        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
+        _logger.Verbose("Mobile query completed with Count={Count}", results.Length);
+
+        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     public async ValueTask<bool> RemoveAsync(Serial id, CancellationToken cancellationToken = default)
@@ -103,29 +128,6 @@ public sealed class MobileRepository : IMobileRepository
 
         await _journalService.AppendAsync(entry, cancellationToken);
         _logger.Verbose("Mobile upsert completed for Id={MobileId}", mobile.Id);
-    }
-
-    public ValueTask<IReadOnlyList<TResult>> QueryAsync<TResult>(
-        Func<UOMobileEntity, bool> predicate,
-        Func<UOMobileEntity, TResult> selector,
-        CancellationToken cancellationToken = default
-    )
-    {
-        _logger.Verbose("Mobile query requested");
-        cancellationToken.ThrowIfCancellationRequested();
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(selector);
-
-        UOMobileEntity[] snapshot;
-
-        lock (_stateStore.SyncRoot)
-        {
-            snapshot = [.. _stateStore.MobilesById.Values.Select(Clone)];
-        }
-
-        var results = snapshot.AsValueEnumerable().Where(predicate).Select(selector).ToArray();
-        _logger.Verbose("Mobile query completed with Count={Count}", results.Length);
-        return ValueTask.FromResult<IReadOnlyList<TResult>>(results);
     }
 
     private static UOMobileEntity Clone(UOMobileEntity mobile)

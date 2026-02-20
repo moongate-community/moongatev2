@@ -101,31 +101,38 @@ public class CharacterCreationPacket : BaseGameNetworkPacket
             case 2:
                 gender = GenderType.Male;
                 raceIndex = 0; // Human
+
                 return true;
             case 1:
             case 3:
                 gender = GenderType.Female;
                 raceIndex = 0; // Human
+
                 return true;
             case 4:
                 gender = GenderType.Male;
                 raceIndex = 1; // Elf
+
                 return true;
             case 5:
                 gender = GenderType.Female;
                 raceIndex = 1; // Elf
+
                 return true;
             case 6:
                 gender = GenderType.Male;
                 raceIndex = 2; // Gargoyle
+
                 return true;
             case 7:
                 gender = GenderType.Female;
                 raceIndex = 2; // Gargoyle
+
                 return true;
             default:
                 gender = default;
                 raceIndex = -1;
+
                 return false;
         }
     }

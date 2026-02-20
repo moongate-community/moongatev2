@@ -18,16 +18,10 @@ public interface IItemTemplateService
     void Clear();
 
     /// <summary>
-    /// Adds or replaces a template by identifier.
+    /// Returns all templates as a snapshot.
     /// </summary>
-    /// <param name="definition">Template instance to register.</param>
-    void Upsert(ItemTemplateDefinition definition);
-
-    /// <summary>
-    /// Adds or replaces multiple templates.
-    /// </summary>
-    /// <param name="templates">Templates to register.</param>
-    void UpsertRange(IEnumerable<ItemTemplateDefinition> templates);
+    /// <returns>List of currently registered templates.</returns>
+    IReadOnlyList<ItemTemplateDefinition> GetAll();
 
     /// <summary>
     /// Tries to get a template by id.
@@ -38,8 +32,14 @@ public interface IItemTemplateService
     bool TryGet(string id, out ItemTemplateDefinition? definition);
 
     /// <summary>
-    /// Returns all templates as a snapshot.
+    /// Adds or replaces a template by identifier.
     /// </summary>
-    /// <returns>List of currently registered templates.</returns>
-    IReadOnlyList<ItemTemplateDefinition> GetAll();
+    /// <param name="definition">Template instance to register.</param>
+    void Upsert(ItemTemplateDefinition definition);
+
+    /// <summary>
+    /// Adds or replaces multiple templates.
+    /// </summary>
+    /// <param name="templates">Templates to register.</param>
+    void UpsertRange(IEnumerable<ItemTemplateDefinition> templates);
 }

@@ -21,9 +21,6 @@ public readonly record struct HueSpec
 
     public bool IsRange { get; }
 
-    public static HueSpec FromValue(int value)
-        => new(value, value, false);
-
     public static HueSpec FromRange(int min, int max)
     {
         if (min > max)
@@ -33,6 +30,9 @@ public readonly record struct HueSpec
 
         return new(min, max, true);
     }
+
+    public static HueSpec FromValue(int value)
+        => new(value, value, false);
 
     public int Resolve(IEnhancedRandom? rng = null)
     {

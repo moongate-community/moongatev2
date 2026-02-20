@@ -10,6 +10,18 @@ namespace Moongate.Tests.Server;
 public class ItemTemplateLoaderTests
 {
     [Test]
+    public void LoadAsync_WhenItemsDirectoryDoesNotExist_ShouldNotThrow()
+    {
+        using var tempDirectory = new TempDirectory();
+        var directoriesConfig = new DirectoriesConfig(tempDirectory.Path, DirectoryType.Templates);
+        var itemTemplateService = new ItemTemplateService();
+        var loader = new ItemTemplateLoader(directoriesConfig, itemTemplateService);
+
+        Assert.That(async () => await loader.LoadAsync(), Throws.Nothing);
+        Assert.That(itemTemplateService.Count, Is.Zero);
+    }
+
+    [Test]
     public async Task LoadAsync_WhenTemplateFilesExist_ShouldPopulateTemplateService()
     {
         using var tempDirectory = new TempDirectory();
@@ -59,28 +71,18 @@ public class ItemTemplateLoaderTests
 
         await loader.LoadAsync();
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(itemTemplateService.Count, Is.EqualTo(1));
-            Assert.That(itemTemplateService.TryGet("item.startup.shirt", out var template), Is.True);
-            Assert.That(template?.ItemId, Is.EqualTo("0x1517"));
-            Assert.That(template?.LootType, Is.EqualTo(LootType.Regular));
-            Assert.That(template?.Hue.IsRange, Is.False);
-            Assert.That(template?.Hue.Resolve(), Is.EqualTo(0));
-            Assert.That(template?.GoldValue.IsDiceExpression, Is.False);
-            Assert.That(template?.GoldValue.Resolve(), Is.EqualTo(0));
-        });
-    }
-
-    [Test]
-    public void LoadAsync_WhenItemsDirectoryDoesNotExist_ShouldNotThrow()
-    {
-        using var tempDirectory = new TempDirectory();
-        var directoriesConfig = new DirectoriesConfig(tempDirectory.Path, DirectoryType.Templates);
-        var itemTemplateService = new ItemTemplateService();
-        var loader = new ItemTemplateLoader(directoriesConfig, itemTemplateService);
-
-        Assert.That(async () => await loader.LoadAsync(), Throws.Nothing);
-        Assert.That(itemTemplateService.Count, Is.Zero);
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(itemTemplateService.Count, Is.EqualTo(1));
+                Assert.That(itemTemplateService.TryGet("item.startup.shirt", out var template), Is.True);
+                Assert.That(template?.ItemId, Is.EqualTo("0x1517"));
+                Assert.That(template?.LootType, Is.EqualTo(LootType.Regular));
+                Assert.That(template?.Hue.IsRange, Is.False);
+                Assert.That(template?.Hue.Resolve(), Is.EqualTo(0));
+                Assert.That(template?.GoldValue.IsDiceExpression, Is.False);
+                Assert.That(template?.GoldValue.Resolve(), Is.EqualTo(0));
+            }
+        );
     }
 }

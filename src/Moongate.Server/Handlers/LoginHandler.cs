@@ -75,30 +75,6 @@ public class LoginHandler : BasePacketListener
         return true;
     }
 
-    private async Task<bool> HandleLoginCharacterPacketAsync(GameSession session, LoginCharacterPacket loginCharacterPacket)
-    {
-        var characters = await _characterService.GetCharactersForAccountAsync(session.AccountId);
-
-        var character = characters.FirstOrDefault(c => c.Name == loginCharacterPacket.CharacterName);
-
-        if (character == null)
-        {
-            _logger.Warning(
-                "Character {CharacterName} not found for account {AccountId}",
-                loginCharacterPacket.CharacterName,
-                session.AccountId
-            );
-
-            return true;
-        }
-
-        await _gameEventBusService.PublishAsync(
-            new CharacterSelectedEvent(session.SessionId, character.Id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
-        );
-
-        return true;
-    }
-
     private async Task<bool> HandleAccountLoginPacketAsync(GameSession session, AccountLoginPacket accountLoginPacket)
     {
         _logger.Information(
@@ -152,6 +128,30 @@ public class LoginHandler : BasePacketListener
 
         Enqueue(session, new SupportFeaturesPacket());
         Enqueue(session, characterListPacket);
+
+        return true;
+    }
+
+    private async Task<bool> HandleLoginCharacterPacketAsync(GameSession session, LoginCharacterPacket loginCharacterPacket)
+    {
+        var characters = await _characterService.GetCharactersForAccountAsync(session.AccountId);
+
+        var character = characters.FirstOrDefault(c => c.Name == loginCharacterPacket.CharacterName);
+
+        if (character == null)
+        {
+            _logger.Warning(
+                "Character {CharacterName} not found for account {AccountId}",
+                loginCharacterPacket.CharacterName,
+                session.AccountId
+            );
+
+            return true;
+        }
+
+        await _gameEventBusService.PublishAsync(
+            new CharacterSelectedEvent(session.SessionId, character.Id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+        );
 
         return true;
     }

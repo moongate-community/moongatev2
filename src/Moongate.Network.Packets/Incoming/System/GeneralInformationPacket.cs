@@ -25,7 +25,7 @@ public class GeneralInformationPacket : BaseGameNetworkPacket
     }
 
     public static GeneralInformationPacket CreateSetCursorHueSetMap(byte mapId)
-        => new(GeneralInformationSubcommandType.SetCursorHueSetMap, new byte[] { mapId });
+        => new(GeneralInformationSubcommandType.SetCursorHueSetMap, new[] { mapId });
 
     public static GeneralInformationPacket CreateSetCursorHueSetMap(UOMap? map)
         => CreateSetCursorHueSetMap((byte)(map?.MapID ?? 0));

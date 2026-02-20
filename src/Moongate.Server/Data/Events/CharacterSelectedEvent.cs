@@ -7,5 +7,3 @@ public readonly record struct CharacterSelectedEvent(
     Serial CharacterId,
     long Timestamp
 ) : IGameEvent;
-
-

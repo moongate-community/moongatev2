@@ -17,11 +17,11 @@ public sealed class ConsoleUiSerilogSinkTestConsoleUiService : IConsoleUiService
 
     public char UnlockCharacter => '*';
 
-    public void UpdateInput(string input) { }
-
     public void LockInput() { }
 
     public void UnlockInput() { }
+
+    public void UpdateInput(string input) { }
 
     public void WriteLogLine(
         string line,

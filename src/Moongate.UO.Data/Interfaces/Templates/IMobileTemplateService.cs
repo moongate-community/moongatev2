@@ -18,16 +18,10 @@ public interface IMobileTemplateService
     void Clear();
 
     /// <summary>
-    /// Adds or replaces a mobile template by identifier.
+    /// Gets all templates as a snapshot list.
     /// </summary>
-    /// <param name="definition">Template to register.</param>
-    void Upsert(MobileTemplateDefinition definition);
-
-    /// <summary>
-    /// Adds or replaces multiple mobile templates.
-    /// </summary>
-    /// <param name="definitions">Templates to register.</param>
-    void UpsertRange(IEnumerable<MobileTemplateDefinition> definitions);
+    /// <returns>All registered templates.</returns>
+    IReadOnlyList<MobileTemplateDefinition> GetAll();
 
     /// <summary>
     /// Tries to resolve a template by id.
@@ -38,8 +32,14 @@ public interface IMobileTemplateService
     bool TryGet(string id, out MobileTemplateDefinition? definition);
 
     /// <summary>
-    /// Gets all templates as a snapshot list.
+    /// Adds or replaces a mobile template by identifier.
     /// </summary>
-    /// <returns>All registered templates.</returns>
-    IReadOnlyList<MobileTemplateDefinition> GetAll();
+    /// <param name="definition">Template to register.</param>
+    void Upsert(MobileTemplateDefinition definition);
+
+    /// <summary>
+    /// Adds or replaces multiple mobile templates.
+    /// </summary>
+    /// <param name="definitions">Templates to register.</param>
+    void UpsertRange(IEnumerable<MobileTemplateDefinition> definitions);
 }

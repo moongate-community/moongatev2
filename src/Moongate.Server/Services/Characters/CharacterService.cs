@@ -1,29 +1,78 @@
 using Moongate.Server.Data.Events;
 using Moongate.Server.Interfaces.Characters;
+using Moongate.Server.Interfaces.Services.Entities;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Persistence;
+using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
+using Moongate.UO.Data.Types;
 using Serilog;
 
 namespace Moongate.Server.Services.Characters;
 
 public class CharacterService : ICharacterService
 {
+    private const int BackpackItemId = 0x0E75;
+    private const int GoldItemId = 0x0EED;
+    private const int ShirtItemId = 0x1517;
+    private const int PantsItemId = 0x152E;
+    private const int ShoesItemId = 0x170F;
+
     private readonly ILogger _logger = Log.ForContext<CharacterService>();
     private readonly IPersistenceService _persistenceService;
-
+    private readonly IEntityFactoryService _entityFactoryService;
     private readonly IGameEventBusService _gameEventBusService;
 
-    public CharacterService(IPersistenceService persistenceService, IGameEventBusService gameEventBusService)
+    public CharacterService(
+        IPersistenceService persistenceService,
+        IEntityFactoryService entityFactoryService,
+        IGameEventBusService gameEventBusService
+    )
     {
         _persistenceService = persistenceService;
+        _entityFactoryService = entityFactoryService;
         _gameEventBusService = gameEventBusService;
+    }
+
+    public async Task<bool> AddCharacterToAccountAsync(Serial accountId, Serial characterId)
+    {
+        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
+
+        if (account == null)
+        {
+            _logger.Warning(
+                "Cannot add character {CharacterId} to account {AccountId}: account not found",
+                characterId,
+                accountId
+            );
+
+            return false;
+        }
+
+        if (account.CharacterIds.Contains(characterId))
+        {
+            _logger.Warning(
+                "Cannot add character {CharacterId} to account {AccountId}: character already linked",
+                characterId,
+                accountId
+            );
+
+            return false;
+        }
+
+        account.CharacterIds.Add(characterId);
+        await _persistenceService.UnitOfWork.Accounts.UpsertAsync(account);
+
+        _logger.Information("Added character {CharacterId} to account {AccountId}", characterId, accountId);
+
+        return true;
     }
 
     public async Task<Serial> CreateCharacterAsync(UOMobileEntity character)
     {
         character.Id = _persistenceService.UnitOfWork.AllocateNextMobileId();
+        await EnsureStarterInventoryAsync(character);
 
         await _persistenceService.UnitOfWork.Mobiles.UpsertAsync(character);
 
@@ -48,6 +97,7 @@ public class CharacterService : ICharacterService
         if (character is null)
         {
             _logger.Warning("Character {CharacterId} not found", characterId);
+
             return null;
         }
 
@@ -56,71 +106,14 @@ public class CharacterService : ICharacterService
         return character;
     }
 
-    public async Task<bool> AddCharacterToAccountAsync(Serial accountId, Serial characterId)
-    {
-        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
-        if (account == null)
-        {
-            _logger.Warning(
-                "Cannot add character {CharacterId} to account {AccountId}: account not found",
-                characterId,
-                accountId
-            );
-            return false;
-        }
-
-        if (account.CharacterIds.Contains(characterId))
-        {
-            _logger.Warning(
-                "Cannot add character {CharacterId} to account {AccountId}: character already linked",
-                characterId,
-                accountId
-            );
-            return false;
-        }
-
-        account.CharacterIds.Add(characterId);
-        await _persistenceService.UnitOfWork.Accounts.UpsertAsync(account);
-
-        _logger.Information("Added character {CharacterId} to account {AccountId}", characterId, accountId);
-        return true;
-    }
-
-    public async Task<bool> RemoveCharacterFromAccountAsync(Serial accountId, Serial characterId)
-    {
-        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
-        if (account == null)
-        {
-            _logger.Warning(
-                "Cannot remove character {CharacterId} from account {AccountId}: account not found",
-                characterId,
-                accountId
-            );
-            return false;
-        }
-
-        var removed = account.CharacterIds.Remove(characterId);
-        if (!removed)
-        {
-            _logger.Warning(
-                "Cannot remove character {CharacterId} from account {AccountId}: character not linked",
-                characterId,
-                accountId
-            );
-            return false;
-        }
-
-        await _persistenceService.UnitOfWork.Accounts.UpsertAsync(account);
-        _logger.Information("Removed character {CharacterId} from account {AccountId}", characterId, accountId);
-        return true;
-    }
-
     public async Task<List<UOMobileEntity>> GetCharactersForAccountAsync(Serial accountId)
     {
         var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
+
         if (account == null)
         {
             _logger.Warning("Cannot get characters for account {AccountId}: account not found", accountId);
+
             return [];
         }
 
@@ -129,6 +122,7 @@ public class CharacterService : ICharacterService
         foreach (var characterId in account.CharacterIds)
         {
             var mobile = await _persistenceService.UnitOfWork.Mobiles.GetByIdAsync(characterId);
+
             if (mobile != null)
             {
                 characters.Add(mobile);
@@ -140,6 +134,138 @@ public class CharacterService : ICharacterService
             characters.Count,
             accountId
         );
+
         return characters;
+    }
+
+    public async Task<bool> RemoveCharacterFromAccountAsync(Serial accountId, Serial characterId)
+    {
+        var account = await _persistenceService.UnitOfWork.Accounts.GetByIdAsync(accountId);
+
+        if (account == null)
+        {
+            _logger.Warning(
+                "Cannot remove character {CharacterId} from account {AccountId}: account not found",
+                characterId,
+                accountId
+            );
+
+            return false;
+        }
+
+        var removed = account.CharacterIds.Remove(characterId);
+
+        if (!removed)
+        {
+            _logger.Warning(
+                "Cannot remove character {CharacterId} from account {AccountId}: character not linked",
+                characterId,
+                accountId
+            );
+
+            return false;
+        }
+
+        await _persistenceService.UnitOfWork.Accounts.UpsertAsync(account);
+        _logger.Information("Removed character {CharacterId} from account {AccountId}", characterId, accountId);
+
+        return true;
+    }
+
+    private async Task EnsureStarterContainerItemAsync(
+        UOMobileEntity character,
+        Serial containerId,
+        int itemId,
+        Point2D containerPosition
+    )
+    {
+        var existing = await _persistenceService.UnitOfWork.Items.QueryAsync(
+                           item => item.ParentContainerId == containerId && item.ItemId == itemId,
+                           static item => item
+                       );
+
+        if (existing.Count > 0)
+        {
+            return;
+        }
+
+        var item = new UOItemEntity
+        {
+            Id = _persistenceService.UnitOfWork.AllocateNextItemId(),
+            ItemId = itemId,
+            Hue = 0,
+            Location = Point3D.Zero,
+            ParentContainerId = containerId,
+            ContainerPosition = containerPosition,
+            EquippedMobileId = Serial.Zero,
+            EquippedLayer = null
+        };
+
+        await _persistenceService.UnitOfWork.Items.UpsertAsync(item);
+        _logger.Debug("Created starter container item {ItemId:X4} for character {CharacterId}", itemId, character.Id);
+    }
+
+    private async Task EnsureStarterEquippedItemAsync(UOMobileEntity character, ItemLayerType layer, int itemId)
+    {
+        if (character.HasEquippedItem(layer))
+        {
+            return;
+        }
+
+        var item = new UOItemEntity
+        {
+            Id = _persistenceService.UnitOfWork.AllocateNextItemId(),
+            ItemId = itemId,
+            Hue = 0,
+            Location = Point3D.Zero,
+            ParentContainerId = Serial.Zero,
+            ContainerPosition = Point2D.Zero,
+            EquippedMobileId = character.Id,
+            EquippedLayer = layer
+        };
+
+        character.AddEquippedItem(layer, item);
+        await _persistenceService.UnitOfWork.Items.UpsertAsync(item);
+        _logger.Debug(
+            "Created starter equipped item {ItemId:X4} on layer {Layer} for {CharacterId}",
+            itemId,
+            layer,
+            character.Id
+        );
+    }
+
+    private async Task EnsureStarterInventoryAsync(UOMobileEntity character)
+    {
+        UOItemEntity backpack;
+
+        if (!character.HasEquippedItem(ItemLayerType.Backpack))
+        {
+            backpack = _entityFactoryService.GetNewBackpack();
+            character.AddEquippedItem(ItemLayerType.Backpack, backpack);
+            character.BackpackId = backpack.Id;
+        }
+        else
+        {
+            character.BackpackId = character.EquippedItemIds[ItemLayerType.Backpack];
+            backpack = await _persistenceService.UnitOfWork.Items.GetByIdAsync(character.BackpackId) ??
+                       new UOItemEntity
+                       {
+                           Id = character.BackpackId,
+                           ItemId = BackpackItemId,
+                           Hue = 0,
+                           Location = Point3D.Zero,
+                           ParentContainerId = Serial.Zero,
+                           ContainerPosition = Point2D.Zero,
+                           EquippedMobileId = character.Id,
+                           EquippedLayer = ItemLayerType.Backpack
+                       };
+        }
+
+        await _persistenceService.UnitOfWork.Items.UpsertAsync(backpack);
+
+        await EnsureStarterContainerItemAsync(character, backpack.Id, GoldItemId, new(1, 1));
+        await EnsureStarterEquippedItemAsync(character, ItemLayerType.Shirt, ShirtItemId);
+        await EnsureStarterEquippedItemAsync(character, ItemLayerType.Pants, PantsItemId);
+        await EnsureStarterEquippedItemAsync(character, ItemLayerType.Shoes, ShoesItemId);
     }
 }

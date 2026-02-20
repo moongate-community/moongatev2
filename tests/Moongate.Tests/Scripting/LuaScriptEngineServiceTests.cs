@@ -83,6 +83,50 @@ public class LuaScriptEngineServiceTests
     }
 
     [Test]
+    public void ExecuteScript_WhenScriptIsValid_ShouldReuseCompiledChunkFromCache()
+    {
+        using var temp = new TempDirectory();
+        var service = CreateService(temp.Path);
+        const string script = "local x = 1 + 1";
+
+        service.ExecuteScript(script);
+        service.ExecuteScript(script);
+
+        var metrics = service.GetExecutionMetrics();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(metrics.CacheHits, Is.EqualTo(1));
+                Assert.That(metrics.CacheMisses, Is.EqualTo(1));
+                Assert.That(metrics.TotalScriptsCached, Is.EqualTo(1));
+            }
+        );
+    }
+
+    [Test]
+    public void ExecuteScript_WhenSyntaxIsInvalid_ShouldNotCacheFailedCompilation()
+    {
+        using var temp = new TempDirectory();
+        var service = CreateService(temp.Path);
+        const string invalidScript = "local x =";
+
+        Assert.That(() => service.ExecuteScript(invalidScript), Throws.Exception);
+        Assert.That(() => service.ExecuteScript(invalidScript), Throws.Exception);
+
+        var metrics = service.GetExecutionMetrics();
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(metrics.CacheHits, Is.EqualTo(0));
+                Assert.That(metrics.CacheMisses, Is.EqualTo(2));
+                Assert.That(metrics.TotalScriptsCached, Is.EqualTo(0));
+            }
+        );
+    }
+
+    [Test]
     public void ExecuteScriptFile_WhenFileMissing_ShouldThrowFileNotFoundException()
     {
         using var temp = new TempDirectory();
@@ -121,50 +165,6 @@ public class LuaScriptEngineServiceTests
                 Assert.That(typeResult.Success, Is.True);
                 Assert.That(typeResult.Data, Is.EqualTo("table"));
                 Assert.That(callResult.Success, Is.True);
-            }
-        );
-    }
-
-    [Test]
-    public void ExecuteScript_WhenSyntaxIsInvalid_ShouldNotCacheFailedCompilation()
-    {
-        using var temp = new TempDirectory();
-        var service = CreateService(temp.Path);
-        const string invalidScript = "local x =";
-
-        Assert.That(() => service.ExecuteScript(invalidScript), Throws.Exception);
-        Assert.That(() => service.ExecuteScript(invalidScript), Throws.Exception);
-
-        var metrics = service.GetExecutionMetrics();
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(metrics.CacheHits, Is.EqualTo(0));
-                Assert.That(metrics.CacheMisses, Is.EqualTo(2));
-                Assert.That(metrics.TotalScriptsCached, Is.EqualTo(0));
-            }
-        );
-    }
-
-    [Test]
-    public void ExecuteScript_WhenScriptIsValid_ShouldReuseCompiledChunkFromCache()
-    {
-        using var temp = new TempDirectory();
-        var service = CreateService(temp.Path);
-        const string script = "local x = 1 + 1";
-
-        service.ExecuteScript(script);
-        service.ExecuteScript(script);
-
-        var metrics = service.GetExecutionMetrics();
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(metrics.CacheHits, Is.EqualTo(1));
-                Assert.That(metrics.CacheMisses, Is.EqualTo(1));
-                Assert.That(metrics.TotalScriptsCached, Is.EqualTo(1));
             }
         );
     }

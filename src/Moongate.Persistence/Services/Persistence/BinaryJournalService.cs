@@ -21,7 +21,7 @@ public sealed class BinaryJournalService : IJournalService
     public BinaryJournalService(string journalFilePath)
     {
         _journalFilePath = Path.GetFullPath(journalFilePath);
-        _ioLock = IoLocks.GetOrAdd(_journalFilePath, _ => new SemaphoreSlim(1, 1));
+        _ioLock = IoLocks.GetOrAdd(_journalFilePath, _ => new(1, 1));
     }
 
     public async ValueTask AppendAsync(JournalEntry entry, CancellationToken cancellationToken = default)
@@ -63,15 +63,21 @@ public sealed class BinaryJournalService : IJournalService
             _ioLock.Release();
         }
 
-        _logger.Verbose("Journal append completed Path={JournalPath} SequenceId={SequenceId}", _journalFilePath, entry.SequenceId);
+        _logger.Verbose(
+            "Journal append completed Path={JournalPath} SequenceId={SequenceId}",
+            _journalFilePath,
+            entry.SequenceId
+        );
     }
 
     public async ValueTask<IReadOnlyCollection<JournalEntry>> ReadAllAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Journal read-all requested Path={JournalPath}", _journalFilePath);
+
         if (!File.Exists(_journalFilePath))
         {
             _logger.Verbose("Journal file not found Path={JournalPath}", _journalFilePath);
+
             return [];
         }
 
@@ -97,6 +103,7 @@ public sealed class BinaryJournalService : IJournalService
                 if (lengthBytesRead != 4)
                 {
                     _logger.Warning("Journal truncated at record-length read Path={JournalPath}", _journalFilePath);
+
                     break;
                 }
 
@@ -104,7 +111,12 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (payloadLength <= 0 || payloadLength > 16 * 1024 * 1024)
                 {
-                    _logger.Warning("Journal invalid payload length Path={JournalPath} PayloadLength={PayloadLength}", _journalFilePath, payloadLength);
+                    _logger.Warning(
+                        "Journal invalid payload length Path={JournalPath} PayloadLength={PayloadLength}",
+                        _journalFilePath,
+                        payloadLength
+                    );
+
                     break;
                 }
 
@@ -113,7 +125,12 @@ public sealed class BinaryJournalService : IJournalService
 
                 if (payloadBytesRead != payloadLength)
                 {
-                    _logger.Warning("Journal truncated at payload read Path={JournalPath} PayloadLength={PayloadLength}", _journalFilePath, payloadLength);
+                    _logger.Warning(
+                        "Journal truncated at payload read Path={JournalPath} PayloadLength={PayloadLength}",
+                        _journalFilePath,
+                        payloadLength
+                    );
+
                     break;
                 }
 
@@ -122,6 +139,7 @@ public sealed class BinaryJournalService : IJournalService
                 if (checksumBytesRead != 4)
                 {
                     _logger.Warning("Journal truncated at checksum read Path={JournalPath}", _journalFilePath);
+
                     break;
                 }
 
@@ -131,6 +149,7 @@ public sealed class BinaryJournalService : IJournalService
                 if (expectedChecksum != actualChecksum)
                 {
                     _logger.Warning("Journal checksum mismatch Path={JournalPath}", _journalFilePath);
+
                     break;
                 }
 
@@ -139,6 +158,7 @@ public sealed class BinaryJournalService : IJournalService
                 if (entry is null)
                 {
                     _logger.Warning("Journal entry deserialize failed Path={JournalPath}", _journalFilePath);
+
                     break;
                 }
 
@@ -151,6 +171,7 @@ public sealed class BinaryJournalService : IJournalService
         }
 
         _logger.Verbose("Journal read-all completed Path={JournalPath} Count={Count}", _journalFilePath, entries.Count);
+
         return entries;
     }
 

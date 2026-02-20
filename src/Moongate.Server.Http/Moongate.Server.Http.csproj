@@ -9,16 +9,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj"/>
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Scalar.AspNetCore" Version="2.12.44" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.12.44"/>
     </ItemGroup>
 
 </Project>

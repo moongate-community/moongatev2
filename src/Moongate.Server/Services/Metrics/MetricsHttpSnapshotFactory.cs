@@ -11,9 +11,7 @@ public sealed class MetricsHttpSnapshotFactory : IMetricsHttpSnapshotFactory
     private readonly IMetricsCollectionService _metricsCollectionService;
 
     public MetricsHttpSnapshotFactory(IMetricsCollectionService metricsCollectionService)
-    {
-        _metricsCollectionService = metricsCollectionService;
-    }
+        => _metricsCollectionService = metricsCollectionService;
 
     public MoongateHttpMetricsSnapshot? CreateSnapshot()
     {
@@ -31,7 +29,7 @@ public sealed class MetricsHttpSnapshotFactory : IMetricsHttpSnapshotFactory
             StringComparer.Ordinal
         );
 
-        return new MoongateHttpMetricsSnapshot
+        return new()
         {
             CollectedAt = snapshot.CollectedAt,
             Metrics = metrics

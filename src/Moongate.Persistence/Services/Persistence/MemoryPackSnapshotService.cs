@@ -19,15 +19,23 @@ public sealed class MemoryPackSnapshotService : ISnapshotService
     public async ValueTask<WorldSnapshot?> LoadAsync(CancellationToken cancellationToken = default)
     {
         _logger.Verbose("Snapshot load requested Path={SnapshotPath}", _snapshotFilePath);
+
         if (!File.Exists(_snapshotFilePath))
         {
             _logger.Verbose("Snapshot file not found Path={SnapshotPath}", _snapshotFilePath);
+
             return null;
         }
 
         await using var stream = new FileStream(_snapshotFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var snapshot = await MemoryPackSerializer.DeserializeAsync<WorldSnapshot>(stream, cancellationToken: cancellationToken);
-        _logger.Verbose("Snapshot load completed Path={SnapshotPath} Found={Found}", _snapshotFilePath, snapshot is not null);
+        var snapshot =
+            await MemoryPackSerializer.DeserializeAsync<WorldSnapshot>(stream, cancellationToken: cancellationToken);
+        _logger.Verbose(
+            "Snapshot load completed Path={SnapshotPath} Found={Found}",
+            _snapshotFilePath,
+            snapshot is not null
+        );
+
         return snapshot;
     }
 

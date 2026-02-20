@@ -30,7 +30,7 @@ public class DrawPlayerPacket : BaseGameNetworkPacket
         writer.Write((short)Mobile.Body);
         writer.Write((byte)0);
         writer.Write((ushort)Mobile.SkinHue);
-        writer.Write(Mobile.GetPacketFlags(stygianAbyss: true));
+        writer.Write(Mobile.GetPacketFlags(true));
         writer.Write((ushort)Mobile.Location.X);
         writer.Write((ushort)Mobile.Location.Y);
         writer.Write((ushort)0);

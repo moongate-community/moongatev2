@@ -17,6 +17,16 @@ public sealed class MobileTemplateService : IMobileTemplateService
     public void Clear()
         => _definitions.Clear();
 
+    public IReadOnlyList<MobileTemplateDefinition> GetAll()
+        => _definitions.Values.OrderBy(static definition => definition.Id, StringComparer.OrdinalIgnoreCase).ToList();
+
+    public bool TryGet(string id, out MobileTemplateDefinition? definition)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
+        return _definitions.TryGetValue(id, out definition);
+    }
+
     public void Upsert(MobileTemplateDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -34,14 +44,4 @@ public sealed class MobileTemplateService : IMobileTemplateService
             Upsert(definition);
         }
     }
-
-    public bool TryGet(string id, out MobileTemplateDefinition? definition)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
-
-        return _definitions.TryGetValue(id, out definition);
-    }
-
-    public IReadOnlyList<MobileTemplateDefinition> GetAll()
-        => _definitions.Values.OrderBy(static definition => definition.Id, StringComparer.OrdinalIgnoreCase).ToList();
 }
