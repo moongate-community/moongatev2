@@ -224,13 +224,16 @@ public sealed class TimerWheelService
             );
 
             entry.Callback();
-            Interlocked.Increment(ref _totalExecutedCallbacks);
-            Interlocked.Add(ref _totalCallbackElapsedTicks, Stopwatch.GetTimestamp() - startedAt);
         }
         catch (Exception ex)
         {
             Interlocked.Increment(ref _callbackErrors);
             _logger.Error(ex, "Timer callback failed for timer '{TimerName}' ({TimerId}).", entry.Name, entry.Id);
+        }
+        finally
+        {
+            Interlocked.Increment(ref _totalExecutedCallbacks);
+            Interlocked.Add(ref _totalCallbackElapsedTicks, Stopwatch.GetTimestamp() - startedAt);
         }
 
         if (!entry.Repeat)
