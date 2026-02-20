@@ -6,7 +6,7 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.6.0</Version>
+        <Version>0.7.0</Version>
         <Description>Moongate dedicated game server host process and runtime composition root.</Description>
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
@@ -17,20 +17,20 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Serilog" Version="4.3.1"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="Spectre.Console" Version="0.54.0"/>
+        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <PackageReference Include="Spectre.Console" Version="0.54.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
+        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Resources\**\*.*"/>
-        <EmbeddedResource Include="Resources\**\*.*"/>
-        <None Remove="Assets\**\*.*"/>
+        <None Remove="Resources\**\*.*" />
+        <EmbeddedResource Include="Resources\**\*.*" />
+        <None Remove="Assets\**\*.*" />
         <Content Include="Assets\**\*.*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -38,18 +38,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj"/>
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
-        <ProjectReference Include="..\Moongate.Network.Packets\Moongate.Network.Packets.csproj"/>
-        <ProjectReference Include="..\Moongate.Persistence\Moongate.Persistence.csproj"/>
-        <ProjectReference Include="..\Moongate.Scripting\Moongate.Scripting.csproj"/>
-        <ProjectReference Include="..\Moongate.Server.Http\Moongate.Server.Http.csproj"/>
-        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
+        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Network.Packets\Moongate.Network.Packets.csproj" />
+        <ProjectReference Include="..\Moongate.Persistence\Moongate.Persistence.csproj" />
+        <ProjectReference Include="..\Moongate.Scripting\Moongate.Scripting.csproj" />
+        <ProjectReference Include="..\Moongate.Server.Http\Moongate.Server.Http.csproj" />
+        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Assets\"/>
+        <Folder Include="Assets\" />
     </ItemGroup>
 
 </Project>
