@@ -22,7 +22,10 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            CreateTimerService()
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            CreateTimerService(),
+            new GameLoopTestOutboundPacketSender()
         );
 
         Assert.Multiple(
@@ -42,7 +45,10 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            CreateTimerService()
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            CreateTimerService(),
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -80,7 +86,10 @@ public class GameLoopServiceTests
         _service = new(
             packetDispatch,
             messageBus,
-            CreateTimerService()
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            CreateTimerService(),
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -127,7 +136,10 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            timerService
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            timerService,
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -153,7 +165,10 @@ public class GameLoopServiceTests
         _service = new(
             packetDispatch,
             messageBus,
-            CreateTimerService()
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            CreateTimerService(),
+            new GameLoopTestOutboundPacketSender()
         );
 
         await _service.StartAsync();
@@ -174,7 +189,10 @@ public class GameLoopServiceTests
         _service = new(
             new PacketDispatchService(),
             new MessageBusService(),
-            CreateTimerService()
+            new OutgoingPacketQueue(),
+            new GameNetworkSessionService(),
+            CreateTimerService(),
+            new GameLoopTestOutboundPacketSender()
         );
         await _service.StartAsync();
 
@@ -190,6 +208,40 @@ public class GameLoopServiceTests
         await Task.Delay(500);
 
         Assert.That(_service.GetMetricsSnapshot().TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+    }
+
+    [Test]
+    public async Task StartAsync_ShouldFlushOutgoingPacketsFromQueue()
+    {
+        var packetDispatch = new PacketDispatchService();
+        var messageBus = new MessageBusService();
+        var outgoingQueue = new OutgoingPacketQueue();
+        var sessions = new GameNetworkSessionService();
+        var sender = new GameLoopTestOutboundPacketSender();
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+        var session = sessions.GetOrCreate(client);
+        outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x22, 99));
+
+        _service = new(
+            packetDispatch,
+            messageBus,
+            outgoingQueue,
+            sessions,
+            CreateTimerService(),
+            sender
+        );
+        await _service.StartAsync();
+
+        var sent = await WaitUntilAsync(() => sender.SentPackets.Count == 1, TimeSpan.FromSeconds(2));
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(sent, Is.True, "Outgoing queue was not flushed in time.");
+                Assert.That(sender.SentPackets[0].SessionId, Is.EqualTo(session.SessionId));
+                Assert.That(sender.SentPackets[0].Packet.OpCode, Is.EqualTo(0x22));
+            }
+        );
     }
 
     [TearDown]

@@ -6,6 +6,7 @@ using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Packets;
+using Moongate.Server.Interfaces.Services.Sessions;
 using Moongate.Server.Interfaces.Services.Timing;
 using Serilog;
 
@@ -15,7 +16,10 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly IMessageBusService _messageBusService;
+    private readonly IOutgoingPacketQueue _outgoingPacketQueue;
+    private readonly IGameNetworkSessionService _gameNetworkSessionService;
     private readonly ITimerService _timerService;
+    private readonly IOutboundPacketSender _outboundPacketSender;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
     private readonly TimeSpan _tickInterval;
@@ -29,13 +33,19 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     public GameLoopService(
         IPacketDispatchService packetDispatchService,
         IMessageBusService messageBusService,
+        IOutgoingPacketQueue outgoingPacketQueue,
+        IGameNetworkSessionService gameNetworkSessionService,
         ITimerService timerService,
+        IOutboundPacketSender outboundPacketSender,
         TimerServiceConfig? timerServiceConfig = null
     )
     {
         _packetDispatchService = packetDispatchService;
         _messageBusService = messageBusService;
+        _outgoingPacketQueue = outgoingPacketQueue;
+        _gameNetworkSessionService = gameNetworkSessionService;
         _timerService = timerService;
+        _outboundPacketSender = outboundPacketSender;
         _tickInterval = timerServiceConfig?.TickDuration ?? TimeSpan.FromMilliseconds(8);
 
         _logger.Information(
@@ -104,6 +114,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     {
         DrainPacketQueue();
         _timerService.ProcessTick();
+        DrainOutgoingPacketQueue();
     }
 
     private void DrainPacketQueue()
@@ -111,6 +122,28 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         while (_messageBusService.TryReadIncomingPacket(out var gamePacket))
         {
             _packetDispatchService.NotifyPacketListeners(gamePacket);
+        }
+    }
+
+    private void DrainOutgoingPacketQueue()
+    {
+        while (_outgoingPacketQueue.TryDequeue(out var outgoingPacket))
+        {
+            if (
+                !_gameNetworkSessionService.TryGet(outgoingPacket.SessionId, out var session) ||
+                session.NetworkSession.Client is not { } client
+            )
+            {
+                _logger.Warning(
+                    "Skipping outbound packet 0x{OpCode:X2}: session {SessionId} is not connected.",
+                    outgoingPacket.Packet.OpCode,
+                    outgoingPacket.SessionId
+                );
+
+                continue;
+            }
+
+            _outboundPacketSender.Send(client, outgoingPacket);
         }
     }
 

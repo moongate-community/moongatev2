@@ -24,7 +24,4 @@ public sealed class BasePacketListenerTestOutgoingPacketQueue : IOutgoingPacketQ
 
         return true;
     }
-
-    public Task<bool> WaitToReadAsync(CancellationToken cancellationToken)
-        => Task.FromResult(_items.Count > 0);
 }
