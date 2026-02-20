@@ -8,7 +8,7 @@ public sealed class TimerServiceConfig
     /// <summary>
     /// Gets or sets the timer-wheel tick duration.
     /// </summary>
-    public TimeSpan TickDuration { get; set; } = TimeSpan.FromMilliseconds(250);
+    public TimeSpan TickDuration { get; set; } = TimeSpan.FromMilliseconds(8);
 
     /// <summary>
     /// Gets or sets the timer-wheel slot count.
