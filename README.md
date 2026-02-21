@@ -14,6 +14,9 @@
 
 [![CI](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml)
 [![Release](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml)
+[![Docker Image](https://img.shields.io/docker/v/tgiachi/moongate?sort=semver)](https://hub.docker.com/r/tgiachi/moongate)
+[![Docker Pulls](https://img.shields.io/docker/pulls/tgiachi/moongate)](https://hub.docker.com/r/tgiachi/moongate)
+[![Docker Image Size](https://img.shields.io/docker/image-size/tgiachi/moongate/latest)](https://hub.docker.com/r/tgiachi/moongate)
 
 Moongate v2 is a modern Ultima Online server project built with .NET 10.
 It targets a clean, modular architecture with strong packet tooling, deterministic game-loop processing, and practical test coverage.
