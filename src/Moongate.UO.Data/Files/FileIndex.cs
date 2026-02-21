@@ -33,12 +33,12 @@ public class FileIndex
 
         if (UoFiles.MulPath.Count > 0)
         {
-            idxPath = UoFiles.MulPath[idxFile.ToLower()];
-            MulPath = UoFiles.MulPath[mulFile.ToLower()];
+            idxPath = UoFiles.MulPath[idxFile.ToLowerInvariant()];
+            MulPath = UoFiles.MulPath[mulFile.ToLowerInvariant()];
 
-            if (!string.IsNullOrEmpty(uopFile) && UoFiles.MulPath.ContainsKey(uopFile.ToLower()))
+            if (!string.IsNullOrEmpty(uopFile) && UoFiles.MulPath.ContainsKey(uopFile.ToLowerInvariant()))
             {
-                uopPath = UoFiles.MulPath[uopFile.ToLower()];
+                uopPath = UoFiles.MulPath[uopFile.ToLowerInvariant()];
             }
 
             if (string.IsNullOrEmpty(idxPath))
@@ -137,10 +137,7 @@ public class FileIndex
                 var entryName = string.Format("build/{0}/{1:D8}{2}", uopPattern, i, uopEntryExtension);
                 var hash = HashFileName(entryName);
 
-                if (!hashes.ContainsKey(hash))
-                {
-                    hashes.Add(hash, i);
-                }
+                hashes.TryAdd(hash, i);
             }
 
             br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
@@ -254,8 +251,8 @@ public class FileIndex
 
         if (UoFiles.MulPath.Count > 0)
         {
-            idxPath = UoFiles.MulPath[idxFile.ToLower()];
-            MulPath = UoFiles.MulPath[mulFile.ToLower()];
+            idxPath = UoFiles.MulPath[idxFile.ToLowerInvariant()];
+            MulPath = UoFiles.MulPath[mulFile.ToLowerInvariant()];
 
             if (string.IsNullOrEmpty(idxPath))
             {

@@ -44,4 +44,14 @@ public sealed class MoongateHttpServiceOptions
     /// Optional factory used by the built-in <c>/metrics</c> endpoint.
     /// </summary>
     public Func<MoongateHttpMetricsSnapshot?>? MetricsSnapshotFactory { get; init; }
+
+    /// <summary>
+    /// Optional JWT authentication options.
+    /// </summary>
+    public MoongateHttpJwtOptions? Jwt { get; init; }
+
+    /// <summary>
+    /// Optional authentication callback used by the login endpoint.
+    /// </summary>
+    public Func<string, string, CancellationToken, Task<MoongateHttpAuthenticatedUser?>>? AuthenticateUserAsync { get; init; }
 }

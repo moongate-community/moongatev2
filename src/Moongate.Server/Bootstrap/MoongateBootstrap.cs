@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using DryIoc;
 using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
@@ -312,6 +313,7 @@ public sealed class MoongateBootstrap : IDisposable
         {
             _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
             _logger.Information("HTTP Server enabled.");
+            var jwtSigningKey = ResolveHttpJwtSigningKey();
 
             var httpServiceOptions = new MoongateHttpServiceOptions
             {
@@ -320,7 +322,32 @@ public sealed class MoongateBootstrap : IDisposable
                 Port = _moongateConfig.Http.Port,
                 ServiceMappings = null,
                 MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel(),
-                MetricsSnapshotFactory = CreateHttpMetricsSnapshot
+                MetricsSnapshotFactory = CreateHttpMetricsSnapshot,
+                Jwt = new MoongateHttpJwtOptions
+                {
+                    IsEnabled = _moongateConfig.Http.Jwt.IsEnabled,
+                    SigningKey = jwtSigningKey,
+                    Issuer = _moongateConfig.Http.Jwt.Issuer,
+                    Audience = _moongateConfig.Http.Jwt.Audience,
+                    ExpirationMinutes = _moongateConfig.Http.Jwt.ExpirationMinutes
+                },
+                AuthenticateUserAsync = async (username, password, _) =>
+                {
+                    var accountService = _container.Resolve<IAccountService>();
+                    var account = await accountService.LoginAsync(username, password);
+
+                    if (account is null)
+                    {
+                        return null;
+                    }
+
+                    return new MoongateHttpAuthenticatedUser
+                    {
+                        AccountId = account.Id.Value.ToString(),
+                        Username = account.Username,
+                        Role = account.AccountType.ToString()
+                    };
+                }
             };
 
             _container.RegisterInstance(httpServiceOptions);
@@ -329,6 +356,39 @@ public sealed class MoongateBootstrap : IDisposable
         {
             _logger.Information("HTTP Server disabled.");
         }
+    }
+
+    private string ResolveHttpJwtSigningKey()
+    {
+        var configuredKey = _moongateConfig.Http.Jwt.SigningKey;
+
+        if (!string.IsNullOrWhiteSpace(configuredKey))
+        {
+            return configuredKey;
+        }
+
+        var envKey = Environment.GetEnvironmentVariable("MOONGATE_HTTP_JWT_SIGNING_KEY");
+
+        if (!string.IsNullOrWhiteSpace(envKey))
+        {
+            return envKey;
+        }
+
+        if (!_moongateConfig.Http.Jwt.IsEnabled)
+        {
+            return string.Empty;
+        }
+
+        Span<byte> buffer = stackalloc byte[64];
+        RandomNumberGenerator.Fill(buffer);
+        var generated = Convert.ToHexString(buffer);
+
+        _logger.Warning(
+            "HTTP JWT is enabled but no signing key was configured. Generated ephemeral key for this process. " +
+            "Set MOONGATE_HTTP_JWT_SIGNING_KEY to keep tokens valid across restarts."
+        );
+
+        return generated;
     }
 
     private void RegisterPacketHandlers()

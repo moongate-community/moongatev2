@@ -65,7 +65,7 @@ public class ClientVersion : IComparable<ClientVersion>, IComparer<ClientVersion
 
     public ClientVersion(string fmt)
     {
-        fmt = fmt.ToLower();
+        fmt = fmt.ToLowerInvariant();
         SourceString = string.Intern(fmt);
 
         try

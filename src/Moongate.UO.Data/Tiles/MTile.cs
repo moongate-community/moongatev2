@@ -45,19 +45,19 @@ public struct MTile : IComparable
         m_Solver = 0;
     }
 
-    public int CompareTo(object x)
+    public int CompareTo(object? obj)
     {
-        if (x == null)
+        if (obj == null)
         {
             return 1;
         }
 
-        if (!(x is MTile))
+        if (!(obj is MTile))
         {
             throw new ArgumentNullException();
         }
 
-        var a = (MTile)x;
+        var a = (MTile)obj;
 
         var ourData = TileData.ItemTable[m_ID];
         var theirData = TileData.ItemTable[a.ID];

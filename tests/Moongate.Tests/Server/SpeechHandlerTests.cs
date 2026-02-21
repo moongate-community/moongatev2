@@ -17,7 +17,7 @@ public class SpeechHandlerTests
     public async Task HandlePacketAsync_ShouldEnqueueUnicodeSpeechMessagePacket_ForSenderSession()
     {
         var queue = new BasePacketListenerTestOutgoingPacketQueue();
-        var handler = new SpeechHandler(queue);
+        var handler = new SpeechHandler(queue, new MockCommandSystemService());
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
         var session = new GameSession(new(client))

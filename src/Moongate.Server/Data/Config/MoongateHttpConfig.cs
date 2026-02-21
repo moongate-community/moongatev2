@@ -7,4 +7,6 @@ public class MoongateHttpConfig
     public int Port { get; set; } = 8088;
 
     public bool IsOpenApiEnabled { get; set; } = true;
+
+    public MoongateHttpJwtConfig Jwt { get; set; } = new();
 }
