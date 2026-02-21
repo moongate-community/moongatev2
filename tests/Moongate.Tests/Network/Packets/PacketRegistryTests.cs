@@ -1,4 +1,5 @@
 using Moongate.Network.Packets.Attributes;
+using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Incoming.House;
 using Moongate.Network.Packets.Incoming.Interaction;
 using Moongate.Network.Packets.Incoming.Login;
@@ -14,6 +15,25 @@ namespace Moongate.Tests.Network.Packets;
 
 public class PacketRegistryTests
 {
+    [PacketHandler(0xEE, PacketSizing.Fixed, Length = 3, Description = "Registry Test Fixed")]
+    private sealed class RegistryFixedPacket : BaseGameNetworkPacket
+    {
+        public RegistryFixedPacket()
+            : base(0xEE, 3) { }
+
+        protected override bool ParsePayload(ref Moongate.Network.Spans.SpanReader reader)
+            => reader.Remaining == 2;
+    }
+
+    private sealed class RegistryPacketWithoutAttribute : BaseGameNetworkPacket
+    {
+        public RegistryPacketWithoutAttribute()
+            : base(0xED, 3) { }
+
+        protected override bool ParsePayload(ref Moongate.Network.Spans.SpanReader reader)
+            => reader.Remaining == 2;
+    }
+
     [Test]
     public void PacketTable_Register_ShouldMatchAllPacketHandlerAttributes()
     {
@@ -155,6 +175,36 @@ public class PacketRegistryTests
 
         Assert.That(hasDescriptor, Is.True);
         Assert.That(descriptor.Length, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void RegisterFromAttribute_WhenAttributeIsMissing_ShouldThrow()
+    {
+        var registry = new PacketRegistry();
+
+        Assert.That(
+            () => registry.RegisterFromAttribute<RegistryPacketWithoutAttribute>(),
+            Throws.TypeOf<InvalidOperationException>()
+        );
+    }
+
+    [Test]
+    public void RegisterFromAttribute_ShouldUseAttributeDescription()
+    {
+        var registry = new PacketRegistry();
+
+        registry.RegisterFromAttribute<RegistryFixedPacket>();
+
+        var hasDescriptor = registry.TryGetDescriptor(0xEE, out var descriptor);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(hasDescriptor, Is.True);
+                Assert.That(descriptor.Length, Is.EqualTo(3));
+                Assert.That(descriptor.Description, Is.EqualTo("Registry Test Fixed"));
+            }
+        );
     }
 
     [Test]

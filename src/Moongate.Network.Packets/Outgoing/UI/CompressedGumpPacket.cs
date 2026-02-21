@@ -61,77 +61,88 @@ public sealed class CompressedGumpPacket : BaseGameNetworkPacket
 
     protected override bool ParsePayload(ref SpanReader reader)
     {
-        if (reader.Remaining < 24)
+        try
+        {
+            if (reader.Remaining < 24)
+            {
+                return false;
+            }
+
+            var declaredLength = reader.ReadUInt16();
+            if (declaredLength != reader.Length)
+            {
+                return false;
+            }
+
+            SenderSerial = reader.ReadUInt32();
+            GumpId = reader.ReadUInt32();
+            X = reader.ReadUInt32();
+            Y = reader.ReadUInt32();
+
+            var layoutCompressedLengthWithHeader = reader.ReadUInt32();
+            if (layoutCompressedLengthWithHeader < 4)
+            {
+                return false;
+            }
+
+            var layoutUncompressedLength = reader.ReadUInt32();
+            var layoutCompressedLength = (int)layoutCompressedLengthWithHeader - 4;
+
+            if (layoutCompressedLength > reader.Remaining)
+            {
+                return false;
+            }
+
+            var compressedLayout = reader.ReadBytes(layoutCompressedLength);
+            var layoutBytes = Decompress(compressedLayout, (int)layoutUncompressedLength);
+            Layout = DecodeLayout(layoutBytes);
+
+            if (reader.Remaining < 8)
+            {
+                return false;
+            }
+
+            var textLineCount = reader.ReadUInt32();
+            var textCompressedLengthWithHeader = reader.ReadUInt32();
+            TextLines.Clear();
+
+            if (textCompressedLengthWithHeader == 0)
+            {
+                return textLineCount == 0 && reader.Remaining == 0;
+            }
+
+            if (textCompressedLengthWithHeader < 4)
+            {
+                return false;
+            }
+
+            if (reader.Remaining < 4)
+            {
+                return false;
+            }
+
+            var textUncompressedLength = reader.ReadUInt32();
+            var textCompressedLength = (int)textCompressedLengthWithHeader - 4;
+
+            if (textCompressedLength > reader.Remaining)
+            {
+                return false;
+            }
+
+            var compressedText = reader.ReadBytes(textCompressedLength);
+            var textBytes = Decompress(compressedText, (int)textUncompressedLength);
+            ParseTextLines(textBytes, (int)textLineCount);
+
+            return reader.Remaining == 0;
+        }
+        catch (InvalidDataException)
         {
             return false;
         }
-
-        var declaredLength = reader.ReadUInt16();
-        if (declaredLength != reader.Length)
+        catch (OverflowException)
         {
             return false;
         }
-
-        SenderSerial = reader.ReadUInt32();
-        GumpId = reader.ReadUInt32();
-        X = reader.ReadUInt32();
-        Y = reader.ReadUInt32();
-
-        var layoutCompressedLengthWithHeader = reader.ReadUInt32();
-        if (layoutCompressedLengthWithHeader < 4)
-        {
-            return false;
-        }
-
-        var layoutUncompressedLength = reader.ReadUInt32();
-        var layoutCompressedLength = (int)layoutCompressedLengthWithHeader - 4;
-
-        if (layoutCompressedLength > reader.Remaining)
-        {
-            return false;
-        }
-
-        var compressedLayout = reader.ReadBytes(layoutCompressedLength);
-        var layoutBytes = Decompress(compressedLayout, (int)layoutUncompressedLength);
-        Layout = DecodeLayout(layoutBytes);
-
-        if (reader.Remaining < 8)
-        {
-            return false;
-        }
-
-        var textLineCount = reader.ReadUInt32();
-        var textCompressedLengthWithHeader = reader.ReadUInt32();
-        TextLines.Clear();
-
-        if (textCompressedLengthWithHeader == 0)
-        {
-            return textLineCount == 0 && reader.Remaining == 0;
-        }
-
-        if (textCompressedLengthWithHeader < 4)
-        {
-            return false;
-        }
-
-        if (reader.Remaining < 4)
-        {
-            return false;
-        }
-
-        var textUncompressedLength = reader.ReadUInt32();
-        var textCompressedLength = (int)textCompressedLengthWithHeader - 4;
-
-        if (textCompressedLength > reader.Remaining)
-        {
-            return false;
-        }
-
-        var compressedText = reader.ReadBytes(textCompressedLength);
-        var textBytes = Decompress(compressedText, (int)textUncompressedLength);
-        ParseTextLines(textBytes, (int)textLineCount);
-
-        return reader.Remaining == 0;
     }
 
     private static byte[] BuildLayoutBytes(string layout)

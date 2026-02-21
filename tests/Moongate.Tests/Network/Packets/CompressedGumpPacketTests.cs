@@ -95,6 +95,117 @@ public class CompressedGumpPacketTests
         );
     }
 
+    [Test]
+    public void TryParse_ShouldFail_WhenDeclaredPacketLengthDoesNotMatchBufferLength()
+    {
+        var packet = new CompressedGumpPacket
+        {
+            SenderSerial = 0x00000005,
+            GumpId = 0x00000066,
+            X = 10,
+            Y = 20,
+            Layout = "{ page 0 }"
+        };
+
+        var bytes = Write(packet);
+        BinaryPrimitives.WriteUInt16BigEndian(bytes.AsSpan(1, 2), (ushort)(bytes.Length + 1));
+
+        var parsed = new CompressedGumpPacket();
+        var ok = parsed.TryParse(bytes);
+
+        Assert.That(ok, Is.False);
+    }
+
+    [Test]
+    public void TryParse_ShouldFail_WhenStringsSectionHasInvalidHeaderLength()
+    {
+        var packet = new CompressedGumpPacket
+        {
+            SenderSerial = 0x00000006,
+            GumpId = 0x00000067,
+            X = 1,
+            Y = 2,
+            Layout = "{ page 0 }"
+        };
+        packet.TextLines.Add("abc");
+
+        var bytes = Write(packet);
+        var offset = FindTextCompressedLengthOffset(bytes);
+        BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(offset, 4), 1);
+
+        var parsed = new CompressedGumpPacket();
+        var ok = parsed.TryParse(bytes);
+
+        Assert.That(ok, Is.False);
+    }
+
+    [Test]
+    public void TryParse_ShouldFail_WhenTextLineCountExceedsStringsPayload()
+    {
+        var packet = new CompressedGumpPacket
+        {
+            SenderSerial = 0x00000007,
+            GumpId = 0x00000068,
+            X = 5,
+            Y = 9,
+            Layout = "{ page 0 }"
+        };
+        packet.TextLines.Add("one");
+
+        var bytes = Write(packet);
+        var textCountOffset = FindTextLineCountOffset(bytes);
+        BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(textCountOffset, 4), 2);
+
+        var parsed = new CompressedGumpPacket();
+        var ok = parsed.TryParse(bytes);
+
+        Assert.That(ok, Is.False);
+    }
+
+    [Test]
+    public void TryParse_ShouldFail_WhenLayoutCompressedPayloadIsCorrupted()
+    {
+        var packet = new CompressedGumpPacket
+        {
+            SenderSerial = 0x00000008,
+            GumpId = 0x00000069,
+            X = 25,
+            Y = 35,
+            Layout = "{ page 0 }"
+        };
+
+        var bytes = Write(packet);
+        bytes[27] ^= 0xFF;
+
+        var parsed = new CompressedGumpPacket();
+        Assert.That(() => parsed.TryParse(bytes), Throws.Nothing);
+        Assert.That(parsed.TryParse(bytes), Is.False);
+    }
+
+    [Test]
+    public void TryParse_ShouldFail_WhenStringsPayloadHasTrailingBytes()
+    {
+        var packet = new CompressedGumpPacket
+        {
+            SenderSerial = 0x00000009,
+            GumpId = 0x00000070,
+            X = 7,
+            Y = 8,
+            Layout = "{ page 0 }"
+        };
+        packet.TextLines.Add("one");
+        packet.TextLines.Add("two");
+
+        var bytes = Write(packet);
+        var textCountOffset = FindTextLineCountOffset(bytes);
+        BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(textCountOffset, 4), 1);
+
+        var parsed = new CompressedGumpPacket();
+        var ok = parsed.TryParse(bytes);
+
+        Assert.That(ok, Is.False);
+    }
+
     private static byte[] Write(CompressedGumpPacket packet)
     {
         var writer = new SpanWriter(1024, true);
@@ -104,4 +215,13 @@ public class CompressedGumpPacketTests
 
         return bytes;
     }
+
+    private static int FindTextLineCountOffset(ReadOnlySpan<byte> packetBytes)
+    {
+        var layoutLengthWithHeader = BinaryPrimitives.ReadUInt32BigEndian(packetBytes.Slice(19, 4));
+        return 27 + (int)layoutLengthWithHeader - 4;
+    }
+
+    private static int FindTextCompressedLengthOffset(ReadOnlySpan<byte> packetBytes)
+        => FindTextLineCountOffset(packetBytes) + 4;
 }

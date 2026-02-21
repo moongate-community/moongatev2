@@ -80,6 +80,66 @@ public class GumpMenuSelectionPacketTests
         Assert.That(ok, Is.False);
     }
 
+    [Test]
+    public void TryParse_ShouldFail_WhenSwitchCountIsNegative()
+    {
+        var packet = new GumpMenuSelectionPacket();
+        var bytes = BuildPacketBytes(
+            serial: 1,
+            gumpId: 2,
+            buttonId: 3,
+            switches: [],
+            textEntries: new Dictionary<ushort, string>()
+        );
+
+        var switchCountOffset = 3 + 4 + 4 + 4;
+        BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(switchCountOffset, 4), -1);
+
+        var ok = packet.TryParse(bytes);
+
+        Assert.That(ok, Is.False);
+    }
+
+    [Test]
+    public void TryParse_ShouldUseLastTextEntryValue_WhenEntryIdIsDuplicated()
+    {
+        var packet = new GumpMenuSelectionPacket();
+
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true);
+
+        bw.Write((byte)0xB1);
+        bw.Write((ushort)0);
+        WriteUInt32BE(bw, 1);
+        WriteUInt32BE(bw, 2);
+        WriteUInt32BE(bw, 3);
+        WriteInt32BE(bw, 0);
+        WriteInt32BE(bw, 2);
+
+        WriteUInt16BE(bw, 7);
+        WriteUInt16BE(bw, 5);
+        bw.Write(Encoding.BigEndianUnicode.GetBytes("first"));
+
+        WriteUInt16BE(bw, 7);
+        WriteUInt16BE(bw, 6);
+        bw.Write(Encoding.BigEndianUnicode.GetBytes("second"));
+
+        bw.Flush();
+        var bytes = ms.ToArray();
+        BinaryPrimitives.WriteUInt16BigEndian(bytes.AsSpan(1, 2), (ushort)bytes.Length);
+
+        var ok = packet.TryParse(bytes);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(ok, Is.True);
+                Assert.That(packet.TextEntries.Count, Is.EqualTo(1));
+                Assert.That(packet.TextEntries[7], Is.EqualTo("second"));
+            }
+        );
+    }
+
     private static byte[] BuildPacketBytes(
         uint serial,
         uint gumpId,
