@@ -18,12 +18,40 @@
 Moongate v2 is a modern Ultima Online server project built with .NET 10.
 It targets a clean, modular architecture with strong packet tooling, deterministic game-loop processing, and practical test coverage.
 
+> Moongate is not a clone of ModernUO, RunUO, ServUO or any other emulator, and it does not aim to be. In fact, we owe a great deal of inspiration to these projects. Their legacy and technical achievements are invaluable, and this project would not exist without them. Thank you.
+
+## Index
+
+- [Project Goals](#project-goals)
+- [Project Story](#project-story)
+- [Current Status](#current-status)
+- [Persistence](#persistence)
+- [Templates](#templates)
+- [Solution Structure](#solution-structure)
+- [Event And Packet Separation](#event-and-packet-separation)
+- [Game Loop Scheduling](#game-loop-scheduling)
+- [Requirements](#requirements)
+- [Quick Start](#quick-start)
+- [Scripting](#scripting)
+- [Scripts](#scripts)
+- [Docker](#docker)
+- [Docker Monitoring Stack](#docker-monitoring-stack)
+- [Documentation](#documentation)
+- [Development Notes](#development-notes)
+- [License](#license)
+
 ## Project Goals
 
 - Build a maintainable UO server foundation focused on correctness and iteration speed.
 - Keep networking and game-loop boundaries explicit and thread-safe.
 - Model protocol packets with typed definitions and source-generated registration.
 - Stay AOT-aware while preserving a smooth local development workflow.
+
+## Project Story
+
+You can read the background and motivation behind Moongate v2 here:
+
+- https://orivega.io/moongate-v2-rewriting-a-ultima-online-server-from-scratch-because-i-wanted-to/
 
 ## Current Status
 
@@ -44,6 +72,7 @@ The project is actively in development and already includes:
 - ID-based persistence references for character equipment/container ownership.
 - Interactive console UI with fixed prompt (`moongate>`) and Spectre-based colored log rendering.
 - Timer wheel runtime metrics integrated in the metrics pipeline (`timer.*`).
+- Timestamp-driven game loop scheduling with timer delta updates and optional idle CPU throttling.
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-19.md`.
 
@@ -163,6 +192,15 @@ Moongate uses a strict separation between inbound protocol parsing and outbound 
 - `RegisterOutboundEventListener<TEvent, TListener>()` is the bootstrap helper to register outbound listeners as hosted services with priority.
 - `IOutgoingPacketQueue` and `IOutboundPacketSender` deliver outbound packets on the game-loop/network boundary.
 
+## Game Loop Scheduling
+
+The server loop is timestamp-driven (monotonic `Stopwatch`) rather than fixed-sleep tick stepping:
+
+- `GameLoopService` computes current loop timestamp and calls `ITimerService.UpdateTicksDelta(...)`.
+- `TimerWheelService` accumulates elapsed milliseconds and advances only the required number of wheel ticks.
+- This keeps timer semantics stable while adapting to real runtime load.
+- Optional idle throttling (`Game.IdleCpuEnabled`, `Game.IdleSleepMilliseconds`) sleeps briefly when no work was processed.
+
 ## Requirements
 
 - .NET SDK 10.0.x
@@ -256,6 +294,29 @@ Console behavior in Docker:
 
 - Run with `-it` to enable the interactive prompt UI (`moongate>`).
 - Without TTY (`-it` omitted), logs still work but prompt interaction is disabled.
+
+## Docker Monitoring Stack
+
+The repository includes a complete monitoring stack under `stack/`:
+
+- Moongate server container
+- Prometheus scraping `http://moongate:8088/metrics`
+- Grafana with pre-provisioned datasource and dashboard
+
+Quick start:
+
+```bash
+cd stack
+docker compose up -d --build
+```
+
+Useful endpoints:
+
+- Grafana: `http://localhost:3000`
+- Prometheus: `http://localhost:9090`
+- Moongate metrics: `http://localhost:8088/metrics`
+
+For full setup details, volumes, troubleshooting, and dashboard notes, see `stack/README.md`.
 
 ## Documentation
 

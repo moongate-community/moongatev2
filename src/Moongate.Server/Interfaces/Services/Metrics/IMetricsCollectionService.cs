@@ -1,5 +1,5 @@
 using Moongate.Abstractions.Interfaces.Services.Base;
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 
 namespace Moongate.Server.Interfaces.Services.Metrics;
 

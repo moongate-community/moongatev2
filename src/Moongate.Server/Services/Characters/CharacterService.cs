@@ -101,6 +101,8 @@ public class CharacterService : ICharacterService
             return null;
         }
 
+        await HydrateCharacterEquipmentRuntimeAsync(character);
+
         _logger.Debug("Loaded character {CharacterId}", characterId);
 
         return character;
@@ -125,6 +127,7 @@ public class CharacterService : ICharacterService
 
             if (mobile != null)
             {
+                await HydrateCharacterEquipmentRuntimeAsync(mobile);
                 characters.Add(mobile);
             }
         }
@@ -136,6 +139,44 @@ public class CharacterService : ICharacterService
         );
 
         return characters;
+    }
+
+    public async Task<UOItemEntity?> GetBackpackWithItemsAsync(UOMobileEntity character)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+
+        var backpackId = character.BackpackId;
+
+        if (backpackId == Serial.Zero &&
+            character.EquippedItemIds.TryGetValue(ItemLayerType.Backpack, out var equippedBackpackId))
+        {
+            backpackId = equippedBackpackId;
+        }
+
+        if (backpackId == Serial.Zero)
+        {
+            return null;
+        }
+
+        var backpack = await _persistenceService.UnitOfWork.Items.GetByIdAsync(backpackId);
+
+        if (backpack is null)
+        {
+            return null;
+        }
+
+        var hydratedBackpack = CloneItem(backpack);
+        var containedItems = await _persistenceService.UnitOfWork.Items.QueryAsync(
+                                 item => item.ParentContainerId == backpackId,
+                                 static item => item
+                             );
+
+        foreach (var item in containedItems)
+        {
+            hydratedBackpack.AddItem(CloneItem(item), item.ContainerPosition);
+        }
+
+        return hydratedBackpack;
     }
 
     public async Task<bool> RemoveCharacterFromAccountAsync(Serial accountId, Serial characterId)
@@ -267,5 +308,69 @@ public class CharacterService : ICharacterService
         await EnsureStarterEquippedItemAsync(character, ItemLayerType.Shirt, ShirtItemId);
         await EnsureStarterEquippedItemAsync(character, ItemLayerType.Pants, PantsItemId);
         await EnsureStarterEquippedItemAsync(character, ItemLayerType.Shoes, ShoesItemId);
+    }
+
+    private async Task HydrateCharacterEquipmentRuntimeAsync(UOMobileEntity character)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+
+        if (character.EquippedItemIds.Count == 0)
+        {
+            character.HydrateEquipmentRuntime([]);
+
+            return;
+        }
+
+        var equippedItems = await _persistenceService.UnitOfWork.Items.QueryAsync(
+                                item => item.EquippedMobileId == character.Id && item.EquippedLayer is not null,
+                                static item => item
+                            );
+
+        var hydratedItems = equippedItems.ToDictionary(static item => item.Id, static item => item);
+        var inferredItems = new List<UOItemEntity>(character.EquippedItemIds.Count);
+
+        foreach (var (layer, itemId) in character.EquippedItemIds)
+        {
+            if (hydratedItems.ContainsKey(itemId))
+            {
+                continue;
+            }
+
+            var item = await _persistenceService.UnitOfWork.Items.GetByIdAsync(itemId);
+
+            if (item is null)
+            {
+                continue;
+            }
+
+            item.EquippedMobileId = character.Id;
+            item.EquippedLayer = layer;
+            inferredItems.Add(item);
+        }
+
+        if (inferredItems.Count > 0)
+        {
+            character.HydrateEquipmentRuntime([.. equippedItems, .. inferredItems]);
+
+            return;
+        }
+
+        character.HydrateEquipmentRuntime(equippedItems);
+    }
+
+    private static UOItemEntity CloneItem(UOItemEntity item)
+    {
+        return new()
+        {
+            Id = item.Id,
+            Location = item.Location,
+            ItemId = item.ItemId,
+            Hue = item.Hue,
+            GumpId = item.GumpId,
+            ParentContainerId = item.ParentContainerId,
+            ContainerPosition = item.ContainerPosition,
+            EquippedMobileId = item.EquippedMobileId,
+            EquippedLayer = item.EquippedLayer
+        };
     }
 }

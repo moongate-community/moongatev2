@@ -11,6 +11,7 @@ using Moongate.Server.Interfaces.Services.Entities;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
+using Moongate.UO.Data.Persistence.Entities;
 using Moongate.Server.Listeners.Base;
 using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Types;
@@ -62,6 +63,14 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
             return false;
         }
 
+        session.CharacterId = characterId;
+        session.Character = character;
+        session.MoveSequence = 0;
+        session.SelfNotoriety = (byte)character.Notoriety;
+        session.IsMounted = character.IsMounted;
+        session.MoveCredit = 0;
+        session.MoveTime = Environment.TickCount64;
+
         _logger.Information(
             "Character {CharacterName} (ID: {CharacterId}) logged in for session {SessionId}",
             character.Name,
@@ -75,6 +84,8 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
         Enqueue(session, new DrawPlayerPacket(character));
 
         Enqueue(session, new MobileDrawPacket(character, character, true, true));
+        EnqueueWornItems(session, character);
+        await EnqueueBackpackAsync(session, character);
 
         Enqueue(session, new WarModePacket(character));
         Enqueue(session, GeneralInformationPacket.CreateSetCursorHueSetMap(character.Map));
@@ -88,11 +99,7 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
         Enqueue(session, new SeasonPacket(character.Map.Season));
 
         Enqueue(session, GeneralInformationPacket.CreateSetCursorHueSetMap(character.Map));
-
-        Enqueue(session, new SupportFeaturesPacket());
-        Enqueue(session, new DrawPlayerPacket(character));
-
-        Enqueue(session, new MobileDrawPacket(character, character, true, true));
+        Enqueue(session, new PaperdollPacket(character));
 
         return true;
     }
@@ -114,6 +121,7 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
     {
         var entity = _entityFactoryService.CreatePlayerMobile(characterCreationPacket, session.AccountId);
 
+        entity.Title = "the grandmaster of moongate";
         var newCharacter = await _characterService.CreateCharacterAsync(entity);
 
         await _characterService.AddCharacterToAccountAsync(session.AccountId, newCharacter);
@@ -121,5 +129,30 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
         await HandleCharacterLoggedIn(session, newCharacter);
 
         return true;
+    }
+
+    private void EnqueueWornItems(GameSession session, UOMobileEntity character)
+    {
+        foreach (var (layer, itemReference) in character.EquippedItemReferences)
+        {
+            if (layer == ItemLayerType.Backpack || layer == ItemLayerType.Bank)
+            {
+                continue;
+            }
+
+            Enqueue(session, new WornItemPacket(character, itemReference, layer));
+        }
+    }
+
+    private async Task EnqueueBackpackAsync(GameSession session, UOMobileEntity character)
+    {
+        var backpack = await _characterService.GetBackpackWithItemsAsync(character);
+
+        if (backpack is null)
+        {
+            return;
+        }
+
+        Enqueue(session, new DrawContainerAndAddItemCombinedPacket(backpack));
     }
 }

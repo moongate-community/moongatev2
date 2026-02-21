@@ -11,13 +11,13 @@ public abstract class BaseMoongateService : IMoongateService
     /// Starts the service.
     /// </summary>
     /// <returns>A completed task.</returns>
-    public Task StartAsync()
+    public virtual Task StartAsync()
         => Task.CompletedTask;
 
     /// <summary>
     /// Stops the service.
     /// </summary>
     /// <returns>A completed task.</returns>
-    public Task StopAsync()
+    public virtual Task StopAsync()
         => Task.CompletedTask;
 }

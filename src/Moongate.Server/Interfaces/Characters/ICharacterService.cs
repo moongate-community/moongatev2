@@ -40,6 +40,13 @@ public interface ICharacterService
     Task<List<UOMobileEntity>> GetCharactersForAccountAsync(Serial accountId);
 
     /// <summary>
+    /// Loads the character backpack with contained items for outbound packet serialization.
+    /// </summary>
+    /// <param name="character">Character entity.</param>
+    /// <returns>The backpack entity including contained items when available.</returns>
+    Task<UOItemEntity?> GetBackpackWithItemsAsync(UOMobileEntity character);
+
+    /// <summary>
     /// Removes an existing account-character association.
     /// </summary>
     /// <param name="accountId">Account serial identifier.</param>

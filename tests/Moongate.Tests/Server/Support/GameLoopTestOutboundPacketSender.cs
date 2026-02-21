@@ -8,6 +8,12 @@ public sealed class GameLoopTestOutboundPacketSender : IOutboundPacketSender
 {
     public List<OutgoingGamePacket> SentPackets { get; } = [];
 
+    public bool Send(MoongateTCPClient client, OutgoingGamePacket outgoingPacket)
+    {
+        SentPackets.Add(outgoingPacket);
+        return true;
+    }
+
     public Task<bool> SendAsync(
         MoongateTCPClient client,
         OutgoingGamePacket outgoingPacket,
@@ -15,7 +21,6 @@ public sealed class GameLoopTestOutboundPacketSender : IOutboundPacketSender
     )
     {
         SentPackets.Add(outgoingPacket);
-
         return Task.FromResult(true);
     }
 }

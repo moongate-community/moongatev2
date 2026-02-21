@@ -1,4 +1,4 @@
-namespace Moongate.Server.Data.Metrics;
+namespace Moongate.Server.Metrics.Data;
 
 /// <summary>
 /// Holds the last metrics snapshot collected by the metrics service.

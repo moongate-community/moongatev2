@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using Moongate.Network.Client;
+using Moongate.Server.Data.Packets;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Services.GameLoop;
 using Moongate.Server.Services.Messaging;
@@ -34,6 +35,11 @@ public class GameLoopServiceTests
                 Assert.That(snapshot.TickCount, Is.Zero);
                 Assert.That(snapshot.Uptime, Is.EqualTo(TimeSpan.Zero));
                 Assert.That(snapshot.AverageTickMs, Is.Zero);
+                Assert.That(snapshot.MaxTickMs, Is.Zero);
+                Assert.That(snapshot.IdleSleepCount, Is.Zero);
+                Assert.That(snapshot.AverageWorkUnits, Is.Zero);
+                Assert.That(snapshot.OutboundQueueDepth, Is.Zero);
+                Assert.That(snapshot.OutboundPacketsTotal, Is.Zero);
             }
         );
     }
@@ -104,35 +110,20 @@ public class GameLoopServiceTests
     }
 
     [Test]
-    public async Task StartAsync_ShouldDrainOutgoingPacketQueueAndSendPackets()
+    public void OutgoingPacketQueue_ShouldAcceptEnqueuedPackets()
     {
         var sessions = new GameNetworkSessionService();
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
         var session = sessions.GetOrCreate(client);
         var outgoingQueue = new OutgoingPacketQueue();
-        var sender = new GameLoopTestOutboundPacketSender();
+
         outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x20, 0));
+        Assert.That(outgoingQueue.CurrentQueueDepth, Is.EqualTo(1));
 
-        _service = new(
-            new PacketDispatchService(),
-            new MessageBusService(),
-            outgoingQueue,
-            sessions,
-            CreateTimerService(),
-            sender
-        );
-
-        await _service.StartAsync();
-        var sent = await WaitUntilAsync(() => sender.SentPackets.Count == 1, TimeSpan.FromSeconds(2));
-
-        Assert.Multiple(
-            () =>
-            {
-                Assert.That(sent, Is.True, "Outbound packet was not sent in time.");
-                Assert.That(sender.SentPackets[0].SessionId, Is.EqualTo(session.SessionId));
-                Assert.That(sender.SentPackets[0].Packet.OpCode, Is.EqualTo(0x20));
-            }
-        );
+        Assert.That(outgoingQueue.TryDequeue(out var dequeued), Is.True);
+        Assert.That(dequeued.SessionId, Is.EqualTo(session.SessionId));
+        Assert.That(dequeued.Packet.OpCode, Is.EqualTo(0x20));
+        Assert.That(outgoingQueue.CurrentQueueDepth, Is.EqualTo(0));
     }
 
     [Test]
@@ -224,6 +215,40 @@ public class GameLoopServiceTests
         await Task.Delay(500);
 
         Assert.That(_service.GetMetricsSnapshot().TickCount, Is.LessThanOrEqualTo(tickAfterStop + 1));
+    }
+
+    [Test]
+    public async Task StartAsync_ShouldFlushOutgoingPacketsFromQueue()
+    {
+        var packetDispatch = new PacketDispatchService();
+        var messageBus = new MessageBusService();
+        var outgoingQueue = new OutgoingPacketQueue();
+        var sessions = new GameNetworkSessionService();
+        var sender = new GameLoopTestOutboundPacketSender();
+        using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
+        var session = sessions.GetOrCreate(client);
+        outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x22, 99));
+
+        _service = new(
+            packetDispatch,
+            messageBus,
+            outgoingQueue,
+            sessions,
+            CreateTimerService(),
+            sender
+        );
+        await _service.StartAsync();
+
+        var sent = await WaitUntilAsync(() => sender.SentPackets.Count == 1, TimeSpan.FromSeconds(2));
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(sent, Is.True, "Outgoing queue was not flushed in time.");
+                Assert.That(sender.SentPackets[0].SessionId, Is.EqualTo(session.SessionId));
+                Assert.That(sender.SentPackets[0].Packet.OpCode, Is.EqualTo(0x22));
+            }
+        );
     }
 
     [TearDown]

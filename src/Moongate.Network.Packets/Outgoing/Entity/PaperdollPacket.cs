@@ -1,4 +1,3 @@
-using System.Buffers.Binary;
 using Moongate.Network.Packets.Attributes;
 using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
@@ -7,21 +6,18 @@ using Moongate.UO.Data.Persistence.Entities;
 
 namespace Moongate.Network.Packets.Outgoing.Entity;
 
-[PacketHandler(0x88, PacketSizing.Variable, Description = "Paperdoll")]
+[PacketHandler(0x88, PacketSizing.Fixed, Length = 66, Description = "Paperdoll")]
 public class PaperdollPacket : BaseGameNetworkPacket
 {
     public UOMobileEntity? Mobile { get; set; }
 
-    public string Title { get; set; } = string.Empty;
-
     public PaperdollPacket()
-        : base(0x88) { }
+        : base(0x88, 66) { }
 
-    public PaperdollPacket(UOMobileEntity mobile, string? title = null)
+    public PaperdollPacket(UOMobileEntity mobile)
         : this()
     {
         Mobile = mobile;
-        Title = title ?? string.Empty;
     }
 
     public override void Write(ref SpanWriter writer)
@@ -31,30 +27,25 @@ public class PaperdollPacket : BaseGameNetworkPacket
             throw new InvalidOperationException("Mobile must be set before writing PaperdollPacket.");
         }
 
-        var start = writer.Position;
-
         writer.Write(OpCode);
-        writer.Write((ushort)0);
         writer.Write(Mobile.Id.Value);
 
-        var displayName = string.IsNullOrWhiteSpace(Title)
+        var displayName = string.IsNullOrWhiteSpace(Mobile.Title)
                               ? Mobile.Name ?? string.Empty
-                              : $"{Mobile.Name} {Title}";
+                              : $"{Mobile.Name} {Mobile.Title}";
 
         writer.WriteAscii(displayName, 60);
 
-        var flags = Mobile.GetPacketFlags(true);
+        byte flags = 0x00;
 
         if (Mobile.IsWarMode)
         {
-            flags |= 0x40;
+            flags |= 0x01;
         }
 
+        // Allow lifting items from the paperdoll by default, matching baseline server behavior.
         flags |= 0x02;
         writer.Write(flags);
-
-        var packetLength = (ushort)(writer.Position - start);
-        BinaryPrimitives.WriteUInt16BigEndian(writer.RawBuffer[(start + 1)..], packetLength);
     }
 
     protected override bool ParsePayload(ref SpanReader reader)

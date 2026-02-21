@@ -8,6 +8,8 @@ public sealed class BasePacketListenerTestOutgoingPacketQueue : IOutgoingPacketQ
 {
     private readonly Queue<OutgoingGamePacket> _items = new();
 
+    public int CurrentQueueDepth => _items.Count;
+
     public void Enqueue(long sessionId, IGameNetworkPacket packet)
         => _items.Enqueue(new(sessionId, packet, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
 

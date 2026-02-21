@@ -8,6 +8,11 @@ namespace Moongate.Server.Interfaces.Services.Messaging;
 public interface IMessageBusService
 {
     /// <summary>
+    /// Gets the current inbound packet queue depth.
+    /// </summary>
+    int CurrentQueueDepth { get; }
+
+    /// <summary>
     /// Publishes an inbound packet to the game-loop side.
     /// </summary>
     /// <param name="packet">Inbound parsed packet.</param>

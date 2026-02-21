@@ -22,6 +22,8 @@ public class UOMobileEntity : IMobileEntity
 
     public string? Name { get; set; }
 
+    public string? Title { get; set; }
+
     public Point3D Location { get; set; }
 
     public int MapId { get; set; }

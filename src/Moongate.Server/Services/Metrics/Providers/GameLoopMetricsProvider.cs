@@ -1,4 +1,4 @@
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
 
 namespace Moongate.Server.Services.Metrics.Providers;
@@ -18,13 +18,6 @@ public sealed class GameLoopMetricsProvider : IMetricProvider
     public ValueTask<IReadOnlyList<MetricSample>> CollectAsync(CancellationToken cancellationToken = default)
     {
         var snapshot = _gameLoopMetricsSource.GetMetricsSnapshot();
-
-        return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
-            [
-                new("ticks.total", snapshot.TickCount),
-                new("tick.duration.avg_ms", snapshot.AverageTickMs),
-                new("uptime.ms", snapshot.Uptime.TotalMilliseconds)
-            ]
-        );
+        return ValueTask.FromResult(snapshot.ToMetricSamples());
     }
 }

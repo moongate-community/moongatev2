@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'moongate'
+    static_configs:
+      - targets: ['moongate:8088']
+    metrics_path: '/metrics'
+    scrape_interval: 5s

@@ -1,4 +1,4 @@
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
 
 namespace Moongate.Server.Services.Metrics.Providers;
@@ -18,14 +18,6 @@ public sealed class NetworkMetricsProvider : IMetricProvider
     public ValueTask<IReadOnlyList<MetricSample>> CollectAsync(CancellationToken cancellationToken = default)
     {
         var snapshot = _networkMetricsSource.GetMetricsSnapshot();
-
-        return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
-            [
-                new("sessions.active", snapshot.ActiveSessionCount),
-                new("packets.parsed.total", snapshot.TotalParsedPackets),
-                new("bytes.received.total", snapshot.TotalReceivedBytes),
-                new("parser.errors.total", snapshot.TotalParserErrors)
-            ]
-        );
+        return ValueTask.FromResult(snapshot.ToMetricSamples());
     }
 }

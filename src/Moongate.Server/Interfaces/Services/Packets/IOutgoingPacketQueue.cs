@@ -9,6 +9,11 @@ namespace Moongate.Server.Interfaces.Services.Packets;
 public interface IOutgoingPacketQueue
 {
     /// <summary>
+    /// Gets the current outbound packet queue depth.
+    /// </summary>
+    int CurrentQueueDepth { get; }
+
+    /// <summary>
     /// Enqueues an outbound packet for a target session.
     /// </summary>
     /// <param name="sessionId">Target session identifier.</param>
@@ -16,7 +21,7 @@ public interface IOutgoingPacketQueue
     void Enqueue(long sessionId, IGameNetworkPacket packet);
 
     /// <summary>
-    /// Attempts to dequeue the next outbound packet.
+    /// Attempts to dequeue the next outbound packet without blocking.
     /// </summary>
     /// <param name="gamePacket">Dequeued outbound packet.</param>
     /// <returns><c>true</c> if an item was dequeued; otherwise <c>false</c>.</returns>

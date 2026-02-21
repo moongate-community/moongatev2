@@ -6,7 +6,7 @@ internal sealed class TimerEntry
 
     public required string Name { get; init; }
 
-    public required Func<CancellationToken, ValueTask> CallbackAsync { get; init; }
+    public required Action Callback { get; init; }
 
     public required TimeSpan Interval { get; init; }
 
@@ -19,6 +19,4 @@ internal sealed class TimerEntry
     public LinkedListNode<TimerEntry>? Node { get; set; }
 
     public bool Cancelled { get; set; }
-
-    public int IsExecuting;
 }

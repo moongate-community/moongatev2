@@ -1,0 +1,78 @@
+services:
+  moongate:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+    container_name: moongate-server
+    volumes:
+      - /Users/squid/moongate/data:/app/data
+      - /Users/squid/moongate/save:/app/save
+      - /Users/squid/moongate/scripts:/app/scripts
+      - /Users/squid/moongate/templates:/app/templates
+      - /Users/squid/moongate/logs:/app/logs
+      - /Users/squid/uo:/uo:ro
+    ports:
+      - "2593:2593"
+      - "8088:8088"
+    environment:
+      - MOONGATE_ROOT_DIRECTORY=/app
+      - MOONGATE_UO_DIRECTORY=/uo
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8088
+    networks:
+      - moongate-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: moongate-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - moongate-network
+    restart: unless-stopped
+    depends_on:
+      - moongate
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: moongate-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    networks:
+      - moongate-network
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
+
+networks:
+  moongate-network:
+    driver: bridge
+
+volumes:
+  moongate_logs:
+  prometheus_data:
+  grafana_data:

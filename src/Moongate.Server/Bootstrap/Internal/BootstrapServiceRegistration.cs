@@ -21,7 +21,9 @@ internal static class BootstrapServiceRegistration
         var timerServiceConfig = new TimerServiceConfig
         {
             TickDuration = TimeSpan.FromMilliseconds(Math.Max(1, config.Game.TimerTickMilliseconds)),
-            WheelSize = Math.Max(1, config.Game.TimerWheelSize)
+            WheelSize = Math.Max(1, config.Game.TimerWheelSize),
+            IdleCpuEnabled = config.Game.IdleCpuEnabled,
+            IdleSleepMilliseconds = Math.Max(1, config.Game.IdleSleepMilliseconds)
         };
 
         container.AddBootstrapInstances(config, directoriesConfig, timerServiceConfig, consoleUiService)

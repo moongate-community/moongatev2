@@ -544,6 +544,7 @@ public class PersistenceUnitOfWorkTests
                 Id = (Serial)0x00000010,
                 AccountId = (Serial)0x00000002,
                 Name = "snapshot-mobile",
+                Title = "the brave",
                 MapId = 1,
                 Direction = DirectionType.East,
                 IsPlayer = true,
@@ -625,6 +626,7 @@ public class PersistenceUnitOfWorkTests
 
                 Assert.That(loadedMobile!.AccountId, Is.EqualTo((Serial)0x00000002));
                 Assert.That(loadedMobile.Name, Is.EqualTo("snapshot-mobile"));
+                Assert.That(loadedMobile.Title, Is.EqualTo("the brave"));
                 Assert.That(loadedMobile.MapId, Is.EqualTo(1));
                 Assert.That(loadedMobile.Direction, Is.EqualTo(DirectionType.East));
                 Assert.That(loadedMobile.Gender, Is.EqualTo(GenderType.Female));

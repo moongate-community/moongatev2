@@ -5,11 +5,11 @@ using Moongate.Network.Spans;
 
 namespace Moongate.Network.Packets.Incoming.Speech;
 
-[PacketHandler(0xB5, PacketSizing.Variable, Description = "Open Chat Window")]
+[PacketHandler(0xB5, PacketSizing.Fixed, Length = 64, Description = "Open Chat Window")]
 public class OpenChatWindowPacket : BaseGameNetworkPacket
 {
     public OpenChatWindowPacket()
-        : base(0xB5) { }
+        : base(0xB5, 64) { }
 
     protected override bool ParsePayload(ref SpanReader reader)
         => true;

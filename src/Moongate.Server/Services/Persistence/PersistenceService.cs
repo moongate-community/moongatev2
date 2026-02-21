@@ -5,7 +5,7 @@ using Moongate.Persistence.Data.Persistence;
 using Moongate.Persistence.Interfaces.Persistence;
 using Moongate.Persistence.Services.Persistence;
 using Moongate.Server.Data.Config;
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Persistence;
 using Moongate.Server.Interfaces.Services.Timing;
@@ -53,14 +53,6 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
 
     public IPersistenceUnitOfWork UnitOfWork { get; }
 
-    public void Dispose()
-    {
-        if (UnitOfWork is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-    }
-
     public PersistenceMetricsSnapshot GetMetricsSnapshot()
     {
         lock (_metricsSync)
@@ -89,11 +81,11 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
         _dbSaveTimerId ??= _timerService.RegisterTimer(
             "db_save",
             TimeSpan.FromSeconds(Math.Max(1, _persistenceConfig.SaveIntervalSeconds)),
-            async ct =>
+            () =>
             {
                 try
                 {
-                    await SaveSnapshotWithMetricsAsync(ct);
+                    SaveSnapshotWithMetricsAsync().GetAwaiter().GetResult();
                     _logger.Debug("Automatic DB save completed in {ElapsedMs} ms", GetMetricsSnapshot().LastSaveDurationMs);
                 }
                 catch (Exception ex)
@@ -136,25 +128,35 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
 
             lock (_metricsSync)
             {
-                _metricsSnapshot = _metricsSnapshot with
-                {
-                    TotalSaves = _metricsSnapshot.TotalSaves + 1,
-                    LastSaveDurationMs = stopwatch.Elapsed.TotalMilliseconds,
-                    LastSaveTimestampUtc = start
-                };
+                _metricsSnapshot = new(
+                    _metricsSnapshot.TotalSaves + 1,
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    start,
+                    _metricsSnapshot.SaveErrors
+                );
             }
         }
         catch
         {
             lock (_metricsSync)
             {
-                _metricsSnapshot = _metricsSnapshot with
-                {
-                    SaveErrors = _metricsSnapshot.SaveErrors + 1
-                };
+                _metricsSnapshot = new(
+                    _metricsSnapshot.TotalSaves,
+                    _metricsSnapshot.LastSaveDurationMs,
+                    _metricsSnapshot.LastSaveTimestampUtc,
+                    _metricsSnapshot.SaveErrors + 1
+                );
             }
 
             throw;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (UnitOfWork is IDisposable disposable)
+        {
+            disposable.Dispose();
         }
     }
 }

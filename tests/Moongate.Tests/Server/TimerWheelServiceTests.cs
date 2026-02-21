@@ -5,7 +5,35 @@ namespace Moongate.Tests.Server;
 public class TimerWheelServiceTests
 {
     [Test]
-    public async Task GetMetricsSnapshot_ShouldExposeExecutionAndErrorCounters()
+    public void UpdateTicksDelta_ShouldAdvanceTimerWheelUsingTimestampDelta()
+    {
+        var service = new TimerWheelService(
+            new()
+            {
+                TickDuration = TimeSpan.FromMilliseconds(100),
+                WheelSize = 64
+            }
+        );
+        var fired = 0;
+        service.RegisterTimer("delta", TimeSpan.FromMilliseconds(100), () => fired++);
+
+        var processed0 = service.UpdateTicksDelta(1_000);
+        var processed1 = service.UpdateTicksDelta(1_099);
+        var processed2 = service.UpdateTicksDelta(1_100);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(processed0, Is.EqualTo(0));
+                Assert.That(processed1, Is.EqualTo(0));
+                Assert.That(processed2, Is.EqualTo(1));
+                Assert.That(fired, Is.EqualTo(1));
+            }
+        );
+    }
+
+    [Test]
+    public void GetMetricsSnapshot_ShouldExposeExecutionAndErrorCounters()
     {
         var service = new TimerWheelService(
             new()
@@ -19,7 +47,6 @@ public class TimerWheelServiceTests
         service.RegisterTimer("fail", TimeSpan.FromMilliseconds(50), () => throw new InvalidOperationException("boom"));
 
         service.ProcessTick();
-        await Task.Delay(50);
 
         var metrics = service.GetMetricsSnapshot();
 
@@ -27,7 +54,7 @@ public class TimerWheelServiceTests
             () =>
             {
                 Assert.That(metrics.TotalRegisteredTimers, Is.EqualTo(2));
-                Assert.That(metrics.TotalExecutedCallbacks, Is.EqualTo(1));
+                Assert.That(metrics.TotalExecutedCallbacks, Is.EqualTo(2));
                 Assert.That(metrics.CallbackErrors, Is.EqualTo(1));
                 Assert.That(metrics.AverageCallbackDurationMs, Is.GreaterThanOrEqualTo(0));
             }
@@ -102,47 +129,6 @@ public class TimerWheelServiceTests
 
         service.ProcessTick();
         Assert.That(fired, Is.EqualTo(1));
-    }
-
-    [Test]
-    public async Task RegisterTimer_AsyncCallback_ShouldExecuteWithoutOverlap()
-    {
-        var service = new TimerWheelService(
-            new()
-            {
-                TickDuration = TimeSpan.FromMilliseconds(50),
-                WheelSize = 64
-            }
-        );
-        var fired = 0;
-
-        service.RegisterTimer(
-            "repeat-async",
-            TimeSpan.FromMilliseconds(50),
-            async ct =>
-            {
-                Interlocked.Increment(ref fired);
-                await Task.Delay(200, ct);
-            },
-            repeat: true
-        );
-
-        for (var i = 0; i < 8; i++)
-        {
-            service.ProcessTick();
-            await Task.Delay(10);
-        }
-
-        var firstBurst = Volatile.Read(ref fired);
-
-        await Task.Delay(250);
-        service.ProcessTick();
-        await Task.Delay(30);
-
-        var secondBurst = Volatile.Read(ref fired);
-
-        Assert.That(firstBurst, Is.EqualTo(1));
-        Assert.That(secondBurst, Is.EqualTo(2));
     }
 
     [Test]

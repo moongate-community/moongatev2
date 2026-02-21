@@ -1,4 +1,4 @@
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
 
 namespace Moongate.Tests.Server.Support;
@@ -13,6 +13,17 @@ public sealed class MetricsProvidersTestNetworkService : INetworkMetricsSource
 
     public int TotalParserErrors { get; set; }
 
+    public int InboundQueueDepth { get; set; }
+
+    public int TotalUnknownOpcodeDrops { get; set; }
+
     public NetworkMetricsSnapshot GetMetricsSnapshot()
-        => new(ActiveSessionCount, TotalReceivedBytes, TotalParsedPackets, TotalParserErrors);
+        => new(
+            ActiveSessionCount,
+            TotalReceivedBytes,
+            TotalParsedPackets,
+            TotalParserErrors,
+            InboundQueueDepth,
+            TotalUnknownOpcodeDrops
+        );
 }
