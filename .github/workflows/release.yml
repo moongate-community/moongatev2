@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -59,6 +60,17 @@ jobs:
       - name: Run versionize
         if: steps.release_check.outputs.should_release == 'true'
         run: versionize --skip-dirty
+
+      - name: Configure authenticated remote for release push
+        if: steps.release_check.outputs.should_release == 'true'
+        env:
+          RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+        run: |
+          if [ -z "$RELEASE_PAT" ]; then
+            echo "Missing required secret RELEASE_PAT"
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${RELEASE_PAT}@github.com/${{ github.repository }}.git"
 
       - name: Push version commit and tag
         if: steps.release_check.outputs.should_release == 'true'
