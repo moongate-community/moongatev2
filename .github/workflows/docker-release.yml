@@ -28,8 +28,14 @@ jobs:
 
           REPO="${DOCKERHUB_REPOSITORY:-}"
           if [[ -z "$REPO" ]]; then
+            if [[ -z "${DOCKERHUB_USERNAME:-}" ]]; then
+              echo "::error::DOCKERHUB_USERNAME secret or DOCKERHUB_REPOSITORY variable must be set"
+              exit 1
+            fi
             REPO="${DOCKERHUB_USERNAME}/moongatev2"
           fi
+
+          echo "Using repository: ${REPO}"
 
           TAG_NAME="${GITHUB_REF_NAME}"
           TAG_NO_V="${TAG_NAME#v}"
@@ -53,6 +59,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Debug prepare output
+        run: |
+          echo "Repository from prepare: ${{ needs.prepare.outputs.repository }}"
+          echo "SHA: ${{ github.sha }}"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
