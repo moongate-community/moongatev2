@@ -13,6 +13,7 @@ using Moongate.Core.Types;
 using Moongate.Server.Metrics.Data;
 using Moongate.Server.Http.Data;
 using Moongate.Server.Http.Interfaces;
+using Moongate.Server.Http.Json;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Core;
@@ -82,6 +83,12 @@ public sealed class MoongateHttpService : IMoongateHttpService
 
         builder.WebHost.UseUrls($"http://0.0.0.0:{_port}");
         builder.Host.UseSerilog(httpLogger, true);
+        builder.Services.ConfigureHttpJsonOptions(
+            options =>
+            {
+                options.SerializerOptions.TypeInfoResolverChain.Insert(0, MoongateHttpJsonContext.Default);
+            }
+        );
 
         RegisterServiceMappings(builder.Services, _serviceMappings);
 

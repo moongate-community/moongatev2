@@ -2,9 +2,9 @@ namespace Moongate.Server.Data.Config;
 
 public class MoongateHttpJwtConfig
 {
-    public bool IsEnabled { get; set; }
+    public bool IsEnabled { get; set; } = true;
 
-    public string SigningKey { get; set; } = string.Empty;
+    public string SigningKey { get; set; }
 
     public string Issuer { get; set; } = "moongate-http";
 

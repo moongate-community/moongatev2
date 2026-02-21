@@ -142,14 +142,14 @@ public struct Body
 
     public int BodyID { get; }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? obj)
     {
-        if (!(o is Body))
+        if (!(obj is Body))
         {
             return false;
         }
 
-        return ((Body)o).BodyID == BodyID;
+        return ((Body)obj).BodyID == BodyID;
     }
 
     public override int GetHashCode()

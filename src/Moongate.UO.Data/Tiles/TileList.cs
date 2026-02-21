@@ -27,8 +27,8 @@ public class TileList
     public int Count { get; private set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void Add(StaticTile* ptr)
-        => Add(Marshal.PtrToStructure<StaticTile>((nint)ptr));
+    public unsafe void Add(StaticTile* tilePtr)
+        => Add(Marshal.PtrToStructure<StaticTile>((nint)tilePtr));
 
     public void Add(StaticTile tile)
     {

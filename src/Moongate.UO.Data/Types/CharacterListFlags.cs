@@ -1,5 +1,7 @@
 namespace Moongate.UO.Data.Types;
 
+#pragma warning disable CA1069 // Enums should not have duplicate values
+
 [Flags]
 public enum CharacterListFlags
 {

@@ -28,19 +28,19 @@ public struct Tile : IComparable
         m_Z = z;
     }
 
-    public readonly int CompareTo(object x)
+    public readonly int CompareTo(object? obj)
     {
-        if (x == null)
+        if (obj == null)
         {
             return 1;
         }
 
-        if (!(x is Tile))
+        if (!(obj is Tile))
         {
             throw new ArgumentNullException();
         }
 
-        var a = (Tile)x;
+        var a = (Tile)obj;
 
         if (m_Z > a.m_Z)
         {

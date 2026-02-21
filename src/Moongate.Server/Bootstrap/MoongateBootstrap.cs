@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using DryIoc;
 using Moongate.Abstractions.Data.Internal;
 using Moongate.Abstractions.Extensions;
@@ -312,9 +313,7 @@ public sealed class MoongateBootstrap : IDisposable
         {
             _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
             _logger.Information("HTTP Server enabled.");
-            var jwtSigningKey = string.IsNullOrWhiteSpace(_moongateConfig.Http.Jwt.SigningKey)
-                ? Environment.GetEnvironmentVariable("MOONGATE_HTTP_JWT_SIGNING_KEY") ?? string.Empty
-                : _moongateConfig.Http.Jwt.SigningKey;
+            var jwtSigningKey = ResolveHttpJwtSigningKey();
 
             var httpServiceOptions = new MoongateHttpServiceOptions
             {
@@ -357,6 +356,39 @@ public sealed class MoongateBootstrap : IDisposable
         {
             _logger.Information("HTTP Server disabled.");
         }
+    }
+
+    private string ResolveHttpJwtSigningKey()
+    {
+        var configuredKey = _moongateConfig.Http.Jwt.SigningKey;
+
+        if (!string.IsNullOrWhiteSpace(configuredKey))
+        {
+            return configuredKey;
+        }
+
+        var envKey = Environment.GetEnvironmentVariable("MOONGATE_HTTP_JWT_SIGNING_KEY");
+
+        if (!string.IsNullOrWhiteSpace(envKey))
+        {
+            return envKey;
+        }
+
+        if (!_moongateConfig.Http.Jwt.IsEnabled)
+        {
+            return string.Empty;
+        }
+
+        Span<byte> buffer = stackalloc byte[64];
+        RandomNumberGenerator.Fill(buffer);
+        var generated = Convert.ToHexString(buffer);
+
+        _logger.Warning(
+            "HTTP JWT is enabled but no signing key was configured. Generated ephemeral key for this process. " +
+            "Set MOONGATE_HTTP_JWT_SIGNING_KEY to keep tokens valid across restarts."
+        );
+
+        return generated;
     }
 
     private void RegisterPacketHandlers()

@@ -137,10 +137,7 @@ public class FileIndex
                 var entryName = string.Format("build/{0}/{1:D8}{2}", uopPattern, i, uopEntryExtension);
                 var hash = HashFileName(entryName);
 
-                if (!hashes.ContainsKey(hash))
-                {
-                    hashes.Add(hash, i);
-                }
+                hashes.TryAdd(hash, i);
             }
 
             br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
