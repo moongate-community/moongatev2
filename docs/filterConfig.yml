@@ -1,0 +1,11 @@
+apiRules:
+- exclude:
+    uidRegex: ^Moongate\.Server\.Metrics\.Generators
+- exclude:
+    uidRegex: ^Moongate\.Network\.Packets\.Generators
+- exclude:
+    kind: Namespace
+    uidRegex: ^Moongate\.Server\.Metrics\.Generators$
+- exclude:
+    kind: Namespace
+    uidRegex: ^Moongate\.Network\.Packets\.Generators$

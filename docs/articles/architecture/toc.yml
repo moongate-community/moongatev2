@@ -1,0 +1,15 @@
+- name: Architecture
+  href: ../
+  items:
+  - name: Overview
+    href: overview.md
+  - name: Network System
+    href: network.md
+  - name: Game Loop
+    href: game-loop.md
+  - name: Event System
+    href: events.md
+  - name: Session Management
+    href: sessions.md
+  - name: Solution Structure
+    href: solution.md
