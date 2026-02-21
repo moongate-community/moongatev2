@@ -1,3 +1,15 @@
+## [0.10.0](https://github.com/moongate-community/moongatev2/compare/v0.9.1...v0.10.0) (2026-02-21)
+
+### Features
+
+* **http:** add JWT authentication login endpoint and config wiring ([9f3d8eb](https://github.com/moongate-community/moongatev2/commit/9f3d8ebcd94afdf9d36c033fa438efa64e4f47ce))
+
+### Bug Fixes
+
+* **ci:** harden coverage extraction without broken pipes ([4dcb89c](https://github.com/moongate-community/moongatev2/commit/4dcb89cc80d1928df95522321fa489bc5144c1fe))
+* **ci:** make coverage and security workflows yaml-safe ([9c80fc9](https://github.com/moongate-community/moongatev2/commit/9c80fc9b0650636e2c43194ab1443937ccad78ee))
+* harden http json metadata and stat enum parsing ([6b6ecca](https://github.com/moongate-community/moongatev2/commit/6b6ecca7134523fb66c74d278877ea6fc5133164))
+
 ## [0.9.1](https://github.com/moongate-community/moongatev2/compare/v0.9.0...v0.9.1) (2026-02-21)
 
 ### Bug Fixes
