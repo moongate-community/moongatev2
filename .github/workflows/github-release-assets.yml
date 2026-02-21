@@ -67,6 +67,7 @@ jobs:
           -c Release
           -r "${{ matrix.rid }}"
           --self-contained true
+          -p:PublishAot=false
           --no-restore
           -o "dist/${{ matrix.artifact_name }}"
 
@@ -142,4 +143,3 @@ jobs:
           files: |
             release-artifacts/**/*.tar.gz
           fail_on_unmatched_files: true
-
