@@ -5,7 +5,7 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.6.0</Version>
+        <Version>0.7.0</Version>
         <Description>Automated test suite for Moongate core, networking, packets, and scripting components.</Description>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -15,26 +15,26 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
-        <PackageReference Include="NUnit" Version="4.5.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+        <PackageReference Include="NUnit" Version="4.5.0" />
         <PackageReference Include="NUnit.Analyzers" Version="4.11.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NUnit3TestAdapter" Version="6.1.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="6.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="NUnit.Framework"/>
+        <Using Include="NUnit.Framework" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Moongate.Network\Moongate.Network.csproj"/>
-        <ProjectReference Include="..\..\src\Moongate.Network.Packets\Moongate.Network.Packets.csproj"/>
-        <ProjectReference Include="..\..\src\Moongate.Persistence\Moongate.Persistence.csproj"/>
-        <ProjectReference Include="..\..\src\Moongate.Scripting\Moongate.Scripting.csproj"/>
-        <ProjectReference Include="..\..\src\Moongate.Server\Moongate.Server.csproj"/>
-        <ProjectReference Include="..\..\src\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
+        <ProjectReference Include="..\..\src\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.Network.Packets\Moongate.Network.Packets.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.Persistence\Moongate.Persistence.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.Scripting\Moongate.Scripting.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.Server\Moongate.Server.csproj" />
+        <ProjectReference Include="..\..\src\Moongate.UO.Data\Moongate.UO.Data.csproj" />
     </ItemGroup>
 
 </Project>

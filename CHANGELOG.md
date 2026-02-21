@@ -2,6 +2,15 @@
   <img src="images/moongate_logo.png" alt="Moongate logo" width="240" />
 </p>
 
+All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
+
+<a name="0.7.0"></a>
+## [0.7.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.0) (2026-02-20)
+
+### Features
+
+* expand server/persistence templates, entities and tests ([14214fb](https://www.github.com/moongate-community/moongatev2/commit/14214fbf5c53ed564a98035ea4e1c7616c2feba8))
+
 <a name="0.6.0"></a>
 
 ## [0.6.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.6.0) (2026-02-20)

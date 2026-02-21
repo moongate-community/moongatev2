@@ -4,15 +4,15 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.6.0</Version>
+        <Version>0.7.0</Version>
         <Description>Ultima Online packet contracts, packet registry, and protocol packet implementations for Moongate.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
-        <ProjectReference Include="..\Moongate.Network.Packets.Generators\Moongate.Network.Packets.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
+        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Network.Packets.Generators\Moongate.Network.Packets.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj" />
     </ItemGroup>
 
 </Project>
