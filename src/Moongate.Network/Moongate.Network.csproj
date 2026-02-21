@@ -4,7 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.11.0</Version>
+        <Version>0.11.1</Version>
         <Description>Networking primitives, transport services, and session lifecycle components for Moongate.</Description>
     </PropertyGroup>
 

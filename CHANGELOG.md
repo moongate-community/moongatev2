@@ -1,3 +1,9 @@
+## [0.11.1](https://github.com/moongate-community/moongatev2/compare/v0.11.0...v0.11.1) (2026-02-21)
+
+### Bug Fixes
+
+* make http endpoints AOT-safe for JSON metadata resolution ([3d74f88](https://github.com/moongate-community/moongatev2/commit/3d74f88e7302e85ef5f78171945ed0a52fd40352))
+
 ## [0.11.0](https://github.com/moongate-community/moongatev2/compare/v0.10.0...v0.11.0) (2026-02-21)
 
 ### Features
