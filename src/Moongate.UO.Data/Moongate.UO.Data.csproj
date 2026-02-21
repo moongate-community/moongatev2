@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Version>0.7.2</Version>
+        <Version>0.7.3</Version>
         <Description>Ultima Online domain data types, entities, and protocol-facing value objects used by Moongate.</Description>
     </PropertyGroup>
 
