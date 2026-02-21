@@ -13,6 +13,7 @@
 </p>
 
 [![CI](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/tests.json)](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml)
 [![Release](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml)
 [![Docker Image](https://img.shields.io/docker/v/tgiachi/moongate?sort=semver)](https://hub.docker.com/r/tgiachi/moongate)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tgiachi/moongate)](https://hub.docker.com/r/tgiachi/moongate)

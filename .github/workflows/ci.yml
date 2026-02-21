@@ -3,6 +3,9 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -10,6 +13,8 @@ permissions:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -26,4 +31,49 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       - name: Test
-        run: dotnet test -c Release --no-build --nologo
+        run: dotnet test -c Release --no-build --nologo --logger "trx;LogFileName=test-results.trx"
+
+      - name: Generate test badge JSON
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          TRX_FILE="$(find . -type f -name 'test-results.trx' | head -n 1)"
+          if [ -z "${TRX_FILE}" ]; then
+            echo "No test-results.trx found"
+            exit 1
+          fi
+
+          COUNTERS_LINE="$(grep -m1 -o '<Counters[^>]*/>' "${TRX_FILE}")"
+          TOTAL="$(echo "${COUNTERS_LINE}" | sed -n 's/.* total="\([0-9]\+\)".*/\1/p')"
+          PASSED="$(echo "${COUNTERS_LINE}" | sed -n 's/.* passed="\([0-9]\+\)".*/\1/p')"
+          FAILED="$(echo "${COUNTERS_LINE}" | sed -n 's/.* failed="\([0-9]\+\)".*/\1/p')"
+
+          if [ -z "${TOTAL}" ] || [ -z "${PASSED}" ] || [ -z "${FAILED}" ]; then
+            echo "Unable to parse counters from ${TRX_FILE}"
+            exit 1
+          fi
+
+          COLOR="brightgreen"
+          if [ "${FAILED}" -gt 0 ]; then
+            COLOR="red"
+          fi
+
+          mkdir -p badges
+          cat > badges/tests.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "tests",
+            "message": "${PASSED}/${TOTAL} passing",
+            "color": "${COLOR}"
+          }
+          EOF
+
+      - name: Publish test badge to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./badges
+          destination_dir: badges
+          keep_files: true
