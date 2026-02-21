@@ -20,7 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.build.outputs.digest }}
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.config.outputs.version }}
+      repository: ${{ steps.config.outputs.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,15 +81,25 @@ jobs:
     runs-on: ubuntu-24.04-arm
     outputs:
       digest: ${{ steps.build.outputs.digest }}
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.config.outputs.version }}
+      repository: ${{ steps.config.outputs.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine version
-        id: version
+      - name: Determine repository and version
+        id: config
         shell: bash
         run: |
+          # Get repository from GitHub Variable or use default
+          REPO="${{ vars.DOCKERHUB_REPOSITORY }}"
+          if [[ -z "$REPO" ]]; then
+            REPO="tgiachi/moongate"
+          fi
+          echo "repository=${REPO}" >> "$GITHUB_OUTPUT"
+          echo "Using repository: ${REPO}"
+          
+          # Get version from tag or workflow input
           VERSION=""
           if [[ -n "${{ github.ref_name }}" && "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${{ github.ref_name }}"
@@ -102,9 +113,9 @@ jobs:
 
       - name: Show configuration
         run: |
-          echo "Repository: ${{ env.DOCKER_REPOSITORY }}"
-          echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Full tag: ${{ env.DOCKER_REPOSITORY }}:arm64-${{ steps.version.outputs.version }}"
+          echo "Repository: ${{ steps.config.outputs.repository }}"
+          echo "Version: ${{ steps.config.outputs.version }}"
+          echo "Full tag: ${{ steps.config.outputs.repository }}:arm64-${{ steps.config.outputs.version }}"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -123,7 +134,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/arm64
           push: true
-          tags: ${{ env.DOCKER_REPOSITORY }}:arm64-${{ steps.version.outputs.version }}
+          tags: ${{ steps.config.outputs.repository }}:arm64-${{ steps.config.outputs.version }}
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
 
@@ -140,7 +151,7 @@ jobs:
       - name: Create multi-arch manifest
         shell: bash
         env:
-          REPO: ${{ env.DOCKER_REPOSITORY }}
+          REPO: ${{ needs.build-amd64.outputs.repository || 'tgiachi/moongate' }}
           VERSION: ${{ needs.build-amd64.outputs.version }}
           AMD64_DIGEST: ${{ needs.build-amd64.outputs.digest }}
           ARM64_DIGEST: ${{ needs.build-arm64.outputs.digest }}
