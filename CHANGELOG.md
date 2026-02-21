@@ -4,6 +4,48 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.7.7"></a>
+## [0.7.7](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.7) (2026-02-21)
+
+<a name="0.7.6"></a>
+## [0.7.6](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.6) (2026-02-21)
+
+<a name="0.7.5"></a>
+## [0.7.5](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.5) (2026-02-21)
+
+<a name="0.7.4"></a>
+## [0.7.4](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.4) (2026-02-21)
+
+<a name="0.7.3"></a>
+## [0.7.3](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.3) (2026-02-21)
+
+<a name="0.7.2"></a>
+## [0.7.2](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.2) (2026-02-21)
+
+<a name="0.7.1"></a>
+## [0.7.1](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.1) (2026-02-21)
+
+### Features
+
+* add PacketSenderService with dedicated sender thread ([24429c6](https://www.github.com/moongate-community/moongatev2/commit/24429c6dd143e9f2404094edaf4ee4d94b09ed02))
+* add synchronous Send method to IOutboundPacketSender ([f943324](https://www.github.com/moongate-community/moongatev2/commit/f9433240bcaae74692a3437f47aaee53f167710c))
+* change default tick duration from 250ms to 8ms ([1030f8f](https://www.github.com/moongate-community/moongatev2/commit/1030f8f434abb6a9f8e86b30ef0352d8c4d3b091))
+* switch OutgoingPacketQueue to Channel<T> with WaitToReadAsync ([f69a93b](https://www.github.com/moongate-community/moongatev2/commit/f69a93bcedeb172b2f42a85e5a8a5f4690e3f015))
+* **loop:** switch to timestamp-driven timer updates with idle cpu throttle ([6f24593](https://www.github.com/moongate-community/moongatev2/commit/6f24593cdbccfaa209f286814edc1a69bec25d3d))
+* **metrics:** add mvp loop/network/timer/persistence runtime metrics ([c8b1a08](https://www.github.com/moongate-community/moongatev2/commit/c8b1a086617da1b8e1346b142db3e34b671b472e))
+* **metrics:** generate metric samples from annotated snapshots ([d193295](https://www.github.com/moongate-community/moongatev2/commit/d1932951e45a0c259834d01abbfd9b906ad4a46d))
+* **network:** parse get player status packet and add tests ([bc80cf2](https://www.github.com/moongate-community/moongatev2/commit/bc80cf2ef4a69eb0fcc552914db5e4db94fa8c00))
+* **server:** add movement flow, paperdoll updates, and timer tick alignment ([e57e1ec](https://www.github.com/moongate-community/moongatev2/commit/e57e1ec08d1a1ba3ad83bbcf502dcc358e8f1729))
+* **server:** add movement throttling and run/walk speed handling ([a0a1303](https://www.github.com/moongate-community/moongatev2/commit/a0a130381a718e79aa068cf46fa6722b3154f327))
+* **status:** implement 0x11 basic player status response ([45abfbd](https://www.github.com/moongate-community/moongatev2/commit/45abfbd45b687fdae8bae4df0296ceb651633981))
+
+### Bug Fixes
+
+* count all executed callbacks in metrics including failures ([63ce044](https://www.github.com/moongate-community/moongatev2/commit/63ce044a692b65b0882c9f92e5920b7ae224966f))
+* make BaseMoongateService StartAsync/StopAsync virtual and use override in services ([7ed4293](https://www.github.com/moongate-community/moongatev2/commit/7ed429306699fd120d12c25a033391464c56ab09))
+* use Task.WhenAll in packet dispatch instead of fire-and-forget ([b3cba93](https://www.github.com/moongate-community/moongatev2/commit/b3cba93d2b6cb20b3c51e9bc5d49716b156023d4))
+* **network:** align movement and mobile incoming hair serialization ([9fb5905](https://www.github.com/moongate-community/moongatev2/commit/9fb5905f9b511f90f8a35bfb2172e5f862775dab))
+
 <a name="0.7.0"></a>
 ## [0.7.0](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.0) (2026-02-20)
 

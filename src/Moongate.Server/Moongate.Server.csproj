@@ -6,10 +6,17 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.7.0</Version>
+        <Version>0.7.7</Version>
         <Description>Moongate dedicated game server host process and runtime composition root.</Description>
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
+        
+        <!-- NativeAOT warning suppression for known incompatible packages -->
+        <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+        <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+        
+        <!-- Suppress AOT warnings for external dependencies -->
+        <NoWarn>$(NoWarn);IL3053;IL3050;IL2026;IL2057;IL2072;IL2075;IL2092;IL2112</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -38,23 +45,23 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj"/>
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
-        <ProjectReference Include="..\Moongate.Network.Packets\Moongate.Network.Packets.csproj"/>
-        <ProjectReference Include="..\Moongate.Persistence\Moongate.Persistence.csproj"/>
-        <ProjectReference Include="..\Moongate.Scripting\Moongate.Scripting.csproj"/>
-        <ProjectReference Include="..\Moongate.Server.Http\Moongate.Server.Http.csproj"/>
-        <ProjectReference Include="..\Moongate.Server.Metrics\Moongate.Server.Metrics.csproj"/>
-        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj"/>
+        <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Network.Packets\Moongate.Network.Packets.csproj" />
+        <ProjectReference Include="..\Moongate.Persistence\Moongate.Persistence.csproj" />
+        <ProjectReference Include="..\Moongate.Scripting\Moongate.Scripting.csproj" />
+        <ProjectReference Include="..\Moongate.Server.Http\Moongate.Server.Http.csproj" />
+        <ProjectReference Include="..\Moongate.Server.Metrics\Moongate.Server.Metrics.csproj" />
+        <ProjectReference Include="..\Moongate.UO.Data\Moongate.UO.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Server.Metrics.Generators\Moongate.Server.Metrics.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\Moongate.Server.Metrics.Generators\Moongate.Server.Metrics.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Assets\"/>
+        <Folder Include="Assets\" />
     </ItemGroup>
 
 </Project>

@@ -4,12 +4,12 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.6.0</Version>
+        <Version>0.7.7</Version>
         <Description>Metrics data contracts for Moongate server.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Server.Metrics.Generators\Moongate.Server.Metrics.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\Moongate.Server.Metrics.Generators\Moongate.Server.Metrics.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>
