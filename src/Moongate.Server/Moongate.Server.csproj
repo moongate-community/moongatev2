@@ -49,6 +49,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Moongate.Server.Metrics.Generators\Moongate.Server.Metrics.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <Folder Include="Assets\"/>
     </ItemGroup>
 

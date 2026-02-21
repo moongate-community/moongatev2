@@ -18,16 +18,6 @@ public sealed class TimerMetricsProvider : IMetricProvider
     public ValueTask<IReadOnlyList<MetricSample>> CollectAsync(CancellationToken cancellationToken = default)
     {
         var snapshot = _timerMetricsSource.GetMetricsSnapshot();
-
-        return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
-            [
-                new("timer.processed_ticks.total", snapshot.TotalProcessedTicks),
-                new("active.count", snapshot.ActiveTimerCount),
-                new("registered.total", snapshot.TotalRegisteredTimers),
-                new("callbacks.executed.total", snapshot.TotalExecutedCallbacks),
-                new("callbacks.errors.total", snapshot.CallbackErrors),
-                new("callback.duration.avg_ms", snapshot.AverageCallbackDurationMs)
-            ]
-        );
+        return ValueTask.FromResult(snapshot.ToMetricSamples());
     }
 }

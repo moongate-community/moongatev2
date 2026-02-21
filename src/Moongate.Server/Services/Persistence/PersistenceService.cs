@@ -128,22 +128,24 @@ public sealed class PersistenceService : IPersistenceService, IPersistenceMetric
 
             lock (_metricsSync)
             {
-                _metricsSnapshot = _metricsSnapshot with
-                {
-                    TotalSaves = _metricsSnapshot.TotalSaves + 1,
-                    LastSaveDurationMs = stopwatch.Elapsed.TotalMilliseconds,
-                    LastSaveTimestampUtc = start
-                };
+                _metricsSnapshot = new(
+                    _metricsSnapshot.TotalSaves + 1,
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    start,
+                    _metricsSnapshot.SaveErrors
+                );
             }
         }
         catch
         {
             lock (_metricsSync)
             {
-                _metricsSnapshot = _metricsSnapshot with
-                {
-                    SaveErrors = _metricsSnapshot.SaveErrors + 1
-                };
+                _metricsSnapshot = new(
+                    _metricsSnapshot.TotalSaves,
+                    _metricsSnapshot.LastSaveDurationMs,
+                    _metricsSnapshot.LastSaveTimestampUtc,
+                    _metricsSnapshot.SaveErrors + 1
+                );
             }
 
             throw;

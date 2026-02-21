@@ -1,15 +1,55 @@
+using Moongate.Server.Data.Metrics.Attributes;
+using Moongate.Server.Data.Metrics.Types;
+
 namespace Moongate.Server.Data.Metrics;
 
 /// <summary>
 /// Immutable snapshot of game-loop runtime metrics.
 /// </summary>
-public readonly record struct GameLoopMetricsSnapshot(
-    long TickCount,
-    TimeSpan Uptime,
-    double AverageTickMs,
-    double MaxTickMs,
-    long IdleSleepCount,
-    double AverageWorkUnits,
-    int OutboundQueueDepth,
-    long OutboundPacketsTotal
-);
+public sealed class GameLoopMetricsSnapshot
+{
+    public GameLoopMetricsSnapshot(
+        long tickCount,
+        TimeSpan uptime,
+        double averageTickMs,
+        double maxTickMs,
+        long idleSleepCount,
+        double averageWorkUnits,
+        int outboundQueueDepth,
+        long outboundPacketsTotal
+    )
+    {
+        TickCount = tickCount;
+        Uptime = uptime;
+        AverageTickMs = averageTickMs;
+        MaxTickMs = maxTickMs;
+        IdleSleepCount = idleSleepCount;
+        AverageWorkUnits = averageWorkUnits;
+        OutboundQueueDepth = outboundQueueDepth;
+        OutboundPacketsTotal = outboundPacketsTotal;
+    }
+
+    [Metric("ticks.total")]
+    public long TickCount { get; }
+
+    [Metric("uptime.ms", Transform = MetricValueTransformType.TimeSpanMilliseconds)]
+    public TimeSpan Uptime { get; }
+
+    [Metric("loop.tick.duration.avg_ms", Aliases = new[] { "tick.duration.avg_ms" })]
+    public double AverageTickMs { get; }
+
+    [Metric("loop.tick.duration.max_ms")]
+    public double MaxTickMs { get; }
+
+    [Metric("loop.idle.sleep.count")]
+    public long IdleSleepCount { get; }
+
+    [Metric("loop.work.units.avg")]
+    public double AverageWorkUnits { get; }
+
+    [Metric("network.outbound.queue.depth")]
+    public int OutboundQueueDepth { get; }
+
+    [Metric("network.outbound.packets.total")]
+    public long OutboundPacketsTotal { get; }
+}
