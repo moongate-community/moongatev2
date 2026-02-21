@@ -1,3 +1,13 @@
+## [0.8.0](https://github.com/moongate-community/moongatev2/compare/v0.7.10...v0.8.0) (2026-02-21)
+
+### Features
+
+* **network:** add unicode speech pipeline and message factory helpers ([5cd39c4](https://github.com/moongate-community/moongatev2/commit/5cd39c45fe1c0af7cf008422007167e112e9d288))
+
+### Bug Fixes
+
+* **server:** preserve speech type and hue in speech handler ([8e4fea3](https://github.com/moongate-community/moongatev2/commit/8e4fea3dd868beed08fea6c8bb882d6dbd0cfae4))
+
 <p align="center">
   <img src="images/moongate_logo.png" alt="Moongate logo" width="240" />
 </p>
