@@ -1,0 +1,94 @@
+name: Security Audit
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Run vulnerability audit
+        run: |
+          set -euo pipefail
+          dotnet list package --vulnerable --include-transitive --format json > security-audit.json
+
+          VULN_COUNT="$(python3 - <<'PY'
+import json
+
+def walk(node):
+    if isinstance(node, dict):
+        count = 1 if ("severity" in node and ("advisoryurl" in node or "advisoryUrl" in node)) else 0
+        for value in node.values():
+            count += walk(value)
+        return count
+    if isinstance(node, list):
+        return sum(walk(item) for item in node)
+    return 0
+
+with open("security-audit.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+print(walk(data))
+PY
+)"
+
+          echo "vuln_count=${VULN_COUNT}" >> "$GITHUB_ENV"
+
+      - name: Publish workflow summary
+        run: |
+          {
+            echo "## Security Audit"
+            echo ""
+            echo "- Vulnerabilities: **${vuln_count}**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate security badge JSON
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          COUNT="${vuln_count}"
+          COLOR="brightgreen"
+
+          if [ "$COUNT" -gt 0 ]; then
+            COLOR="red"
+          fi
+
+          mkdir -p badges
+          cat > badges/security.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "security",
+            "message": "${COUNT} vulnerabilities",
+            "color": "${COLOR}"
+          }
+          EOF
+
+      - name: Publish security badge to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./badges
+          destination_dir: badges
+          keep_files: true

@@ -1,0 +1,92 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build and collect warnings
+        run: |
+          set -euo pipefail
+          dotnet build -c Release --no-restore --nologo 2>&1 | tee quality-build.log
+
+          WARNING_COUNT="$(grep -E -c ':[[:space:]]warning[[:space:]]' quality-build.log || true)"
+          echo "warning_count=${WARNING_COUNT}" >> "$GITHUB_ENV"
+
+      - name: Publish workflow summary
+        run: |
+          {
+            echo "## Code Quality"
+            echo ""
+            echo "- Build warnings: **${warning_count}**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate quality badge JSON
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          COUNT="${warning_count}"
+          COLOR="brightgreen"
+          GATE_STATUS="passing"
+          GATE_COLOR="brightgreen"
+
+          if [ "$COUNT" -gt 0 ]; then
+            COLOR="yellow"
+            GATE_STATUS="failing"
+            GATE_COLOR="red"
+          fi
+
+          if [ "$COUNT" -gt 20 ]; then
+            COLOR="red"
+          fi
+
+          mkdir -p badges
+          cat > badges/quality.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "code quality",
+            "message": "${COUNT} warnings",
+            "color": "${COLOR}"
+          }
+          EOF
+
+          cat > badges/quality-gate.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "quality gate",
+            "message": "${GATE_STATUS}",
+            "color": "${GATE_COLOR}"
+          }
+          EOF
+
+      - name: Publish quality badge to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./badges
+          destination_dir: badges
+          keep_files: true

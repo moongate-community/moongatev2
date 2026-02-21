@@ -14,6 +14,13 @@
 
 [![CI](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/tests.json)](https://github.com/moongate-community/moongatev2/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/coverage.json)](https://github.com/moongate-community/moongatev2/actions/workflows/coverage.yml)
+[![Code Quality](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/quality.json)](https://github.com/moongate-community/moongatev2/actions/workflows/quality.yml)
+[![Quality Gate](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/quality-gate.json)](https://github.com/moongate-community/moongatev2/actions/workflows/quality.yml)
+[![Security](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/moongate-community/moongatev2/gh-pages/badges/security.json)](https://github.com/moongate-community/moongatev2/actions/workflows/security.yml)
+[![Latest Release](https://img.shields.io/github/v/release/moongate-community/moongatev2)](https://github.com/moongate-community/moongatev2/releases)
+[![Latest Pre-release](https://img.shields.io/github/v/release/moongate-community/moongatev2?include_prereleases&label=pre-release)](https://github.com/moongate-community/moongatev2/releases)
+[![Docs](https://github.com/moongate-community/moongatev2/actions/workflows/docs.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/docs.yml)
 [![Release](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml/badge.svg)](https://github.com/moongate-community/moongatev2/actions/workflows/release.yml)
 [![Docker Image](https://img.shields.io/docker/v/tgiachi/moongate?sort=semver)](https://hub.docker.com/r/tgiachi/moongate)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tgiachi/moongate)](https://hub.docker.com/r/tgiachi/moongate)
