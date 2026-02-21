@@ -1,3 +1,9 @@
+## [0.9.0](https://github.com/moongate-community/moongatev2/compare/v0.8.0...v0.9.0) (2026-02-21)
+
+### Features
+
+* **network:** add book packets, property list support, and dynamic test badge ([5aee7e8](https://github.com/moongate-community/moongatev2/commit/5aee7e8c779af2cd878bca60deb6efafbff89c0f))
+
 ## [0.8.0](https://github.com/moongate-community/moongatev2/compare/v0.7.10...v0.8.0) (2026-02-21)
 
 ### Features
