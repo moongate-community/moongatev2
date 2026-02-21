@@ -151,7 +151,7 @@ jobs:
       - name: Create multi-arch manifest
         shell: bash
         env:
-          REPO: ${{ needs.build-amd64.outputs.repository || 'tgiachi/moongate' }}
+          REPO: ${{ needs.build-amd64.outputs.repository }}
           VERSION: ${{ needs.build-amd64.outputs.version }}
           AMD64_DIGEST: ${{ needs.build-amd64.outputs.digest }}
           ARM64_DIGEST: ${{ needs.build-arm64.outputs.digest }}
