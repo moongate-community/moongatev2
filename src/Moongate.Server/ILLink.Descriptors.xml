@@ -3,44 +3,44 @@
         <type fullname="Moongate.Server.*" preserve="all"/>
     </assembly>
 
-    <assembly fullname="Moongate.Core.Server">
-        <type fullname="Moongate.Core.Server.*" preserve="all"/>
-    </assembly>
-
     <assembly fullname="Moongate.Core">
         <type fullname="Moongate.Core.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Abstractions">
+        <type fullname="Moongate.Abstractions.*" preserve="all"/>
     </assembly>
 
     <assembly fullname="Moongate.Network.Packets">
         <type fullname="Moongate.Network.Packets.*" preserve="all"/>
     </assembly>
 
-    <assembly fullname="Moongate.Core.Network">
-        <type fullname="Moongate.Core.Network.*" preserve="all"/>
+    <assembly fullname="Moongate.Network">
+        <type fullname="Moongate.Network.*" preserve="all"/>
     </assembly>
 
     <assembly fullname="Moongate.UO.Data">
         <type fullname="Moongate.UO.Data.*" preserve="all"/>
     </assembly>
 
-    <assembly fullname="Moongate.UO">
-        <type fullname="Moongate.UO.*" preserve="all"/>
-    </assembly>
 
     <assembly fullname="Moongate.Scripting">
         <type fullname="Moongate.Scripting.*" preserve="all"/>
     </assembly>
 
-    <assembly fullname="Moongate.Core.Persistence">
-        <type fullname="Moongate.Core.Persistence.*" preserve="all"/>
+    <assembly fullname="Moongate.Persistence">
+        <type fullname="Moongate.Persistence.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Server.Metrics">
+        <type fullname="Moongate.Server.Metrics.*" preserve="all"/>
     </assembly>
 
     <assembly fullname="Moongate.Server.Http">
         <type fullname="Moongate.Server.Http.*" preserve="all"/>
     </assembly>
 
-
-    <assembly fullname="MoonSharp">
+    <assembly fullname="MoonSharp.Interpreter">
         <type fullname="MoonSharp.Interpreter.*" preserve="all"/>
         <type fullname="MoonSharp.*" preserve="all"/>
     </assembly>

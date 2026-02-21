@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -111,88 +112,13 @@ public sealed class MoongateHttpService : IMoongateHttpService
             app.UseAuthorization();
         }
 
-        app.MapGet(
-            "/",
-            static async context =>
-            {
-                context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync("Moongate HTTP Service is running.");
-            }
-        );
-
-        app.MapGet(
-            "/health",
-            static async context =>
-            {
-                context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync("ok");
-            }
-        );
-
-        app.MapGet(
-            "/metrics",
-            async context =>
-            {
-                if (_metricsSnapshotFactory is null)
-                {
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    context.Response.ContentType = "text/plain";
-                    await context.Response.WriteAsync("metrics endpoint is not configured");
-
-                    return;
-                }
-
-                var snapshot = _metricsSnapshotFactory();
-
-                if (snapshot is null)
-                {
-                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                    context.Response.ContentType = "text/plain";
-                    await context.Response.WriteAsync("metrics are currently unavailable");
-
-                    return;
-                }
-
-                context.Response.StatusCode = StatusCodes.Status200OK;
-                context.Response.ContentType = "text/plain; version=0.0.4";
-                await context.Response.WriteAsync(BuildPrometheusPayload(snapshot));
-            }
-        );
+        app.MapGet("/", HandleRootAsync);
+        app.MapGet("/health", HandleHealthAsync);
+        app.MapGet("/metrics", HandleMetricsAsync);
 
         if (_jwtOptions.IsEnabled)
         {
-            app.MapPost(
-                "/auth/login",
-                async (MoongateHttpLoginRequest request, CancellationToken cancellationToken) =>
-                {
-                    if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-                    {
-                        return Results.BadRequest("username and password are required");
-                    }
-
-                    var user = await _authenticateUserAsync!(request.Username, request.Password, cancellationToken);
-
-                    if (user is null)
-                    {
-                        return Results.Unauthorized();
-                    }
-
-                    var expiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
-                    var token = CreateJwtToken(user, expiresAtUtc, _jwtOptions);
-
-                    return Results.Ok(
-                        new MoongateHttpLoginResponse
-                        {
-                            AccessToken = token,
-                            TokenType = "Bearer",
-                            ExpiresAtUtc = expiresAtUtc,
-                            AccountId = user.AccountId,
-                            Username = user.Username,
-                            Role = user.Role
-                        }
-                    );
-                }
-            );
+            app.MapPost("/auth/login", HandleLoginAsync);
         }
 
         if (_isOpenApiEnabled)
@@ -301,6 +227,99 @@ public sealed class MoongateHttpService : IMoongateHttpService
         }
 
         return sb.ToString();
+    }
+
+    private static Task HandleRootAsync(HttpContext context)
+    {
+        context.Response.ContentType = "text/plain";
+
+        return context.Response.WriteAsync("Moongate HTTP Service is running.");
+    }
+
+    private static Task HandleHealthAsync(HttpContext context)
+    {
+        context.Response.ContentType = "text/plain";
+
+        return context.Response.WriteAsync("ok");
+    }
+
+    private async Task HandleMetricsAsync(HttpContext context)
+    {
+        if (_metricsSnapshotFactory is null)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            context.Response.ContentType = "text/plain";
+            await context.Response.WriteAsync("metrics endpoint is not configured");
+
+            return;
+        }
+
+        var snapshot = _metricsSnapshotFactory();
+
+        if (snapshot is null)
+        {
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            context.Response.ContentType = "text/plain";
+            await context.Response.WriteAsync("metrics are currently unavailable");
+
+            return;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.ContentType = "text/plain; version=0.0.4";
+        await context.Response.WriteAsync(BuildPrometheusPayload(snapshot));
+    }
+
+    private async Task HandleLoginAsync(HttpContext context)
+    {
+        var cancellationToken = context.RequestAborted;
+        var request = await context.Request.ReadFromJsonAsync(
+            MoongateHttpJsonContext.Default.MoongateHttpLoginRequest,
+            cancellationToken
+        );
+
+        if (
+            request is null ||
+            string.IsNullOrWhiteSpace(request.Username) ||
+            string.IsNullOrWhiteSpace(request.Password)
+        )
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsync("username and password are required", cancellationToken);
+
+            return;
+        }
+
+        var user = await _authenticateUserAsync!(request.Username, request.Password, cancellationToken);
+
+        if (user is null)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+            return;
+        }
+
+        var expiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
+        var token = CreateJwtToken(user, expiresAtUtc, _jwtOptions);
+
+        var response = new MoongateHttpLoginResponse
+        {
+            AccessToken = token,
+            TokenType = "Bearer",
+            ExpiresAtUtc = expiresAtUtc,
+            AccountId = user.AccountId,
+            Username = user.Username,
+            Role = user.Role
+        };
+
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.ContentType = "application/json; charset=utf-8";
+        await JsonSerializer.SerializeAsync(
+            context.Response.Body,
+            response,
+            MoongateHttpJsonContext.Default.MoongateHttpLoginResponse,
+            cancellationToken
+        );
     }
 
     private static string GetPrometheusTypeName(MetricType metricType) => metricType switch
