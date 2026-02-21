@@ -60,4 +60,5 @@ static void ShowHeader()
     Console.WriteLine(header);
     Console.WriteLine();
     Console.WriteLine("Platform: " + PlatformUtils.GetCurrentPlatform());
+    Console.WriteLine("Is running from Docker: " + PlatformUtils.IsRunningFromDocker());
 }

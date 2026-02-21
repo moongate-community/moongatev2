@@ -11,11 +11,11 @@ using Moongate.UO.Data.Types;
 
 namespace Moongate.Server.Handlers;
 
-public class GetPlayerStatusHandler : BasePacketListener
+public class PlayerStatusHandler : BasePacketListener
 {
     private readonly ICharacterService _characterService;
 
-    public GetPlayerStatusHandler(IOutgoingPacketQueue outgoingPacketQueue, ICharacterService characterService)
+    public PlayerStatusHandler(IOutgoingPacketQueue outgoingPacketQueue, ICharacterService characterService)
         : base(outgoingPacketQueue)
         => _characterService = characterService;
 

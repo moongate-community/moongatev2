@@ -74,6 +74,7 @@ RUN mkdir -p /app /app/data /app/logs /app/scripts /uo && chown -R moongate:moon
 
 ENV MOONGATE_ROOT_DIRECTORY=/app
 ENV MOONGATE_UO_DIRECTORY=/uo
+ENV MOONGATE_IS_DOCKER=true
 EXPOSE 2593/tcp
 
 USER moongate

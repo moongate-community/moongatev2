@@ -12,14 +12,14 @@ using Moongate.UO.Data.Types;
 
 namespace Moongate.Tests.Server;
 
-public class GetPlayerStatusHandlerTests
+public class PlayerStatusHandlerTests
 {
     [Test]
     public async Task HandlePacketAsync_ShouldEnqueueStatusPacket_WhenBasicStatusRequested()
     {
         var queue = new BasePacketListenerTestOutgoingPacketQueue();
         var characterService = new TestCharacterService();
-        var handler = new GetPlayerStatusHandler(queue, characterService);
+        var handler = new PlayerStatusHandler(queue, characterService);
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
         var mobile = new UOMobileEntity
@@ -59,7 +59,7 @@ public class GetPlayerStatusHandlerTests
     {
         var queue = new BasePacketListenerTestOutgoingPacketQueue();
         var characterService = new TestCharacterService();
-        var handler = new GetPlayerStatusHandler(queue, characterService);
+        var handler = new PlayerStatusHandler(queue, characterService);
         using var client = new MoongateTCPClient(new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp));
 
         var session = new GameSession(new(client))
