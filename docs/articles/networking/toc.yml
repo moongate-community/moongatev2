@@ -1,6 +1,4 @@
-- name: Networking
-  href: ../
-  items:
+items:
   - name: Packet System
     href: packets.md
   - name: Protocol Reference
