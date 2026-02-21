@@ -15,10 +15,6 @@ on:
 permissions:
   contents: read
 
-env:
-  # Default repository - can be overridden by GitHub Variable DOCKERHUB_REPOSITORY
-  DOCKER_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY || 'tgiachi/moongate' }}
-
 jobs:
   build-amd64:
     runs-on: ubuntu-latest
@@ -29,10 +25,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine version
-        id: version
+      - name: Determine repository and version
+        id: config
         shell: bash
         run: |
+          # Get repository from GitHub Variable or use default
+          REPO="${{ vars.DOCKERHUB_REPOSITORY }}"
+          if [[ -z "$REPO" ]]; then
+            REPO="tgiachi/moongate"
+          fi
+          echo "repository=${REPO}" >> "$GITHUB_OUTPUT"
+          echo "Using repository: ${REPO}"
+          
+          # Get version from tag or workflow input
           VERSION=""
           if [[ -n "${{ github.ref_name }}" && "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${{ github.ref_name }}"
@@ -46,9 +51,9 @@ jobs:
 
       - name: Show configuration
         run: |
-          echo "Repository: ${{ env.DOCKER_REPOSITORY }}"
-          echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Full tag: ${{ env.DOCKER_REPOSITORY }}:amd64-${{ steps.version.outputs.version }}"
+          echo "Repository: ${{ steps.config.outputs.repository }}"
+          echo "Version: ${{ steps.config.outputs.version }}"
+          echo "Full tag: ${{ steps.config.outputs.repository }}:amd64-${{ steps.config.outputs.version }}"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -67,7 +72,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ env.DOCKER_REPOSITORY }}:amd64-${{ steps.version.outputs.version }}
+          tags: ${{ steps.config.outputs.repository }}:amd64-${{ steps.config.outputs.version }}
           cache-from: type=gha,scope=amd64
           cache-to: type=gha,mode=max,scope=amd64
 
