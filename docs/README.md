@@ -132,8 +132,8 @@ dotnet run --project src/Moongate.Server
 Link to other articles:
 
 ```markdown
-- **[Architecture Overview](architecture/overview.md)** - High-level system architecture
-- **[API Reference](../api/index.md)** - Full .NET API documentation
+- **[Architecture Overview](articles/architecture/overview.md)** - High-level system architecture
+- **[API Reference](api/toc.yml)** - Full .NET API documentation
 ```
 
 Link to external resources:
@@ -166,20 +166,20 @@ More content.
 
 ## Next Steps
 
-- **[Next Article](next.md)** - Description
-- **[Previous Article](previous.md)** - Description
+- Next article: `<relative-path-to-next-article.md>`
+- Previous article: `<relative-path-to-previous-article.md>`
 
 ---
 
-**Previous**: [Previous Article](previous.md) | **Next**: [Next Article](next.md)
+**Previous**: `[Previous Article](<relative-path-to-previous-article.md>)` | **Next**: `[Next Article](<relative-path-to-next-article.md>)`
 ```
 
 ## Images
 
-Place images in `docs/images/` and reference them:
+Place images in repository `images/` and reference them from `docs/`:
 
 ```markdown
-![Architecture Diagram](../images/architecture.png)
+![Moongate Logo](../images/moongate_logo.png)
 ```
 
 ## Updating Documentation

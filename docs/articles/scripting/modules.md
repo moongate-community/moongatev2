@@ -174,16 +174,16 @@ public sealed class GameModule
 {
     private readonly ILogger<GameModule> _logger;
     private readonly IMobileService _mobileService;
-    private readonly ISessionManager _sessionManager;
+    private readonly IGameNetworkSessionService _sessionService;
     
     public GameModule(
         ILogger<GameModule> logger,
         IMobileService mobileService,
-        ISessionManager sessionManager)
+        IGameNetworkSessionService sessionService)
     {
         _logger = logger;
         _mobileService = mobileService;
-        _sessionManager = sessionManager;
+        _sessionService = sessionService;
     }
     
     [ScriptFunction("spawn_npc")]
@@ -347,15 +347,15 @@ using Moongate.Scripting.Attributes;
 public sealed class ChatCommandModule
 {
     private readonly ILogger<ChatCommandModule> _logger;
-    private readonly ISessionManager _sessionManager;
+    private readonly IGameNetworkSessionService _sessionService;
     private readonly ConcurrentDictionary<string, Func<Serial, string, Task>> _commands = new();
     
     public ChatCommandModule(
         ILogger<ChatCommandModule> logger,
-        ISessionManager sessionManager)
+        IGameNetworkSessionService sessionService)
     {
         _logger = logger;
-        _sessionManager = sessionManager;
+        _sessionService = sessionService;
         
         // Register built-in commands
         RegisterCommand("help", OnHelpCommand);

@@ -53,7 +53,7 @@ Deep dive into network protocols:
 ## 🔗 Quick Links
 
 - [GitHub Repository](https://github.com/moongate-community/moongatev2)
-- [API Reference](api/index.md) - Full .NET API documentation
+- [API Reference](api/toc.yml) - Full .NET API documentation
 - [Docker Hub](https://hub.docker.com/r/tgiachi/moongate) - Pre-built Docker images
 - [Discord Community](https://discord.gg/3HT7v95b) - Join our community
 
