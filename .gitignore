@@ -584,3 +584,5 @@ src/**/Generated/
 definitions.lua
 .worktrees/
 .worktrees
+
+dist/
