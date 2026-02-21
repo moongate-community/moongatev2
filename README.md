@@ -54,7 +54,7 @@ It targets a clean, modular architecture with strong packet tooling, determinist
 
 You can read the background and motivation behind Moongate v2 here:
 
-- https://orivega.io/moongate-v2-rewriting-a-ultima-online-server-from-scratch-because-i-wanted-to/
+- <https://orivega.io/moongate-v2-rewriting-a-ultima-online-server-from-scratch-because-i-wanted-to/>
 
 ## Current Status
 
@@ -255,7 +255,7 @@ Example script callback (for example in `<root>/scripts/init.lua`):
 
 ```lua
 function on_player_connected(p)
-	log.info("Anvedi che s'e connesson un client")
+ log.info("Toh! un player s'e' connesso")
 end
 ```
 
