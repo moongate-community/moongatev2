@@ -1,0 +1,145 @@
+name: GitHub Release Assets
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g. v0.7.7 or 0.7.7)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact_name: moongate-linux-x64
+            archive_ext: tar.gz
+          - os: macos-14
+            rid: osx-arm64
+            artifact_name: moongate-osx-arm64
+            archive_ext: tar.gz
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          VERSION=""
+          if [[ -n "${{ github.ref_name }}" && "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            if [[ "$VERSION" != v* ]]; then
+              VERSION="v${VERSION}"
+            fi
+          else
+            VERSION="v0.0.0-dev"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
+
+      - name: Restore
+        run: dotnet restore -r "${{ matrix.rid }}" src/Moongate.Server/Moongate.Server.csproj
+
+      - name: Publish
+        run: >
+          dotnet publish
+          src/Moongate.Server/Moongate.Server.csproj
+          -c Release
+          -r "${{ matrix.rid }}"
+          --self-contained true
+          --no-restore
+          -o "dist/${{ matrix.artifact_name }}"
+
+      - name: Archive (tar.gz)
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          tar -C dist -czf "artifacts/${{ matrix.artifact_name }}-${{ steps.version.outputs.version }}.${{ matrix.archive_ext }}" "${{ matrix.artifact_name }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          VERSION=""
+          if [[ -n "${{ github.ref_name }}" && "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            if [[ "$VERSION" != v* ]]; then
+              VERSION="v${VERSION}"
+            fi
+          else
+            VERSION="v0.0.0-dev"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Extract changelog notes
+        id: notes
+        shell: bash
+        run: |
+          VERSION_NO_V="${{ steps.version.outputs.version }}"
+          VERSION_NO_V="${VERSION_NO_V#v}"
+
+          awk -v version="$VERSION_NO_V" '
+            $0 ~ "^## \\["version"\\]" { in_section=1; next }
+            in_section && /^## \[/ { exit }
+            in_section { print }
+          ' CHANGELOG.md > release_notes.md
+
+          if [[ ! -s release_notes.md ]]; then
+            echo "Release ${VERSION_NO_V}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See CHANGELOG.md for details." >> release_notes.md
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          files: |
+            release-artifacts/**/*.tar.gz
+          fail_on_unmatched_files: true
+
