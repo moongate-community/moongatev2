@@ -23,6 +23,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Check for release label
         id: release_check
         uses: actions/github-script@v7
@@ -47,19 +52,11 @@ jobs:
         if: steps.release_check.outputs.should_release != 'true'
         run: echo "No 'release' label found, skipping release."
 
-      - name: Install versionize
-        if: steps.release_check.outputs.should_release == 'true'
-        run: dotnet tool install --global versionize
-
       - name: Configure git user
         if: steps.release_check.outputs.should_release == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Run versionize
-        if: steps.release_check.outputs.should_release == 'true'
-        run: versionize --skip-dirty
 
       - name: Configure authenticated remote for release push
         if: steps.release_check.outputs.should_release == 'true'
@@ -72,8 +69,18 @@ jobs:
           fi
           git remote set-url origin "https://x-access-token:${RELEASE_PAT}@github.com/${{ github.repository }}.git"
 
-      - name: Push version commit and tag
+      - name: Run semantic-release
         if: steps.release_check.outputs.should_release == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
-          git push
-          git push --tags
+          npx -y \
+            -p semantic-release \
+            -p @semantic-release/changelog \
+            -p @semantic-release/commit-analyzer \
+            -p @semantic-release/release-notes-generator \
+            -p @semantic-release/git \
+            -p @semantic-release/github \
+            -p @semantic-release/exec \
+            semantic-release

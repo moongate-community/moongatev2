@@ -2,7 +2,7 @@
   <img src="images/moongate_logo.png" alt="Moongate logo" width="240" />
 </p>
 
-All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
+All notable changes to this project will be documented in this file. Releases are generated from Conventional Commits with semantic-release.
 
 <a name="0.7.10"></a>
 ## [0.7.10](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.10) (2026-02-21)
