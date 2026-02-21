@@ -1,5 +1,6 @@
 using Moongate.Abstractions.Interfaces.Services.Base;
 using Moongate.Server.Data.Internal.Commands;
+using Moongate.Server.Data.Session;
 using Moongate.Server.Types.Commands;
 
 namespace Moongate.Server.Interfaces.Services.Console;
@@ -14,10 +15,12 @@ public interface ICommandSystemService : IMoongateService
     /// </summary>
     /// <param name="commandWithArgs">Raw command text including arguments.</param>
     /// <param name="source">Command source.</param>
+    /// <param name="session"> If comes from in game, is not null</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task ExecuteCommandAsync(
         string commandWithArgs,
         CommandSourceType source = CommandSourceType.Console,
+        GameSession? session = null,
         CancellationToken cancellationToken = default
     );
 

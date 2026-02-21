@@ -56,6 +56,7 @@ Special thanks to the teams and contributors behind these projects, which strong
 - [Docker Monitoring Stack](#docker-monitoring-stack)
 - [Documentation](#documentation)
 - [Development Notes](#development-notes)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Project Goals
@@ -350,10 +351,15 @@ Project documentation (Obsidian vault) is in `docs/`.
 ## Development Notes
 
 - Shared build/analyzer/version settings are centralized in `Directory.Build.props`.
-- Current global version baseline: `0.2.0`.
-- CI currently validates build and tests; AOT publish gate is planned.
+- Current global version baseline: `0.9.0`.
+- CI validates build/tests/coverage/quality/security; release and Docker image publishing run through dedicated workflows.
+
+## Contributing
+
+We welcome contributions. Please fork the repository and submit pull requests with your changes.
+Make sure code follows the project coding standards and includes appropriate tests.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See `LICENSE` for details.

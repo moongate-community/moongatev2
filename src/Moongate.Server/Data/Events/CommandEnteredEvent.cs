@@ -1,3 +1,6 @@
+using Moongate.Server.Data.Session;
+using Moongate.Server.Types.Commands;
+
 namespace Moongate.Server.Data.Events;
 
 /// <summary>
@@ -7,5 +10,6 @@ namespace Moongate.Server.Data.Events;
 /// <param name="Timestamp">Unix timestamp in milliseconds when the command was submitted.</param>
 public readonly record struct CommandEnteredEvent(
     string CommandText,
-    long Timestamp
+    CommandSourceType Source = CommandSourceType.Console,
+    GameSession? GameSession = null
 ) : IGameEvent;

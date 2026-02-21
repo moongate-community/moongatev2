@@ -247,6 +247,56 @@ public class PersistenceUnitOfWorkTests
     }
 
     [Test]
+    public async Task ConcurrentAddAndRemove_OnSingleUnitOfWork_ShouldRemainConsistentAfterReload()
+    {
+        using var tempDirectory = new TempDirectory();
+        var unitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await unitOfWork.InitializeAsync();
+
+        const int workerCount = 8;
+        const int recordsPerWorker = 50;
+
+        var tasks = Enumerable.Range(0, workerCount)
+                              .Select(
+                                  workerIndex => Task.Run(
+                                      async () =>
+                                      {
+                                          for (var i = 0; i < recordsPerWorker; i++)
+                                          {
+                                              var idValue = 0x000A0000u + (uint)(workerIndex * recordsPerWorker + i);
+                                              var id = (Serial)idValue;
+                                              var username = $"temp-{idValue}";
+
+                                              var added = await unitOfWork.Accounts.AddAsync(
+                                                              new()
+                                                              {
+                                                                  Id = id,
+                                                                  Username = username,
+                                                                  PasswordHash = "pw"
+                                                              }
+                                                          );
+
+                                              Assert.That(added, Is.True);
+
+                                              var removed = await unitOfWork.Accounts.RemoveAsync(id);
+                                              Assert.That(removed, Is.True);
+                                          }
+                                      }
+                                  )
+                              )
+                              .ToArray();
+
+        await Task.WhenAll(tasks);
+        await unitOfWork.SaveSnapshotAsync();
+
+        var reloadedUnitOfWork = CreateUnitOfWork(tempDirectory.Path);
+        await reloadedUnitOfWork.InitializeAsync();
+
+        var count = await reloadedUnitOfWork.Accounts.CountAsync();
+        Assert.That(count, Is.Zero);
+    }
+
+    [Test]
     public async Task CountAsync_OnRepositories_ShouldReturnExpectedValues()
     {
         using var tempDirectory = new TempDirectory();

@@ -1,10 +1,14 @@
 using System.Text;
+using Moongate.Network.Packets.Outgoing.Speech;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Data.Internal.Commands;
+using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
 using Moongate.Server.Interfaces.Services.Lifecycle;
+using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Types.Commands;
+using Moongate.UO.Data.Utils;
 using Serilog;
 using Serilog.Events;
 
@@ -19,16 +23,19 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
     private readonly Dictionary<string, CommandDefinition> _commands = new(StringComparer.OrdinalIgnoreCase);
     private readonly IConsoleUiService _consoleUiService;
     private readonly IGameEventBusService _gameEventBusService;
+    private readonly IOutgoingPacketQueue _outgoingPacketQueue;
     private readonly IServerLifetimeService _serverLifetimeService;
 
     public CommandSystemService(
         IConsoleUiService consoleUiService,
         IGameEventBusService gameEventBusService,
+        IOutgoingPacketQueue outgoingPacketQueue,
         IServerLifetimeService serverLifetimeService
     )
     {
         _consoleUiService = consoleUiService;
         _gameEventBusService = gameEventBusService;
+        _outgoingPacketQueue = outgoingPacketQueue;
         _serverLifetimeService = serverLifetimeService;
         RegisterDefaultCommands();
     }
@@ -36,6 +43,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
     public async Task ExecuteCommandAsync(
         string commandWithArgs,
         CommandSourceType source = CommandSourceType.Console,
+        GameSession? session = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -69,7 +77,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         if (!_commands.TryGetValue(command, out var commandDefinition))
         {
             _logger.Verbose("Command '{Command}' is not registered", command);
-            WriteCommandOutput(LogEventLevel.Warning, "Unknown command: {0}", commandWithArgs);
+            WriteCommandOutput(source, session, LogEventLevel.Warning, "Unknown command: {0}", commandWithArgs);
 
             return;
         }
@@ -83,6 +91,8 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
                 commandDefinition.Source
             );
             WriteCommandOutput(
+                source,
+                session,
                 LogEventLevel.Warning,
                 "Command '{0}' is not available from source '{1}'.",
                 command,
@@ -95,7 +105,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         var context = new CommandSystemContext(
             commandWithArgs,
             tokens.Skip(1).ToArray(),
-            (message, level) => _consoleUiService.WriteLogLine(message, level)
+            (message, level) => WriteCommandOutput(source, session, level, message)
         );
 
         _logger.Verbose("Executing command handler for '{Command}'", command);
@@ -108,13 +118,24 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         catch (Exception ex)
         {
             _logger.Error(ex, "Command '{Command}' execution failed", command);
-            WriteCommandOutput(LogEventLevel.Error, "Command '{0}' failed. Check logs for details.", command);
+            WriteCommandOutput(
+                source,
+                session,
+                LogEventLevel.Error,
+                "Command '{0}' failed. Check logs for details.",
+                command
+            );
         }
     }
 
     public async Task HandleAsync(CommandEnteredEvent gameEvent, CancellationToken cancellationToken = default)
     {
-        await ExecuteCommandAsync(gameEvent.CommandText, CommandSourceType.Console, cancellationToken);
+        await ExecuteCommandAsync(
+            gameEvent.CommandText,
+            gameEvent.Source,
+            gameEvent.GameSession,
+            cancellationToken: cancellationToken
+        );
     }
 
     public void RegisterCommand(
@@ -142,14 +163,13 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         {
             var normalizedAlias = alias.Trim().ToLowerInvariant();
 
-            if (_commands.ContainsKey(normalizedAlias))
+            if (!_commands.TryAdd(normalizedAlias, commandDefinition))
             {
                 _logger.Warning("Command '{CommandName}' is already registered.", normalizedAlias);
 
                 continue;
             }
 
-            _commands[normalizedAlias] = commandDefinition;
             _logger.Debug("Registered command {CommandName}", normalizedAlias);
         }
     }
@@ -167,7 +187,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
 
     private Task OnExitCommand(CommandSystemContext context)
     {
-        WriteCommandOutput(LogEventLevel.Warning, "Shutdown requested by console command.");
+        context.Print("Shutdown requested by console command.");
         _serverLifetimeService.RequestShutdown();
 
         return Task.CompletedTask;
@@ -198,7 +218,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
             builder.AppendLine();
         }
 
-        WriteCommandOutput(LogEventLevel.Information, builder.ToString().TrimEnd());
+        context.Print(builder.ToString().TrimEnd());
 
         return Task.CompletedTask;
     }
@@ -206,8 +226,7 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
     private Task OnLockCommand(CommandSystemContext context)
     {
         _consoleUiService.LockInput();
-        WriteCommandOutput(
-            LogEventLevel.Warning,
+        context.Print(
             "Console input is locked. Press '{0}' to unlock.",
             _consoleUiService.UnlockCharacter
         );
@@ -217,7 +236,12 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
 
     private void RegisterDefaultCommands()
     {
-        RegisterCommand("help|?", OnHelpCommand, "Displays available commands.");
+        RegisterCommand(
+            "help|?",
+            OnHelpCommand,
+            "Displays available commands.",
+            CommandSourceType.Console | CommandSourceType.InGame
+        );
         RegisterCommand(
             "lock|*",
             OnLockCommand,
@@ -230,9 +254,47 @@ public sealed class CommandSystemService : ICommandSystemService, IGameEventList
         );
     }
 
-    private void WriteCommandOutput(LogEventLevel level, string message, params object[] args)
+    private void WriteCommandOutput(
+        CommandSourceType source,
+        GameSession? session,
+        LogEventLevel level,
+        string message,
+        params object[] args
+    )
     {
         var formatted = args.Length == 0 ? message : string.Format(message, args);
+
+        if (source == CommandSourceType.InGame && session is not null)
+        {
+            WriteInGameOutput(session, formatted, level);
+
+            return;
+        }
+
         _consoleUiService.WriteLogLine(formatted, level);
+    }
+
+    private void WriteInGameOutput(GameSession session, string formatted, LogEventLevel level)
+    {
+        var hue = level switch
+        {
+            LogEventLevel.Error or LogEventLevel.Fatal => SpeechHues.Red,
+            LogEventLevel.Warning => SpeechHues.Yellow,
+            _ => SpeechHues.System
+        };
+
+        var lines = formatted.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var normalized = line.TrimEnd('\r');
+
+            if (normalized.Length == 0)
+            {
+                continue;
+            }
+
+            _outgoingPacketQueue.Enqueue(session.SessionId, SpeechMessageFactory.CreateSystem(normalized, hue: hue));
+        }
     }
 }
