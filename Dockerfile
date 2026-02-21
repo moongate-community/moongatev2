@@ -16,9 +16,11 @@ COPY src/Moongate.Abstractions/Moongate.Abstractions.csproj src/Moongate.Abstrac
 COPY src/Moongate.Core/Moongate.Core.csproj src/Moongate.Core/
 COPY src/Moongate.Network.Packets/Moongate.Network.Packets.csproj src/Moongate.Network.Packets/
 COPY src/Moongate.Network.Packets.Generators/Moongate.Network.Packets.Generators.csproj src/Moongate.Network.Packets.Generators/
+COPY src/Moongate.Server.Metrics.Generators/Moongate.Server.Metrics.Generators.csproj src/Moongate.Server.Metrics.Generators/
 COPY src/Moongate.Persistence/Moongate.Persistence.csproj src/Moongate.Persistence/
 COPY src/Moongate.Scripting/Moongate.Scripting.csproj src/Moongate.Scripting/
 COPY src/Moongate.Server.Http/Moongate.Server.Http.csproj src/Moongate.Server.Http/
+COPY src/Moongate.Server.Metrics/Moongate.Server.Metrics.csproj src/Moongate.Server.Metrics/
 COPY src/Moongate.UO.Data/Moongate.UO.Data.csproj src/Moongate.UO.Data/
 COPY src/Moongate.Server/Moongate.Server.csproj src/Moongate.Server/
 
@@ -30,9 +32,11 @@ COPY src/Moongate.Abstractions/ src/Moongate.Abstractions/
 COPY src/Moongate.Core/ src/Moongate.Core/
 COPY src/Moongate.Network.Packets/ src/Moongate.Network.Packets/
 COPY src/Moongate.Network.Packets.Generators/ src/Moongate.Network.Packets.Generators/
+COPY src/Moongate.Server.Metrics.Generators/ src/Moongate.Server.Metrics.Generators/
 COPY src/Moongate.Persistence/ src/Moongate.Persistence/
 COPY src/Moongate.Scripting/ src/Moongate.Scripting/
 COPY src/Moongate.Server.Http/ src/Moongate.Server.Http/
+COPY src/Moongate.Server.Metrics/ src/Moongate.Server.Metrics/
 COPY src/Moongate.UO.Data/ src/Moongate.UO.Data/
 COPY src/Moongate.Server/ src/Moongate.Server/
 

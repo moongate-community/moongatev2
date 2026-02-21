@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Moongate.Abstractions.Services.Base;
 using Moongate.Server.Data.Config;
-using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Interfaces.Services.Sessions;
 using Moongate.Server.Interfaces.Services.Timing;
+using Moongate.Server.Metrics.Data;
 using Serilog;
 
 namespace Moongate.Server.Services.GameLoop;
@@ -64,6 +64,17 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         );
     }
 
+    public void Dispose()
+    {
+        if (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
+        _cancellationTokenSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     public GameLoopMetricsSnapshot GetMetricsSnapshot()
     {
         lock (_metricsSync)
@@ -83,7 +94,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
 
     public override Task StartAsync()
     {
-        _loopThread = new Thread(RunLoop)
+        _loopThread = new(RunLoop)
         {
             IsBackground = true,
             Name = "GameLoop"
@@ -101,57 +112,6 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         }
 
         return Task.CompletedTask;
-    }
-
-    private void RunLoop()
-    {
-        while (!_cancellationTokenSource.IsCancellationRequested)
-        {
-            var tickStart = Stopwatch.GetTimestamp();
-            var timestampMilliseconds = GetTimestampMilliseconds();
-
-            var workUnits = ProcessTick(timestampMilliseconds);
-
-            var elapsed = Stopwatch.GetElapsedTime(tickStart);
-
-            lock (_metricsSync)
-            {
-                _tickCount++;
-                _uptime += elapsed;
-                _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
-                _maxTickMs = Math.Max(_maxTickMs, elapsed.TotalMilliseconds);
-                _totalWorkUnits += workUnits;
-                _averageWorkUnits = _tickCount == 0 ? 0 : (double)_totalWorkUnits / _tickCount;
-            }
-
-            if (_idleCpuEnabled && workUnits == 0)
-            {
-                Thread.Sleep(_idleSleepMilliseconds);
-                Interlocked.Increment(ref _idleSleepCount);
-            }
-        }
-    }
-
-    private int ProcessTick(long timestampMilliseconds)
-    {
-        var inbound = DrainPacketQueue();
-        var timerTicks = _timerService.UpdateTicksDelta(timestampMilliseconds);
-        var outbound = DrainOutgoingPacketQueue();
-
-        return inbound + timerTicks + outbound;
-    }
-
-    private int DrainPacketQueue()
-    {
-        var drained = 0;
-
-        while (_messageBusService.TryReadIncomingPacket(out var gamePacket))
-        {
-            _packetDispatchService.NotifyPacketListeners(gamePacket);
-            drained++;
-        }
-
-        return drained;
     }
 
     private int DrainOutgoingPacketQueue()
@@ -182,22 +142,64 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         return drained;
     }
 
+    private int DrainPacketQueue()
+    {
+        var drained = 0;
+
+        while (_messageBusService.TryReadIncomingPacket(out var gamePacket))
+        {
+            _packetDispatchService.NotifyPacketListeners(gamePacket);
+            drained++;
+        }
+
+        return drained;
+    }
+
     private static long GetTimestampMilliseconds()
     {
         if (UseFastTimestampMath)
+        {
             return (long)((ulong)Stopwatch.GetTimestamp() / FrequencyInMilliseconds);
+        }
 
         return (long)((UInt128)Stopwatch.GetTimestamp() * 1000 / (ulong)Stopwatch.Frequency);
     }
 
-    public void Dispose()
+    private int ProcessTick(long timestampMilliseconds)
     {
-        if (!_cancellationTokenSource.IsCancellationRequested)
-        {
-            _cancellationTokenSource.Cancel();
-        }
+        var inbound = DrainPacketQueue();
+        var timerTicks = _timerService.UpdateTicksDelta(timestampMilliseconds);
+        var outbound = DrainOutgoingPacketQueue();
 
-        _cancellationTokenSource.Dispose();
-        GC.SuppressFinalize(this);
+        return inbound + timerTicks + outbound;
+    }
+
+    private void RunLoop()
+    {
+        while (!_cancellationTokenSource.IsCancellationRequested)
+        {
+            var tickStart = Stopwatch.GetTimestamp();
+            var timestampMilliseconds = GetTimestampMilliseconds();
+
+            var workUnits = ProcessTick(timestampMilliseconds);
+
+            var elapsed = Stopwatch.GetElapsedTime(tickStart);
+
+            lock (_metricsSync)
+            {
+                _tickCount++;
+                _uptime += elapsed;
+                _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
+                _maxTickMs = Math.Max(_maxTickMs, elapsed.TotalMilliseconds);
+                _totalWorkUnits += workUnits;
+                _averageWorkUnits = _tickCount == 0 ? 0 : (double)_totalWorkUnits / _tickCount;
+            }
+
+            if (_idleCpuEnabled && workUnits == 0)
+            {
+                Thread.Sleep(_idleSleepMilliseconds);
+                Interlocked.Increment(ref _idleSleepCount);
+            }
+        }
     }
 }
