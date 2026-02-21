@@ -1,3 +1,10 @@
+## [0.11.0](https://github.com/moongate-community/moongatev2/compare/v0.10.0...v0.11.0) (2026-02-21)
+
+### Features
+
+* add gump packet support for 0xdd and 0xb1 ([89673df](https://github.com/moongate-community/moongatev2/commit/89673df0a30faf6cd43c664efb8142fd0bda66ab))
+* route in-game command output to speech packets ([795cdff](https://github.com/moongate-community/moongatev2/commit/795cdff94b47eef875818f1c694e5e3f0044b31e))
+
 ## [0.10.0](https://github.com/moongate-community/moongatev2/compare/v0.9.1...v0.10.0) (2026-02-21)
 
 ### Features
