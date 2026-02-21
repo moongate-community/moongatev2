@@ -28,8 +28,12 @@ public class SpeechHandler : BasePacketListener
 
         Enqueue(
             session,
-            SpeechMessageFactory.CreateYellFromSpeaker(
+            SpeechMessageFactory.CreateFromSpeaker(
                 session.Character,
+                speechPacket.MessageType,
+                speechPacket.Hue,
+                speechPacket.Font,
+                speechPacket.Language,
                 text
             )
         );
