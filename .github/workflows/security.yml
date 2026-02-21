@@ -32,25 +32,17 @@ jobs:
           set -euo pipefail
           dotnet list package --vulnerable --include-transitive --format json > security-audit.json
 
-          VULN_COUNT="$(python3 - <<'PY'
-import json
-
+          VULN_COUNT="$(python3 -c 'import json
+from collections.abc import Mapping, Sequence
 def walk(node):
-    if isinstance(node, dict):
+    if isinstance(node, Mapping):
         count = 1 if ("severity" in node and ("advisoryurl" in node or "advisoryUrl" in node)) else 0
-        for value in node.values():
-            count += walk(value)
-        return count
-    if isinstance(node, list):
-        return sum(walk(item) for item in node)
+        return count + sum(walk(v) for v in node.values())
+    if isinstance(node, Sequence) and not isinstance(node, (str, bytes, bytearray)):
+        return sum(walk(v) for v in node)
     return 0
-
 with open("security-audit.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-print(walk(data))
-PY
-)"
+    print(walk(json.load(f)))')"
 
           echo "vuln_count=${VULN_COUNT}" >> "$GITHUB_ENV"
 
