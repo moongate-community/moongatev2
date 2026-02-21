@@ -1,0 +1,97 @@
+name: Coverage
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Run tests with coverage
+        run: |
+          dotnet test tests/Moongate.Tests/Moongate.Tests.csproj \
+            -c Release \
+            --no-restore \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
+
+      - name: Extract coverage metric
+        run: |
+          set -euo pipefail
+          COVERAGE_FILE="$(find ./TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)"
+          if [ -z "${COVERAGE_FILE}" ]; then
+            echo "Coverage file not found."
+            exit 1
+          fi
+
+          COVERAGE_PERCENT="$(python3 - "${COVERAGE_FILE}" <<'PY'
+import xml.etree.ElementTree as ET
+import sys
+path = sys.argv[1]
+root = ET.parse(path).getroot()
+line_rate = float(root.attrib.get("line-rate", "0"))
+print(f"{line_rate * 100:.2f}")
+PY
+)"
+
+          echo "coverage_percent=${COVERAGE_PERCENT}" >> "$GITHUB_ENV"
+
+      - name: Publish workflow summary
+        run: |
+          {
+            echo "## Coverage"
+            echo ""
+            echo "- Line coverage: **${coverage_percent}%**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate coverage badge JSON
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          PERCENT="${coverage_percent}"
+          COLOR="red"
+
+          awk "BEGIN {exit !(${PERCENT} >= 80)}" && COLOR="brightgreen" || true
+          if [ "$COLOR" = "red" ]; then
+            awk "BEGIN {exit !(${PERCENT} >= 60)}" && COLOR="yellow" || true
+          fi
+
+          mkdir -p badges
+          cat > badges/coverage.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${PERCENT}%",
+            "color": "${COLOR}"
+          }
+          EOF
+
+      - name: Publish coverage badge to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./badges
+          destination_dir: badges
+          keep_files: true

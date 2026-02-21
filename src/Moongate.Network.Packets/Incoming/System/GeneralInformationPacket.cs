@@ -24,6 +24,11 @@ public class GeneralInformationPacket : BaseGameNetworkPacket
         SubcommandData = subcommandData;
     }
 
+    public static GeneralInformationPacket Create(
+        GeneralInformationSubcommandType subcommandType,
+        ReadOnlyMemory<byte> subcommandData
+    ) => new(subcommandType, subcommandData);
+
     public static GeneralInformationPacket CreateSetCursorHueSetMap(byte mapId)
         => new(GeneralInformationSubcommandType.SetCursorHueSetMap, new[] { mapId });
 
@@ -32,6 +37,13 @@ public class GeneralInformationPacket : BaseGameNetworkPacket
 
     public override void Write(ref SpanWriter writer)
     {
+        if (!GeneralInformationSubcommandRules.IsValid(SubcommandType, SubcommandData.Span))
+        {
+            throw new InvalidOperationException(
+                $"Invalid 0xBF payload for subcommand 0x{(ushort)SubcommandType:X2} (length {SubcommandData.Length})."
+            );
+        }
+
         writer.Write(OpCode);
         writer.Write((ushort)(5 + SubcommandData.Length));
         writer.Write((ushort)SubcommandType);
@@ -65,6 +77,11 @@ public class GeneralInformationPacket : BaseGameNetworkPacket
         }
 
         SubcommandData = dataLength == 0 ? ReadOnlyMemory<byte>.Empty : reader.ReadBytes(dataLength);
+
+        if (!GeneralInformationSubcommandRules.IsValid(SubcommandType, SubcommandData.Span))
+        {
+            return false;
+        }
 
         return true;
     }

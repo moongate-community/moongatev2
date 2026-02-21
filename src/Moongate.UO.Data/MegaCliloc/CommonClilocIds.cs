@@ -12,12 +12,15 @@ public static class CommonClilocIds
     /// </summary>
     public const uint ObjectName = 1000000;
 
+    /// <summary>
+    /// Item name: ~1_NUMBER~ ~2_ITEMNAME~
+    /// </summary>
     public const uint ItemName = 1050039;
 
     public const uint Amount = 1062217;
 
     /// <summary>
-    /// Weight: ~1_WEIGHT~
+    /// Weight: ~1_WEIGHT~ stones
     /// </summary>
     public const uint Weight = 1072788;
 
@@ -29,7 +32,7 @@ public static class CommonClilocIds
     /// <summary>
     /// Blessed
     /// </summary>
-    public const uint Blessed = 1060847;
+    public const uint Blessed = 1038021;
 
     /// <summary>
     /// Cursed
@@ -39,7 +42,7 @@ public static class CommonClilocIds
     /// <summary>
     /// Insured
     /// </summary>
-    public const uint Insured = 1060848;
+    public const uint Insured = 1061682;
 
 #endregion
 
@@ -48,12 +51,12 @@ public static class CommonClilocIds
     /// <summary>
     /// Weapon Damage ~1_val~ - ~2_val~
     /// </summary>
-    public const uint WeaponDamage = 1060403;
+    public const uint WeaponDamage = 1061168;
 
     /// <summary>
     /// Weapon Speed ~1_val~
     /// </summary>
-    public const uint WeaponSpeed = 1060486;
+    public const uint WeaponSpeed = 1061167;
 
     /// <summary>
     /// Hit Chance Increase ~1_val~%
@@ -102,7 +105,7 @@ public static class CommonClilocIds
     /// <summary>
     /// Armor Rating: ~1_val~
     /// </summary>
-    public const uint ArmorRating = 1060448;
+    public const uint ArmorRating = 1061170; // used for requirement instead, AR is normally generic
 
 #endregion
 
@@ -111,17 +114,17 @@ public static class CommonClilocIds
     /// <summary>
     /// Hit Points ~1_val~ / ~2_val~
     /// </summary>
-    public const uint HitPoints = 1060578;
+    public const uint HitPoints = 1028335;
 
     /// <summary>
     /// Mana ~1_val~ / ~2_val~
     /// </summary>
-    public const uint Mana = 1060581;
+    public const uint Mana = 1028336; // Example placeholder
 
     /// <summary>
     /// Stamina ~1_val~ / ~2_val~
     /// </summary>
-    public const uint Stamina = 1060580;
+    public const uint Stamina = 1028337; // Example placeholder
 
     /// <summary>
     /// Strength ~1_val~
@@ -141,36 +144,36 @@ public static class CommonClilocIds
     /// <summary>
     /// Taming Difficulty: ~1_val~
     /// </summary>
-    public const uint TamingDifficulty = 1060578;
+    public const uint TamingDifficulty = 1079860;
 
 #endregion
 
 #region Player Properties
 
     /// <summary>
-    /// Guild: ~1_val~
+    /// Guild name: ~1_val~
     /// </summary>
-    public const uint Guild = 1060622;
+    public const uint Guild = 1060802;
 
     /// <summary>
     /// Murderer (Red)
     /// </summary>
-    public const uint Murderer = 1060848;
+    public const uint Murderer = 1042735; // distinct placeholder
 
     /// <summary>
     /// Criminal (Gray)
     /// </summary>
-    public const uint Criminal = 1060849;
+    public const uint Criminal = 1042736; // distinct placeholder
 
     /// <summary>
     /// Karma: ~1_val~
     /// </summary>
-    public const uint Karma = 1060581;
+    public const uint Karma = 1060659;
 
     /// <summary>
     /// Fame: ~1_val~
     /// </summary>
-    public const uint Fame = 1060580;
+    public const uint Fame = 1060660;
 
 #endregion
 
@@ -184,7 +187,7 @@ public static class CommonClilocIds
     /// <summary>
     /// Magic Item
     /// </summary>
-    public const uint MagicItem = 1060485;
+    public const uint MagicItem = 1060480;
 
     /// <summary>
     /// Spell Channeling
@@ -242,7 +245,7 @@ public static class CommonClilocIds
     /// <summary>
     /// Contents: ~1_val~ items, ~2_val~ stones
     /// </summary>
-    public const uint ContainerContents = 1060445;
+    public const uint ContainerContents = 1073841;
 
     /// <summary>
     /// Uses Remaining: ~1_val~
@@ -256,17 +259,17 @@ public static class CommonClilocIds
     /// <summary>
     /// Pages: ~1_val~
     /// </summary>
-    public const uint BookPages = 1060581;
+    public const uint BookPages = 1062344;
 
     /// <summary>
     /// Written by ~1_val~
     /// </summary>
-    public const uint BookAuthor = 1060580;
+    public const uint BookAuthor = 1062481;
 
     /// <summary>
     /// Title: ~1_val~
     /// </summary>
-    public const uint BookTitle = 1060579;
+    public const uint BookTitle = 1062482;
 
 #endregion
 }

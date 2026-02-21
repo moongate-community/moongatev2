@@ -9,8 +9,8 @@ namespace Moongate.Network.Packets.Outgoing.World;
 public static class GeneralInformationFactory
 {
     public static GeneralInformationPacket CreateSetCursorHueSetMap(byte mapId)
-        => GeneralInformationPacket.CreateSetCursorHueSetMap(mapId);
+        => GeneralInformationPacketBuilder.CreateSetCursorHueSetMap(mapId);
 
     public static GeneralInformationPacket CreateSetCursorHueSetMap(UOMap? map)
-        => GeneralInformationPacket.CreateSetCursorHueSetMap(map);
+        => GeneralInformationPacketBuilder.CreateSetCursorHueSetMap((byte)(map?.MapID ?? 0));
 }

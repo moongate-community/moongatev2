@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Moongate.Abstractions\Moongate.Abstractions.csproj" />
         <ProjectReference Include="..\Moongate.Network\Moongate.Network.csproj" />
         <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
         <ProjectReference Include="..\Moongate.Network.Packets.Generators\Moongate.Network.Packets.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
