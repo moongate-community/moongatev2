@@ -38,13 +38,13 @@ jobs:
       - name: Extract coverage metric
         run: |
           set -euo pipefail
-          COVERAGE_FILE="$(find ./TestResults -type f -name 'coverage.cobertura.xml' | head -n 1)"
+          COVERAGE_FILE="$(find ./TestResults -type f -name 'coverage.cobertura.xml' -print -quit)"
           if [ -z "${COVERAGE_FILE}" ]; then
             echo "Coverage file not found."
             exit 1
           fi
 
-          COVERAGE_RATE="$(grep -Eo 'line-rate=\"[0-9.]+\"' "${COVERAGE_FILE}" | head -n 1 | sed -E 's/line-rate=\"([0-9.]+)\"/\1/')"
+          COVERAGE_RATE="$(perl -ne 'if (/line-rate=\"([0-9.]+)\"/) { print $1; exit }' "${COVERAGE_FILE}")"
           if [ -z "${COVERAGE_RATE}" ]; then
             echo "Unable to parse line-rate from ${COVERAGE_FILE}"
             exit 1
