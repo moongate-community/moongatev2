@@ -1,3 +1,10 @@
+## [0.9.1](https://github.com/moongate-community/moongatev2/compare/v0.9.0...v0.9.1) (2026-02-21)
+
+### Bug Fixes
+
+* **ci:** resolve security workflow yaml parsing ([497e9e0](https://github.com/moongate-community/moongatev2/commit/497e9e07492eff7f049ba61e6244cd61007f9ccc))
+* **ci:** stabilize security workflow command parsing ([6b14e2c](https://github.com/moongate-community/moongatev2/commit/6b14e2c2f3761d5b72f27c24334c3456218dbdb8))
+
 ## [0.9.0](https://github.com/moongate-community/moongatev2/compare/v0.8.0...v0.9.0) (2026-02-21)
 
 ### Features
