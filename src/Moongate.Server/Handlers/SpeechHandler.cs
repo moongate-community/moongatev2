@@ -35,7 +35,8 @@ public class SpeechHandler : BasePacketListener
 
         if (text.StartsWith('.'))
         {
-            await _commandSystemService.ExecuteCommandAsync(text, CommandSourceType.InGame);
+            text = speechPacket.Text[1..];
+            await _commandSystemService.ExecuteCommandAsync(text, CommandSourceType.InGame, session);
 
             return true;
         }

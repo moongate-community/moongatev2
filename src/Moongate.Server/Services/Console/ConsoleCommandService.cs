@@ -2,6 +2,7 @@ using System.Text;
 using Moongate.Server.Data.Events;
 using Moongate.Server.Interfaces.Services.Console;
 using Moongate.Server.Interfaces.Services.Events;
+using Moongate.Server.Types.Commands;
 using Serilog;
 using Serilog.Events;
 
@@ -212,7 +213,7 @@ public sealed class ConsoleCommandService : IConsoleCommandService, IDisposable
         _logger.Verbose("Console command entered: {Command}", command);
 
         await _gameEventBusService.PublishAsync(
-            new CommandEnteredEvent(command, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()),
+            new CommandEnteredEvent(command, CommandSourceType.Console, null),
             cancellationToken
         );
     }
