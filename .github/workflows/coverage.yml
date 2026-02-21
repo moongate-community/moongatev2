@@ -44,15 +44,13 @@ jobs:
             exit 1
           fi
 
-          COVERAGE_PERCENT="$(python3 - "${COVERAGE_FILE}" <<'PY'
-import xml.etree.ElementTree as ET
-import sys
-path = sys.argv[1]
-root = ET.parse(path).getroot()
-line_rate = float(root.attrib.get("line-rate", "0"))
-print(f"{line_rate * 100:.2f}")
-PY
-)"
+          COVERAGE_RATE="$(grep -Eo 'line-rate=\"[0-9.]+\"' "${COVERAGE_FILE}" | head -n 1 | sed -E 's/line-rate=\"([0-9.]+)\"/\1/')"
+          if [ -z "${COVERAGE_RATE}" ]; then
+            echo "Unable to parse line-rate from ${COVERAGE_FILE}"
+            exit 1
+          fi
+
+          COVERAGE_PERCENT="$(awk "BEGIN { printf \"%.2f\", ${COVERAGE_RATE} * 100 }")"
 
           echo "coverage_percent=${COVERAGE_PERCENT}" >> "$GITHUB_ENV"
 
