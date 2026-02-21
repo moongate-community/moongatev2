@@ -4,6 +4,9 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="0.7.4"></a>
+## [0.7.4](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.4) (2026-02-21)
+
 <a name="0.7.3"></a>
 ## [0.7.3](https://www.github.com/moongate-community/moongatev2/releases/tag/v0.7.3) (2026-02-21)
 
