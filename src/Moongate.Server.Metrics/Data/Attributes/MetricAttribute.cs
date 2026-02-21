@@ -1,6 +1,6 @@
-using Moongate.Server.Data.Metrics.Types;
+using Moongate.Server.Metrics.Data.Types;
 
-namespace Moongate.Server.Data.Metrics.Attributes;
+namespace Moongate.Server.Metrics.Data.Attributes;
 
 /// <summary>
 /// Declares a metric sample mapping for a snapshot property.

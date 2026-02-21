@@ -5,6 +5,7 @@
     <Project Path="src/Moongate.Network.Packets/Moongate.Network.Packets.csproj"/>
     <Project Path="src/Moongate.Network.Packets.Generators/Moongate.Network.Packets.Generators.csproj"/>
     <Project Path="src/Moongate.Server.Metrics.Generators/Moongate.Server.Metrics.Generators.csproj"/>
+    <Project Path="src/Moongate.Server.Metrics/Moongate.Server.Metrics.csproj"/>
     <Project Path="src/Moongate.Persistence/Moongate.Persistence.csproj"/>
     <Project Path="src/Moongate.Scripting/Moongate.Scripting.csproj"/>
     <Project Path="src/Moongate.Server.Http/Moongate.Server.Http.csproj"/>

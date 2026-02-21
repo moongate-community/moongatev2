@@ -1,4 +1,4 @@
-namespace Moongate.Server.Data.Metrics.Types;
+namespace Moongate.Server.Metrics.Data.Types;
 
 /// <summary>
 /// Controls how a metric property value is transformed into a numeric metric sample value.

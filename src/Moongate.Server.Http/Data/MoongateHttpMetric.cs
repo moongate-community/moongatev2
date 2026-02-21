@@ -1,3 +1,5 @@
+using Moongate.Server.Metrics.Data;
+
 namespace Moongate.Server.Http.Data;
 
 /// <summary>
@@ -12,4 +14,8 @@ public sealed class MoongateHttpMetric
     public DateTimeOffset? Timestamp { get; init; }
 
     public IReadOnlyDictionary<string, string>? Tags { get; init; }
+
+    public MetricType Type { get; init; } = MetricType.Gauge;
+
+    public string? Help { get; init; }
 }

@@ -1,4 +1,4 @@
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Services.Metrics;
 using Moongate.Tests.Server.Support;
 

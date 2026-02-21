@@ -1,6 +1,6 @@
 using Moongate.Core.Extensions.Logger;
 using Moongate.Server.Data.Config;
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
 using Serilog;
 

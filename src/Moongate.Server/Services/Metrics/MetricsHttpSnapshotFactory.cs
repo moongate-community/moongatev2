@@ -1,5 +1,6 @@
 using Moongate.Server.Http.Data;
 using Moongate.Server.Interfaces.Services.Metrics;
+using Moongate.Server.Metrics.Data;
 
 namespace Moongate.Server.Services.Metrics;
 
@@ -24,7 +25,9 @@ public sealed class MetricsHttpSnapshotFactory : IMetricsHttpSnapshotFactory
                     Name = pair.Value.Name,
                     Value = pair.Value.Value,
                     Timestamp = pair.Value.Timestamp,
-                    Tags = pair.Value.Tags
+                    Tags = pair.Value.Tags,
+                    Type = pair.Value.Type,
+                    Help = pair.Value.Help
                 },
             StringComparer.Ordinal
         );

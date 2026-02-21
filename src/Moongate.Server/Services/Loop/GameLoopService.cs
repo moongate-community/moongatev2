@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Moongate.Abstractions.Services.Base;
 using Moongate.Server.Data.Config;
-using Moongate.Server.Data.Metrics;
+using Moongate.Server.Metrics.Data;
 using Moongate.Server.Interfaces.Services.GameLoop;
 using Moongate.Server.Interfaces.Services.Messaging;
 using Moongate.Server.Interfaces.Services.Metrics;

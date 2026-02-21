@@ -1,7 +1,7 @@
-using Moongate.Server.Data.Metrics.Attributes;
-using Moongate.Server.Data.Metrics.Types;
+using Moongate.Server.Metrics.Data.Attributes;
+using Moongate.Server.Metrics.Data.Types;
 
-namespace Moongate.Server.Data.Metrics;
+namespace Moongate.Server.Metrics.Data;
 
 /// <summary>
 /// Immutable snapshot of persistence snapshot-save metrics.

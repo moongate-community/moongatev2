@@ -1,6 +1,6 @@
-using Moongate.Server.Data.Metrics.Attributes;
+using Moongate.Server.Metrics.Data.Attributes;
 
-namespace Moongate.Server.Data.Metrics;
+namespace Moongate.Server.Metrics.Data;
 
 /// <summary>
 /// Immutable snapshot of network parser/runtime metrics.
