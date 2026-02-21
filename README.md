@@ -31,6 +31,13 @@ It targets a clean, modular architecture with strong packet tooling, determinist
 
 > Moongate is not a clone of ModernUO, RunUO, ServUO or any other emulator, and it does not aim to be. In fact, we owe a great deal of inspiration to these projects. Their legacy and technical achievements are invaluable, and this project would not exist without them. Thank you.
 
+## Acknowledgements
+
+Special thanks to the teams and contributors behind these projects, which strongly inspired Moongate:
+
+- POLServer: <https://github.com/polserver/polserver>
+- ModernUO: <https://github.com/modernuo/modernuo>
+
 ## Index
 
 - [Project Goals](#project-goals)
