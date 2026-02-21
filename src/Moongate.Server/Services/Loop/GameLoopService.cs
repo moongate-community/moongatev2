@@ -14,6 +14,8 @@ namespace Moongate.Server.Services.GameLoop;
 
 public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopMetricsSource, IDisposable
 {
+    private static readonly bool UseFastTimestampMath = Stopwatch.Frequency % 1000 == 0;
+    private static readonly ulong FrequencyInMilliseconds = (ulong)Stopwatch.Frequency / 1000;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly IMessageBusService _messageBusService;
     private readonly IOutgoingPacketQueue _outgoingPacketQueue;
@@ -22,7 +24,8 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     private readonly IOutboundPacketSender _outboundPacketSender;
     private readonly ILogger _logger = Log.ForContext<GameLoopService>();
     private readonly IPacketDispatchService _packetDispatchService;
-    private readonly TimeSpan _tickInterval;
+    private readonly bool _idleCpuEnabled;
+    private readonly int _idleSleepMilliseconds;
     private readonly Lock _metricsSync = new();
 
     private Thread? _loopThread;
@@ -46,11 +49,13 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         _gameNetworkSessionService = gameNetworkSessionService;
         _timerService = timerService;
         _outboundPacketSender = outboundPacketSender;
-        _tickInterval = timerServiceConfig?.TickDuration ?? TimeSpan.FromMilliseconds(8);
+        _idleCpuEnabled = timerServiceConfig?.IdleCpuEnabled ?? true;
+        _idleSleepMilliseconds = Math.Max(1, timerServiceConfig?.IdleSleepMilliseconds ?? 1);
 
         _logger.Information(
-            "GameLoopService initialized with tick interval of {TickInterval} ms",
-            _tickInterval.TotalMilliseconds
+            "GameLoopService initialized. IdleCpu={IdleCpuEnabled} IdleSleepMs={IdleSleepMilliseconds}",
+            _idleCpuEnabled,
+            _idleSleepMilliseconds
         );
     }
 
@@ -89,8 +94,9 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
         while (!_cancellationTokenSource.IsCancellationRequested)
         {
             var tickStart = Stopwatch.GetTimestamp();
+            var timestampMilliseconds = GetTimestampMilliseconds();
 
-            ProcessTick();
+            var workUnits = ProcessTick(timestampMilliseconds);
 
             var elapsed = Stopwatch.GetElapsedTime(tickStart);
 
@@ -101,32 +107,39 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
                 _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
             }
 
-            var remaining = _tickInterval - Stopwatch.GetElapsedTime(tickStart);
-
-            if (remaining.TotalMilliseconds >= 1.0)
+            if (_idleCpuEnabled && workUnits == 0)
             {
-                Thread.Sleep((int)remaining.TotalMilliseconds);
+                Thread.Sleep(_idleSleepMilliseconds);
             }
         }
     }
 
-    private void ProcessTick()
+    private int ProcessTick(long timestampMilliseconds)
     {
-        DrainPacketQueue();
-        _timerService.ProcessTick();
-        DrainOutgoingPacketQueue();
+        var inbound = DrainPacketQueue();
+        var timerTicks = _timerService.UpdateTicksDelta(timestampMilliseconds);
+        var outbound = DrainOutgoingPacketQueue();
+
+        return inbound + timerTicks + outbound;
     }
 
-    private void DrainPacketQueue()
+    private int DrainPacketQueue()
     {
+        var drained = 0;
+
         while (_messageBusService.TryReadIncomingPacket(out var gamePacket))
         {
             _packetDispatchService.NotifyPacketListeners(gamePacket);
+            drained++;
         }
+
+        return drained;
     }
 
-    private void DrainOutgoingPacketQueue()
+    private int DrainOutgoingPacketQueue()
     {
+        var drained = 0;
+
         while (_outgoingPacketQueue.TryDequeue(out var outgoingPacket))
         {
             if (
@@ -144,7 +157,18 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
             }
 
             _outboundPacketSender.Send(client, outgoingPacket);
+            drained++;
         }
+
+        return drained;
+    }
+
+    private static long GetTimestampMilliseconds()
+    {
+        if (UseFastTimestampMath)
+            return (long)((ulong)Stopwatch.GetTimestamp() / FrequencyInMilliseconds);
+
+        return (long)((UInt128)Stopwatch.GetTimestamp() * 1000 / (ulong)Stopwatch.Frequency);
     }
 
     public void Dispose()

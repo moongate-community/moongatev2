@@ -44,6 +44,7 @@ The project is actively in development and already includes:
 - ID-based persistence references for character equipment/container ownership.
 - Interactive console UI with fixed prompt (`moongate>`) and Spectre-based colored log rendering.
 - Timer wheel runtime metrics integrated in the metrics pipeline (`timer.*`).
+- Timestamp-driven game loop scheduling with timer delta updates and optional idle CPU throttling.
 
 For a detailed internal status snapshot, see `docs/plans/status-2026-02-19.md`.
 
@@ -162,6 +163,15 @@ Moongate uses a strict separation between inbound protocol parsing and outbound 
 - `IOutboundEventListener<TEvent>` handles outbound side-effects from domain events (for example enqueueing packets).
 - `RegisterOutboundEventListener<TEvent, TListener>()` is the bootstrap helper to register outbound listeners as hosted services with priority.
 - `IOutgoingPacketQueue` and `IOutboundPacketSender` deliver outbound packets on the game-loop/network boundary.
+
+## Game Loop Scheduling
+
+The server loop is timestamp-driven (monotonic `Stopwatch`) rather than fixed-sleep tick stepping:
+
+- `GameLoopService` computes current loop timestamp and calls `ITimerService.UpdateTicksDelta(...)`.
+- `TimerWheelService` accumulates elapsed milliseconds and advances only the required number of wheel ticks.
+- This keeps timer semantics stable while adapting to real runtime load.
+- Optional idle throttling (`Game.IdleCpuEnabled`, `Game.IdleSleepMilliseconds`) sleeps briefly when no work was processed.
 
 ## Requirements
 

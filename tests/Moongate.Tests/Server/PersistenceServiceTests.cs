@@ -15,6 +15,9 @@ public class PersistenceServiceTests
     {
         public TimeSpan? LastInterval { get; private set; }
 
+        public int UpdateTicksDelta(long timestampMilliseconds)
+            => 0;
+
         public void ProcessTick() { }
 
         public string RegisterTimer(

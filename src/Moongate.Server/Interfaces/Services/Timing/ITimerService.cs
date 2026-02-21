@@ -6,6 +6,13 @@ namespace Moongate.Server.Interfaces.Services.Timing;
 public interface ITimerService
 {
     /// <summary>
+    /// Advances the timer wheel using an absolute monotonic timestamp in milliseconds.
+    /// </summary>
+    /// <param name="timestampMilliseconds">Current monotonic timestamp in milliseconds.</param>
+    /// <returns>The number of timer-wheel ticks processed.</returns>
+    int UpdateTicksDelta(long timestampMilliseconds);
+
+    /// <summary>
     /// Advances the timer wheel by one tick and executes due callbacks.
     /// </summary>
     void ProcessTick();

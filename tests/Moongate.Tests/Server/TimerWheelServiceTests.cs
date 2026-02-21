@@ -5,6 +5,34 @@ namespace Moongate.Tests.Server;
 public class TimerWheelServiceTests
 {
     [Test]
+    public void UpdateTicksDelta_ShouldAdvanceTimerWheelUsingTimestampDelta()
+    {
+        var service = new TimerWheelService(
+            new()
+            {
+                TickDuration = TimeSpan.FromMilliseconds(100),
+                WheelSize = 64
+            }
+        );
+        var fired = 0;
+        service.RegisterTimer("delta", TimeSpan.FromMilliseconds(100), () => fired++);
+
+        var processed0 = service.UpdateTicksDelta(1_000);
+        var processed1 = service.UpdateTicksDelta(1_099);
+        var processed2 = service.UpdateTicksDelta(1_100);
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(processed0, Is.EqualTo(0));
+                Assert.That(processed1, Is.EqualTo(0));
+                Assert.That(processed2, Is.EqualTo(1));
+                Assert.That(fired, Is.EqualTo(1));
+            }
+        );
+    }
+
+    [Test]
     public void GetMetricsSnapshot_ShouldExposeExecutionAndErrorCounters()
     {
         var service = new TimerWheelService(

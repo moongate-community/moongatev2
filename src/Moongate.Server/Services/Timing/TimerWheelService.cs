@@ -17,6 +17,7 @@ public sealed class TimerWheelService
 {
     private readonly ILogger _logger = Log.ForContext<TimerWheelService>();
     private readonly TimeSpan _tickDuration;
+    private readonly double _tickDurationMs;
     private readonly LinkedList<TimerEntry>[] _wheel;
     private readonly Lock _syncRoot = new();
     private readonly Dictionary<string, TimerEntry> _timersById = new(StringComparer.Ordinal);
@@ -27,10 +28,13 @@ public sealed class TimerWheelService
     private long _totalExecutedCallbacks;
     private long _callbackErrors;
     private long _totalCallbackElapsedTicks;
+    private long _lastTimestampMilliseconds = -1;
+    private double _accumulatedMilliseconds;
 
     public TimerWheelService(TimerServiceConfig config)
     {
         _tickDuration = config.TickDuration;
+        _tickDurationMs = _tickDuration.TotalMilliseconds;
         var wheelSize = config.WheelSize;
 
         if (_tickDuration <= TimeSpan.Zero)
@@ -43,6 +47,42 @@ public sealed class TimerWheelService
 
         for (var i = 0; i < _wheel.Length; i++)
             _wheel[i] = new();
+    }
+
+    public int UpdateTicksDelta(long timestampMilliseconds)
+    {
+        if (timestampMilliseconds < 0)
+            throw new ArgumentOutOfRangeException(nameof(timestampMilliseconds), "Timestamp must be non-negative.");
+
+        long ticksToProcess;
+
+        lock (_syncRoot)
+        {
+            if (_lastTimestampMilliseconds < 0)
+            {
+                _lastTimestampMilliseconds = timestampMilliseconds;
+                return 0;
+            }
+
+            var deltaMilliseconds = timestampMilliseconds - _lastTimestampMilliseconds;
+
+            if (deltaMilliseconds <= 0)
+                return 0;
+
+            _lastTimestampMilliseconds = timestampMilliseconds;
+            _accumulatedMilliseconds += deltaMilliseconds;
+            ticksToProcess = (long)Math.Floor(_accumulatedMilliseconds / _tickDurationMs);
+
+            if (ticksToProcess <= 0)
+                return 0;
+
+            _accumulatedMilliseconds -= ticksToProcess * _tickDurationMs;
+        }
+
+        for (var i = 0; i < ticksToProcess; i++)
+            ProcessTick();
+
+        return ticksToProcess > int.MaxValue ? int.MaxValue : (int)ticksToProcess;
     }
 
     public TimerMetricsSnapshot GetMetricsSnapshot()
@@ -292,7 +332,7 @@ public sealed class TimerWheelService
 
     private long ToWheelTicks(TimeSpan dueTime)
     {
-        var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDuration.TotalMilliseconds);
+        var ticks = (long)Math.Ceiling(dueTime.TotalMilliseconds / _tickDurationMs);
         return Math.Max(1, ticks);
     }
 }
