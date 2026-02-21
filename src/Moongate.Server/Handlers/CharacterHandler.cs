@@ -64,6 +64,7 @@ public class CharacterHandler : BasePacketListener, IGameEventListener<Character
         }
 
         session.CharacterId = characterId;
+        session.Character = character;
         session.MoveSequence = 0;
         session.SelfNotoriety = (byte)character.Notoriety;
         session.IsMounted = character.IsMounted;

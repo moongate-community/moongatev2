@@ -3,6 +3,7 @@ using Moongate.Network.Packets.Attributes;
 using Moongate.Network.Packets.Base;
 using Moongate.Network.Packets.Types.Packets;
 using Moongate.Network.Spans;
+using Moongate.UO.Data.Ids;
 using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Types;
 
@@ -11,6 +12,9 @@ namespace Moongate.Network.Packets.Outgoing.Entity;
 [PacketHandler(0x78, PacketSizing.Variable, Description = "Draw Object")]
 public class MobileIncomingPacket : BaseGameNetworkPacket
 {
+    private const uint FacialHairVirtualSerialBase = 0x7F800000;
+    private const uint HairVirtualSerialBase = 0x7F000000;
+
     public UOMobileEntity? Beholder { get; set; }
 
     public UOMobileEntity? Beheld { get; set; }
@@ -103,7 +107,7 @@ public class MobileIncomingPacket : BaseGameNetworkPacket
                 hairItemId |= 0x8000;
             }
 
-            writer.Write((Beheld.Id + 0x40000000u).Value);
+            writer.Write(GetVirtualHairSerial(Beheld.Id, isFacialHair: false));
             writer.Write((ushort)hairItemId);
             writer.Write((byte)ItemLayerType.Hair);
 
@@ -124,7 +128,7 @@ public class MobileIncomingPacket : BaseGameNetworkPacket
                 facialHairItemId |= 0x8000;
             }
 
-            writer.Write((Beheld.Id + 0x50000000u).Value);
+            writer.Write(GetVirtualHairSerial(Beheld.Id, isFacialHair: true));
             writer.Write((ushort)facialHairItemId);
             writer.Write((byte)ItemLayerType.FacialHair);
 
@@ -148,4 +152,11 @@ public class MobileIncomingPacket : BaseGameNetworkPacket
            layer != ItemLayerType.ShopBuy &&
            layer != ItemLayerType.ShopSell &&
            layer != ItemLayerType.ShopResale;
+
+    private static uint GetVirtualHairSerial(Serial mobileId, bool isFacialHair)
+    {
+        // Keep virtual serials in non-item range to avoid collisions with real equipped item serials.
+        var baseValue = isFacialHair ? FacialHairVirtualSerialBase : HairVirtualSerialBase;
+        return baseValue | (mobileId.Value & 0x007FFFFF);
+    }
 }

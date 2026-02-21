@@ -4,6 +4,7 @@ using Moongate.Network.Packets.Outgoing.Movement;
 using Moongate.Server.Data.Session;
 using Moongate.Server.Interfaces.Services.Packets;
 using Moongate.Server.Listeners.Base;
+using Moongate.UO.Data.Geometry;
 using Moongate.UO.Data.Types;
 using Serilog;
 
@@ -17,6 +18,7 @@ public class MovementHandler : BasePacketListener
     private const int RunFootDelayMs = 200;
     private const int WalkMountDelayMs = 200;
     private const int RunMountDelayMs = 100;
+    private const int TurnDelayMs = 100;
 
     private readonly ILogger _logger = Log.ForContext<MovementHandler>();
 
@@ -44,18 +46,12 @@ public class MovementHandler : BasePacketListener
 
         if (session.MoveSequence == 0 && moveRequestPacket.Sequence != 0)
         {
-            Enqueue(
-                session,
-                new MoveDenyPacket(
-                    moveRequestPacket.Sequence,
-                    0,
-                    0,
-                    moveRequestPacket.WalkDirection,
-                    0
-                )
-            );
-            session.MoveSequence = 0;
+            // Match POL behavior: drop desynced packet without replying.
+            return Task.FromResult(true);
+        }
 
+        if (session.Character is null)
+        {
             return Task.FromResult(true);
         }
 
@@ -65,14 +61,28 @@ public class MovementHandler : BasePacketListener
                 session,
                 new MoveDenyPacket(
                     moveRequestPacket.Sequence,
-                    0,
-                    0,
-                    moveRequestPacket.WalkDirection,
-                    0
+                    (short)session.Character.Location.X,
+                    (short)session.Character.Location.Y,
+                    session.Character.Direction,
+                    (sbyte)session.Character.Location.Z
                 )
             );
 
             return Task.FromResult(true);
+        }
+
+        var currentDirection = Point3D.GetBaseDirection(session.Character.Direction);
+        var requestedDirection = moveRequestPacket.WalkDirection;
+        var isFacingChangeOnly = currentDirection != requestedDirection;
+
+        if (isFacingChangeOnly)
+        {
+            session.Character.Direction = requestedDirection;
+        }
+        else
+        {
+            session.Character.Location += moveRequestPacket.Direction;
+            session.Character.Direction = moveRequestPacket.Direction;
         }
 
         var nextSequence = moveRequestPacket.Sequence + 1;
@@ -84,7 +94,7 @@ public class MovementHandler : BasePacketListener
 
         session.MoveSequence = (byte)nextSequence;
         Enqueue(session, new MoveConfirmPacket(moveRequestPacket.Sequence, session.SelfNotoriety));
-        session.MoveTime += ComputeSpeedMs(session.IsMounted, moveRequestPacket.Direction);
+        session.MoveTime += isFacingChangeOnly ? TurnDelayMs : ComputeSpeedMs(session.IsMounted, moveRequestPacket.Direction);
 
         return Task.FromResult(true);
     }

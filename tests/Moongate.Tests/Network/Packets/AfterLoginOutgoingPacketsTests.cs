@@ -185,6 +185,72 @@ public class AfterLoginOutgoingPacketsTests
     }
 
     [Test]
+    public void MobileIncomingPacket_Write_ShouldUseVirtualHairSerialsWithoutItemCollisions()
+    {
+        var beholder = CreateMobile();
+        var beheld = CreateMobile();
+        beheld.HairStyle = 0x203B;
+        beheld.HairHue = 0x044E;
+        beheld.FacialHairStyle = 0x2044;
+        beheld.FacialHairHue = 0x0450;
+
+        var equipped = new UOItemEntity
+        {
+            Id = (Serial)0x4000001B,
+            ItemId = 0x1517,
+            Hue = 0
+        };
+        beheld.AddEquippedItem(ItemLayerType.Shirt, equipped);
+
+        var packet = new MobileIncomingPacket(beholder, beheld, true, true);
+        var data = Write(packet);
+
+        var entryOffset = 19;
+        var hairSerial = 0u;
+        var facialHairSerial = 0u;
+        var sawShirt = false;
+
+        while (entryOffset + 4 <= data.Length)
+        {
+            var serial = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(entryOffset, 4));
+
+            if (serial == 0)
+            {
+                break;
+            }
+
+            var layer = data[entryOffset + 6];
+
+            if (layer == (byte)ItemLayerType.Shirt)
+            {
+                sawShirt = true;
+            }
+            else if (layer == (byte)ItemLayerType.Hair)
+            {
+                hairSerial = serial;
+            }
+            else if (layer == (byte)ItemLayerType.FacialHair)
+            {
+                facialHairSerial = serial;
+            }
+
+            entryOffset += 9;
+        }
+
+        Assert.Multiple(
+            () =>
+            {
+                Assert.That(sawShirt, Is.True);
+                Assert.That(hairSerial, Is.Not.EqualTo(0u));
+                Assert.That(facialHairSerial, Is.Not.EqualTo(0u));
+                Assert.That(hairSerial, Is.Not.EqualTo(equipped.Id.Value));
+                Assert.That(facialHairSerial, Is.Not.EqualTo(equipped.Id.Value));
+                Assert.That(hairSerial, Is.Not.EqualTo(facialHairSerial));
+            }
+        );
+    }
+
+    [Test]
     public void OverallLightLevelPacket_Write_ShouldSerializeExpectedPayload()
     {
         var packet = new OverallLightLevelPacket(LightLevelType.Day);

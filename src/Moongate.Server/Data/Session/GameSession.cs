@@ -1,4 +1,5 @@
 using Moongate.UO.Data.Ids;
+using Moongate.UO.Data.Persistence.Entities;
 using Moongate.UO.Data.Types;
 using Moongate.UO.Data.Version;
 
@@ -36,6 +37,11 @@ public sealed class GameSession
     ///  Gets or sets the currently active character identifier for this session, when a character is selected.
     /// </summary>
     public Serial CharacterId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the runtime mobile entity bound to this session.
+    /// </summary>
+    public UOMobileEntity? Character { get; set; }
 
     /// <summary>
     /// Gets or sets the current ping sequence number for this session, used for latency monitoring and connection health checks.
