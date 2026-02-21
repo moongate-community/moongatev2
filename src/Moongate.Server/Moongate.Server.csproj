@@ -10,6 +10,13 @@
         <Description>Moongate dedicated game server host process and runtime composition root.</Description>
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
+        
+        <!-- NativeAOT warning suppression for known incompatible packages -->
+        <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+        <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+        
+        <!-- Suppress AOT warnings for external dependencies -->
+        <NoWarn>$(NoWarn);IL3053;IL3050;IL2026;IL2057;IL2072;IL2075;IL2092;IL2112</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1
 
+# Use latest .NET 10 SDK with security updates
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS publish
 ARG BUILD_CONFIGURATION=Release
 ARG TARGETARCH
 WORKDIR /src
+
+# Update Alpine packages to latest security patches
+RUN apk update && apk upgrade --no-cache
 
 # NativeAOT prerequisites on Alpine
 RUN apk add --no-cache clang build-base zlib-dev
@@ -54,7 +58,12 @@ RUN set -eux; \
       -p:DebuggerSupport=false \
       -p:InvariantGlobalization=true
 
+# Use latest runtime-deps with security updates
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine AS final
+
+# Update Alpine packages to latest security patches
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /opt/moongate
 
 RUN addgroup -S moongate && adduser -S -G moongate -h /app moongate

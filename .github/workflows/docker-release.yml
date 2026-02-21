@@ -151,12 +151,17 @@ jobs:
       - name: Create multi-arch manifest
         shell: bash
         env:
-          REPO: ${{ needs.build-amd64.outputs.repository }}
+          REPO: ${{ needs.build-amd64.outputs.repository || 'tgiachi/moongate' }}
           VERSION: ${{ needs.build-amd64.outputs.version }}
           AMD64_DIGEST: ${{ needs.build-amd64.outputs.digest }}
           ARM64_DIGEST: ${{ needs.build-arm64.outputs.digest }}
         run: |
           set -euo pipefail
+
+          # Fallback to default if repository is empty
+          if [[ -z "$REPO" ]]; then
+            REPO="tgiachi/moongate"
+          fi
 
           echo "Creating manifest for ${REPO}:${VERSION}"
 
