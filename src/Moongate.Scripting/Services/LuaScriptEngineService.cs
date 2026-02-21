@@ -1312,7 +1312,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
             UserData.RegisterType(scriptUserData.UserType);
 
             // Check if type has public constructors (instantiable)
+#pragma warning disable IL2075 // Suppress AOT warning for script proxy
             var publicConstructors = scriptUserData.UserType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+#pragma warning restore IL2075
 
             if (publicConstructors.Length > 0)
             {
@@ -1335,7 +1337,9 @@ public class LuaScriptEngineService : IScriptEngineService, IDisposable
     private Table ObjectToTable(object obj)
     {
         var table = new Table(LuaScript);
+#pragma warning disable IL2075 // Suppress AOT warning for script proxy
         var properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+#pragma warning restore IL2075
 
         foreach (var prop in properties)
         {

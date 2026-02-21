@@ -312,6 +312,9 @@ public sealed class MoongateBootstrap : IDisposable
         {
             _container.RegisterMoongateService<IMoongateHttpService, MoongateHttpService>(200);
             _logger.Information("HTTP Server enabled.");
+            var jwtSigningKey = string.IsNullOrWhiteSpace(_moongateConfig.Http.Jwt.SigningKey)
+                ? Environment.GetEnvironmentVariable("MOONGATE_HTTP_JWT_SIGNING_KEY") ?? string.Empty
+                : _moongateConfig.Http.Jwt.SigningKey;
 
             var httpServiceOptions = new MoongateHttpServiceOptions
             {
@@ -320,7 +323,32 @@ public sealed class MoongateBootstrap : IDisposable
                 Port = _moongateConfig.Http.Port,
                 ServiceMappings = null,
                 MinimumLogLevel = _moongateConfig.LogLevel.ToSerilogLogLevel(),
-                MetricsSnapshotFactory = CreateHttpMetricsSnapshot
+                MetricsSnapshotFactory = CreateHttpMetricsSnapshot,
+                Jwt = new MoongateHttpJwtOptions
+                {
+                    IsEnabled = _moongateConfig.Http.Jwt.IsEnabled,
+                    SigningKey = jwtSigningKey,
+                    Issuer = _moongateConfig.Http.Jwt.Issuer,
+                    Audience = _moongateConfig.Http.Jwt.Audience,
+                    ExpirationMinutes = _moongateConfig.Http.Jwt.ExpirationMinutes
+                },
+                AuthenticateUserAsync = async (username, password, _) =>
+                {
+                    var accountService = _container.Resolve<IAccountService>();
+                    var account = await accountService.LoginAsync(username, password);
+
+                    if (account is null)
+                    {
+                        return null;
+                    }
+
+                    return new MoongateHttpAuthenticatedUser
+                    {
+                        AccountId = account.Id.Value.ToString(),
+                        Username = account.Username,
+                        Role = account.AccountType.ToString()
+                    };
+                }
             };
 
             _container.RegisterInstance(httpServiceOptions);

@@ -47,7 +47,7 @@ public class UoFiles
 
     public static string? FindDataFile(string fileName, bool throwError = true)
     {
-        var filePath = MulPath.GetValueOrDefault(fileName.ToLower());
+        var filePath = MulPath.GetValueOrDefault(fileName.ToLowerInvariant());
 
         if (filePath == null && throwError)
         {
@@ -58,7 +58,7 @@ public class UoFiles
     }
 
     public static string GetFilePath(string fileName)
-        => MulPath.GetValueOrDefault(fileName.ToLower());
+        => MulPath.GetValueOrDefault(fileName.ToLowerInvariant());
 
     public static void ReLoadDirectory()
     {
@@ -85,8 +85,8 @@ public class UoFiles
 
                 if (filePath != null)
                 {
-                    MulPath[fileName.ToLower()] = Path.Combine(filePath, fileName);
-                    _logger.Debug("Found UO {File} ({FileLength} bytes)", fileName.ToLower(), fileLength.Bytes());
+                    MulPath[fileName.ToLowerInvariant()] = Path.Combine(filePath, fileName);
+                    _logger.Debug("Found UO {File} ({FileLength} bytes)", fileName.ToLowerInvariant(), fileLength.Bytes());
                 }
             }
         }

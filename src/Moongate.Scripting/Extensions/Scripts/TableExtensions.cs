@@ -14,7 +14,7 @@ public static class TableExtensions
     /// Converts a MoonSharp Table to a proxy implementing the specified interface.
     /// </summary>
     [RequiresDynamicCode("DispatchProxy-based Lua table proxy requires runtime code generation.")]
-    public static TInterface ToProxy<TInterface>(this Table table)
+    public static TInterface ToProxy<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TInterface>(this Table table)
         where TInterface : class
     {
         var proxy = DispatchProxy.Create<TInterface, LuaProxy<TInterface>>();

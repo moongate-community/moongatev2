@@ -33,12 +33,12 @@ public class FileIndex
 
         if (UoFiles.MulPath.Count > 0)
         {
-            idxPath = UoFiles.MulPath[idxFile.ToLower()];
-            MulPath = UoFiles.MulPath[mulFile.ToLower()];
+            idxPath = UoFiles.MulPath[idxFile.ToLowerInvariant()];
+            MulPath = UoFiles.MulPath[mulFile.ToLowerInvariant()];
 
-            if (!string.IsNullOrEmpty(uopFile) && UoFiles.MulPath.ContainsKey(uopFile.ToLower()))
+            if (!string.IsNullOrEmpty(uopFile) && UoFiles.MulPath.ContainsKey(uopFile.ToLowerInvariant()))
             {
-                uopPath = UoFiles.MulPath[uopFile.ToLower()];
+                uopPath = UoFiles.MulPath[uopFile.ToLowerInvariant()];
             }
 
             if (string.IsNullOrEmpty(idxPath))
@@ -254,8 +254,8 @@ public class FileIndex
 
         if (UoFiles.MulPath.Count > 0)
         {
-            idxPath = UoFiles.MulPath[idxFile.ToLower()];
-            MulPath = UoFiles.MulPath[mulFile.ToLower()];
+            idxPath = UoFiles.MulPath[idxFile.ToLowerInvariant()];
+            MulPath = UoFiles.MulPath[mulFile.ToLowerInvariant()];
 
             if (string.IsNullOrEmpty(idxPath))
             {

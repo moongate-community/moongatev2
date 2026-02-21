@@ -8,6 +8,8 @@
         <Version>0.9.0</Version>
         <Description>Automated test suite for Moongate core, networking, packets, and scripting components.</Description>
         <IsPackable>false</IsPackable>
+        <IsAotCompatible>false</IsAotCompatible>
+        <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     </PropertyGroup>
 
     <ItemGroup>

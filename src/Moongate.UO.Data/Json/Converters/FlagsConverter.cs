@@ -94,7 +94,7 @@ public class FlagsConverter<T> : JsonConverter<T> where T : struct, Enum
         var underlyingType = Enum.GetUnderlyingType(typeof(T));
         var intValue = ConvertToUInt64(underlyingType, value);
 
-        foreach (var flagName in Enum.GetNames(typeof(T)))
+        foreach (var flagName in Enum.GetNames<T>())
         {
             var flagValue = Enum.Parse<T>(flagName, false);
             var flag = ConvertToUInt64(underlyingType, flagValue);

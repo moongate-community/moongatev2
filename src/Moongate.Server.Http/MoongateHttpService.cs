@@ -1,9 +1,13 @@
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Moongate.Core.Data.Directories;
 using Moongate.Core.Types;
 using Moongate.Server.Metrics.Data;
@@ -28,6 +32,8 @@ public sealed class MoongateHttpService : IMoongateHttpService
     private readonly LogEventLevel _minimumLogLevel;
     private readonly Action<WebApplication> _configureApp;
     private readonly Func<MoongateHttpMetricsSnapshot?>? _metricsSnapshotFactory;
+    private readonly MoongateHttpJwtOptions _jwtOptions;
+    private readonly Func<string, string, CancellationToken, Task<MoongateHttpAuthenticatedUser?>>? _authenticateUserAsync;
 
     private WebApplication? _app;
 
@@ -49,6 +55,18 @@ public sealed class MoongateHttpService : IMoongateHttpService
         _minimumLogLevel = options.MinimumLogLevel;
         _configureApp = options.ConfigureApp ?? (_ => { });
         _metricsSnapshotFactory = options.MetricsSnapshotFactory;
+        _jwtOptions = options.Jwt ?? new MoongateHttpJwtOptions();
+        _authenticateUserAsync = options.AuthenticateUserAsync;
+
+        if (_jwtOptions.IsEnabled && string.IsNullOrWhiteSpace(_jwtOptions.SigningKey))
+        {
+            throw new ArgumentException("JWT signing key must be configured when JWT is enabled.", nameof(options));
+        }
+
+        if (_jwtOptions.IsEnabled && _authenticateUserAsync is null)
+        {
+            throw new ArgumentException("AuthenticateUserAsync must be configured when JWT is enabled.", nameof(options));
+        }
     }
 
     public async Task StartAsync()
@@ -67,6 +85,11 @@ public sealed class MoongateHttpService : IMoongateHttpService
 
         RegisterServiceMappings(builder.Services, _serviceMappings);
 
+        if (_jwtOptions.IsEnabled)
+        {
+            ConfigureJwt(builder.Services, _jwtOptions);
+        }
+
         if (_isOpenApiEnabled)
         {
             builder.Services.AddOpenApi();
@@ -74,6 +97,12 @@ public sealed class MoongateHttpService : IMoongateHttpService
 
         var app = builder.Build();
         app.UseSerilogRequestLogging();
+
+        if (_jwtOptions.IsEnabled)
+        {
+            app.UseAuthentication();
+            app.UseAuthorization();
+        }
 
         app.MapGet(
             "/",
@@ -122,6 +151,42 @@ public sealed class MoongateHttpService : IMoongateHttpService
                 await context.Response.WriteAsync(BuildPrometheusPayload(snapshot));
             }
         );
+
+        if (_jwtOptions.IsEnabled)
+        {
+            app.MapPost(
+                "/auth/login",
+                async (MoongateHttpLoginRequest request, CancellationToken cancellationToken) =>
+                {
+                    if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+                    {
+                        return Results.BadRequest("username and password are required");
+                    }
+
+                    var user = await _authenticateUserAsync!(request.Username, request.Password, cancellationToken);
+
+                    if (user is null)
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    var expiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes);
+                    var token = CreateJwtToken(user, expiresAtUtc, _jwtOptions);
+
+                    return Results.Ok(
+                        new MoongateHttpLoginResponse
+                        {
+                            AccessToken = token,
+                            TokenType = "Bearer",
+                            ExpiresAtUtc = expiresAtUtc,
+                            AccountId = user.AccountId,
+                            Username = user.Username,
+                            Role = user.Role
+                        }
+                    );
+                }
+            );
+        }
 
         if (_isOpenApiEnabled)
         {
@@ -333,5 +398,64 @@ public sealed class MoongateHttpService : IMoongateHttpService
 
             services.AddSingleton(serviceType, implementationType);
         }
+    }
+
+    private static void ConfigureJwt(IServiceCollection services, MoongateHttpJwtOptions options)
+    {
+        var keyBytes = Encoding.UTF8.GetBytes(options.SigningKey);
+        var key = new SymmetricSecurityKey(keyBytes);
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(
+                jwtOptions =>
+                {
+                    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = options.Issuer,
+                        ValidAudience = options.Audience,
+                        IssuerSigningKey = key,
+                        ClockSkew = TimeSpan.FromSeconds(30)
+                    };
+                }
+            );
+
+        services.AddAuthorization();
+    }
+
+    private static string CreateJwtToken(
+        MoongateHttpAuthenticatedUser user,
+        DateTimeOffset expiresAtUtc,
+        MoongateHttpJwtOptions options
+    )
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Username),
+            new(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Role, user.Role),
+            new("account_id", user.AccountId)
+        };
+
+        var signingCredentials = new SigningCredentials(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SigningKey)),
+            SecurityAlgorithms.HmacSha256
+        );
+
+        var token = new JwtSecurityToken(
+            issuer: options.Issuer,
+            audience: options.Audience,
+            claims: claims,
+            notBefore: DateTime.UtcNow,
+            expires: expiresAtUtc.UtcDateTime,
+            signingCredentials: signingCredentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
