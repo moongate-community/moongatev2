@@ -34,18 +34,22 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Get repository from input or default
+          # Get repository from variable, secret, or default
           REPO="${{ vars.DOCKERHUB_REPOSITORY }}"
+          
           if [[ -z "$REPO" ]]; then
             USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
-            if [[ -z "$USERNAME" ]]; then
-              echo "::error::Either DOCKERHUB_REPOSITORY variable or DOCKERHUB_USERNAME secret must be set"
-              exit 1
+            if [[ -n "$USERNAME" ]]; then
+              REPO="${USERNAME}/moongatev2"
+              echo "✓ Using repository from DOCKERHUB_USERNAME secret: ${REPO}"
+            else
+              # Fallback to moongate-community default
+              REPO="moongate-community/moongatev2"
+              echo "✓ Using default repository: ${REPO}"
             fi
-            REPO="${USERNAME}/moongatev2"
+          else
+            echo "✓ Using repository from DOCKERHUB_REPOSITORY variable: ${REPO}"
           fi
-
-          echo "✓ Using repository: ${REPO}"
 
           # Get version from tag or workflow input
           VERSION=""
