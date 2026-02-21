@@ -56,7 +56,3 @@
     href: articles/networking/packets.md
   - name: Protocol Reference
     href: articles/networking/protocol.md
-
-- name: API Reference
-  href: api/
-  homepage: api/index.md

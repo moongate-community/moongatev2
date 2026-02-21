@@ -12,7 +12,10 @@
             "**/obj/**",
             "**/*.Tests.csproj",
             "**/Moongate.Server.Metrics.Generators.csproj",
-            "**/Moongate.Network.Packets.Generators.csproj"
+            "**/Moongate.Network.Packets.Generators.csproj",
+            "**/Moongate.Abstractions/Moongate.Abstractions.csproj",
+            "**/Moongate.Core/Moongate.Core.csproj",
+            "**/Moongate.Scripting/Moongate.Scripting.csproj"
           ]
         }
       ],
@@ -22,7 +25,6 @@
       "disableDefaultFilter": false,
       "noRestore": false,
       "namespaceLayout": "flattened",
-      "memberLayout": "samePageAsType",
       "allowCompilationErrors": false,
       "filter": "filterConfig.yml"
     }

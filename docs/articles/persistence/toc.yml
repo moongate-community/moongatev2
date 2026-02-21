@@ -1,6 +1,4 @@
-- name: Persistence
-  href: ../
-  items:
+items:
   - name: Overview
     href: overview.md
   - name: Data Format

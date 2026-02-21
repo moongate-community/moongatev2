@@ -1,6 +1,4 @@
-- name: Getting Started
-  href: ../
-  items:
+items:
   - name: Introduction
     href: introduction.md
   - name: Quick Start
