@@ -1,6 +1,7 @@
 using System.Text;
 using Moongate.Network.Client;
 using Moongate.Network.Packets.Interfaces;
+using Moongate.Network.Packets.Outgoing.Speech;
 using Moongate.Network.Spans;
 using Moongate.Server.Data.Config;
 using Moongate.Server.Data.Packets;
@@ -126,6 +127,11 @@ public sealed class OutboundPacketSender : IOutboundPacketSender
 
     private static byte[] SerializePacket(IGameNetworkPacket packet)
     {
+        if (packet is UnicodeSpeechMessagePacket speechMessagePacket)
+        {
+            return SpeechMessageFactory.CreateMessageBytes(speechMessagePacket);
+        }
+
         var initialCapacity = packet.Length > 0 ? packet.Length : 256;
         var writer = new SpanWriter(initialCapacity, true);
 
