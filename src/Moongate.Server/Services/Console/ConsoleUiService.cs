@@ -123,7 +123,7 @@ public sealed class ConsoleUiService : IConsoleUiService
         System.Console.SetCursorPosition(0, promptRow);
     }
 
-    private static IReadOnlyList<ConsoleSegment> CreateSegments(
+    private static List<ConsoleSegment> CreateSegments(
         string line,
         LogEventLevel level,
         IReadOnlyCollection<string>? highlightedValues
