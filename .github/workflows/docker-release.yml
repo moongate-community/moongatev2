@@ -6,49 +6,62 @@ on:
       - "v*"
       - "*.*.*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v0.6.0 or 0.6.0)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
+
+env:
+  DOCKER_IMAGE: ${{ vars.DOCKERHUB_REPOSITORY || format('{0}/moongatev2', secrets.DOCKERHUB_USERNAME) }}
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       repository: ${{ steps.prep.outputs.repository }}
-      tags: ${{ steps.prep.outputs.tags }}
+      version: ${{ steps.prep.outputs.version }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Prepare image tags
         id: prep
         shell: bash
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
         run: |
           set -euo pipefail
 
-          REPO="${DOCKERHUB_REPOSITORY:-}"
+          # Get repository from input or default
+          REPO="${{ vars.DOCKERHUB_REPOSITORY }}"
           if [[ -z "$REPO" ]]; then
-            if [[ -z "${DOCKERHUB_USERNAME:-}" ]]; then
-              echo "::error::DOCKERHUB_USERNAME secret or DOCKERHUB_REPOSITORY variable must be set"
+            USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            if [[ -z "$USERNAME" ]]; then
+              echo "::error::Either DOCKERHUB_REPOSITORY variable or DOCKERHUB_USERNAME secret must be set"
               exit 1
             fi
-            REPO="${DOCKERHUB_USERNAME}/moongatev2"
+            REPO="${USERNAME}/moongatev2"
           fi
 
-          echo "Using repository: ${REPO}"
+          echo "✓ Using repository: ${REPO}"
 
-          TAG_NAME="${GITHUB_REF_NAME}"
-          TAG_NO_V="${TAG_NAME#v}"
-
-          TAGS="${REPO}:latest,${REPO}:${TAG_NAME}"
-
-          if [[ "$TAG_NO_V" != "$TAG_NAME" ]]; then
-            TAGS="${TAGS},${REPO}:${TAG_NO_V}"
+          # Get version from tag or workflow input
+          VERSION=""
+          if [[ -n "${{ github.ref_name }}" && "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.sha }}"
           fi
+
+          echo "✓ Using version: ${VERSION}"
 
           {
             echo "repository=${REPO}"
-            echo "tags=${TAGS}"
+            echo "version=${VERSION}"
           } >> "$GITHUB_OUTPUT"
 
   build-amd64:
@@ -60,9 +73,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug prepare output
+      - name: Show build info
         run: |
-          echo "Repository from prepare: ${{ needs.prepare.outputs.repository }}"
+          echo "Repository: ${{ needs.prepare.outputs.repository }}"
+          echo "Version: ${{ needs.prepare.outputs.version }}"
           echo "SHA: ${{ github.sha }}"
 
       - name: Setup Docker Buildx
@@ -82,7 +96,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ needs.prepare.outputs.repository }}:amd64-${{ github.sha }}
+          tags: ${{ needs.prepare.outputs.repository }}:amd64-${{ needs.prepare.outputs.version }}
           cache-from: type=gha,scope=amd64
           cache-to: type=gha,mode=max,scope=amd64
 
@@ -112,7 +126,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/arm64
           push: true
-          tags: ${{ needs.prepare.outputs.repository }}:arm64-${{ github.sha }}
+          tags: ${{ needs.prepare.outputs.repository }}:arm64-${{ needs.prepare.outputs.version }}
           cache-from: type=gha,scope=arm64
           cache-to: type=gha,mode=max,scope=arm64
 
@@ -130,16 +144,24 @@ jobs:
         shell: bash
         env:
           REPO: ${{ needs.prepare.outputs.repository }}
-          TAGS: ${{ needs.prepare.outputs.tags }}
+          VERSION: ${{ needs.prepare.outputs.version }}
           AMD64_DIGEST: ${{ needs.build-amd64.outputs.digest }}
           ARM64_DIGEST: ${{ needs.build-arm64.outputs.digest }}
         run: |
           set -euo pipefail
 
-          IFS=',' read -ra TAG_LIST <<< "$TAGS"
-          for tag in "${TAG_LIST[@]}"; do
+          echo "Creating manifest for ${REPO}:${VERSION}"
+
+          # Create version tag
+          docker buildx imagetools create \
+            --tag "${REPO}:${VERSION}" \
+            "${REPO}@${AMD64_DIGEST}" \
+            "${REPO}@${ARM64_DIGEST}"
+
+          # Create latest tag if this is a version tag (not SHA)
+          if [[ "${VERSION}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
             docker buildx imagetools create \
-              --tag "$tag" \
+              --tag "${REPO}:latest" \
               "${REPO}@${AMD64_DIGEST}" \
               "${REPO}@${ARM64_DIGEST}"
-          done
+          fi
