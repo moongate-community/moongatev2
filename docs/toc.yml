@@ -1,0 +1,62 @@
+- name: Home
+  href: index.md
+
+- name: Getting Started
+  href: articles/getting-started/
+  items:
+  - name: Introduction
+    href: articles/getting-started/introduction.md
+  - name: Quick Start
+    href: articles/getting-started/quickstart.md
+  - name: Installation
+    href: articles/getting-started/installation.md
+  - name: Configuration
+    href: articles/getting-started/configuration.md
+
+- name: Architecture
+  href: articles/architecture/
+  items:
+  - name: Overview
+    href: articles/architecture/overview.md
+  - name: Network System
+    href: articles/architecture/network.md
+  - name: Game Loop
+    href: articles/architecture/game-loop.md
+  - name: Event System
+    href: articles/architecture/events.md
+  - name: Session Management
+    href: articles/architecture/sessions.md
+  - name: Solution Structure
+    href: articles/architecture/solution.md
+
+- name: Scripting
+  href: articles/scripting/
+  items:
+  - name: Overview
+    href: articles/scripting/overview.md
+  - name: Script Modules
+    href: articles/scripting/modules.md
+  - name: API Reference
+    href: articles/scripting/api.md
+
+- name: Persistence
+  href: articles/persistence/
+  items:
+  - name: Overview
+    href: articles/persistence/overview.md
+  - name: Data Format
+    href: articles/persistence/format.md
+  - name: Repositories
+    href: articles/persistence/repositories.md
+
+- name: Networking
+  href: articles/networking/
+  items:
+  - name: Packet System
+    href: articles/networking/packets.md
+  - name: Protocol Reference
+    href: articles/networking/protocol.md
+
+- name: API Reference
+  href: api/
+  homepage: api/index.md
