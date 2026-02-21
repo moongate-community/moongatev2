@@ -8,5 +8,6 @@ public readonly record struct TimerMetricsSnapshot(
     long TotalRegisteredTimers,
     long TotalExecutedCallbacks,
     long CallbackErrors,
-    double AverageCallbackDurationMs
+    double AverageCallbackDurationMs,
+    long TotalProcessedTicks
 );

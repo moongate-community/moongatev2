@@ -9,6 +9,11 @@ namespace Moongate.Server.Interfaces.Services.Packets;
 public interface IOutgoingPacketQueue
 {
     /// <summary>
+    /// Gets the current outbound packet queue depth.
+    /// </summary>
+    int CurrentQueueDepth { get; }
+
+    /// <summary>
     /// Enqueues an outbound packet for a target session.
     /// </summary>
     /// <param name="sessionId">Target session identifier.</param>

@@ -21,6 +21,9 @@ public sealed class NetworkMetricsProvider : IMetricProvider
 
         return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
             [
+                new("network.inbound.queue.depth", snapshot.InboundQueueDepth),
+                new("network.inbound.packets.total", snapshot.TotalParsedPackets),
+                new("network.inbound.unknown_opcode.total", snapshot.TotalUnknownOpcodeDrops),
                 new("sessions.active", snapshot.ActiveSessionCount),
                 new("packets.parsed.total", snapshot.TotalParsedPackets),
                 new("bytes.received.total", snapshot.TotalReceivedBytes),

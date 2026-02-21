@@ -7,5 +7,7 @@ public readonly record struct NetworkMetricsSnapshot(
     int ActiveSessionCount,
     long TotalReceivedBytes,
     int TotalParsedPackets,
-    int TotalParserErrors
+    int TotalParserErrors,
+    int InboundQueueDepth,
+    int TotalUnknownOpcodeDrops
 );

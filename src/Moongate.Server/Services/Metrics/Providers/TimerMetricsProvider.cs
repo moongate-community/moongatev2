@@ -21,6 +21,7 @@ public sealed class TimerMetricsProvider : IMetricProvider
 
         return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
             [
+                new("timer.processed_ticks.total", snapshot.TotalProcessedTicks),
                 new("active.count", snapshot.ActiveTimerCount),
                 new("registered.total", snapshot.TotalRegisteredTimers),
                 new("callbacks.executed.total", snapshot.TotalExecutedCallbacks),

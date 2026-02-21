@@ -7,6 +7,8 @@ public sealed class NetworkServiceTestMessageBusService : IMessageBusService
 {
     public List<IncomingGamePacket> Packets { get; } = [];
 
+    public int CurrentQueueDepth => Packets.Count;
+
     public void PublishIncomingPacket(IncomingGamePacket packet)
         => Packets.Add(packet);
 

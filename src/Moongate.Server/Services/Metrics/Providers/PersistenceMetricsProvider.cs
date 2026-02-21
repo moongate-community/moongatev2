@@ -22,6 +22,7 @@ public sealed class PersistenceMetricsProvider : IMetricProvider
 
         return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
             [
+                new("persistence.save.duration.last_ms", snapshot.LastSaveDurationMs),
                 new("snapshot.saves.total", snapshot.TotalSaves),
                 new("snapshot.save.duration.last_ms", snapshot.LastSaveDurationMs),
                 new("snapshot.save.timestamp_utc_ms", timestampUtcMs),

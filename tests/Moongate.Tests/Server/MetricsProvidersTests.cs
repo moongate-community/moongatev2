@@ -5,10 +5,29 @@ namespace Moongate.Tests.Server;
 
 public class MetricsProvidersTests
 {
-    private static readonly string[] GameLoopMetricNames = ["ticks.total", "tick.duration.avg_ms", "uptime.ms"];
+    private static readonly string[] GameLoopMetricNames =
+    [
+        "loop.tick.duration.avg_ms",
+        "loop.tick.duration.max_ms",
+        "loop.idle.sleep.count",
+        "loop.work.units.avg",
+        "network.outbound.queue.depth",
+        "network.outbound.packets.total",
+        "ticks.total",
+        "tick.duration.avg_ms",
+        "uptime.ms"
+    ];
 
     private static readonly string[] NetworkMetricNames =
-        ["sessions.active", "packets.parsed.total", "bytes.received.total", "parser.errors.total"];
+    [
+        "network.inbound.queue.depth",
+        "network.inbound.packets.total",
+        "network.inbound.unknown_opcode.total",
+        "sessions.active",
+        "packets.parsed.total",
+        "bytes.received.total",
+        "parser.errors.total"
+    ];
 
     private static readonly string[] ScriptingMetricNames =
     [
@@ -22,10 +41,21 @@ public class MetricsProvidersTests
 
     private static readonly string[] PersistenceMetricNames =
     [
+        "persistence.save.duration.last_ms",
         "snapshot.saves.total",
         "snapshot.save.duration.last_ms",
         "snapshot.save.timestamp_utc_ms",
         "snapshot.save.errors.total"
+    ];
+
+    private static readonly string[] TimerMetricNames =
+    [
+        "timer.processed_ticks.total",
+        "active.count",
+        "registered.total",
+        "callbacks.executed.total",
+        "callbacks.errors.total",
+        "callback.duration.avg_ms"
     ];
 
     [Test]
@@ -36,6 +66,11 @@ public class MetricsProvidersTests
             {
                 TickCount = 10,
                 AverageTickMs = 15.5,
+                MaxTickMs = 20.2,
+                IdleSleepCount = 12,
+                AverageWorkUnits = 4.3,
+                OutboundQueueDepth = 7,
+                OutboundPacketsTotal = 99,
                 Uptime = TimeSpan.FromSeconds(5)
             }
         );
@@ -55,7 +90,9 @@ public class MetricsProvidersTests
                 ActiveSessionCount = 2,
                 TotalParsedPackets = 25,
                 TotalReceivedBytes = 4096,
-                TotalParserErrors = 3
+                TotalParserErrors = 3,
+                InboundQueueDepth = 6,
+                TotalUnknownOpcodeDrops = 2
             }
         );
 
@@ -93,5 +130,26 @@ public class MetricsProvidersTests
         var names = samples.Select(sample => sample.Name).ToArray();
 
         Assert.That(names, Is.EquivalentTo(ScriptingMetricNames));
+    }
+
+    [Test]
+    public async Task TimerMetricsProvider_ShouldExposeExpectedMetricNames()
+    {
+        var provider = new TimerMetricsProvider(
+            new MetricsProvidersTestTimerService
+            {
+                ActiveTimerCount = 5,
+                TotalRegisteredTimers = 12,
+                TotalExecutedCallbacks = 10,
+                CallbackErrors = 1,
+                AverageCallbackDurationMs = 0.5,
+                TotalProcessedTicks = 1200
+            }
+        );
+
+        var samples = await provider.CollectAsync();
+        var names = samples.Select(sample => sample.Name).ToArray();
+
+        Assert.That(names, Is.EquivalentTo(TimerMetricNames));
     }
 }

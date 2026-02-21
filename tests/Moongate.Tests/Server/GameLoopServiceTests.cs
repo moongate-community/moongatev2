@@ -35,6 +35,11 @@ public class GameLoopServiceTests
                 Assert.That(snapshot.TickCount, Is.Zero);
                 Assert.That(snapshot.Uptime, Is.EqualTo(TimeSpan.Zero));
                 Assert.That(snapshot.AverageTickMs, Is.Zero);
+                Assert.That(snapshot.MaxTickMs, Is.Zero);
+                Assert.That(snapshot.IdleSleepCount, Is.Zero);
+                Assert.That(snapshot.AverageWorkUnits, Is.Zero);
+                Assert.That(snapshot.OutboundQueueDepth, Is.Zero);
+                Assert.That(snapshot.OutboundPacketsTotal, Is.Zero);
             }
         );
     }
@@ -113,10 +118,12 @@ public class GameLoopServiceTests
         var outgoingQueue = new OutgoingPacketQueue();
 
         outgoingQueue.Enqueue(session.SessionId, new GameLoopTestPacket(0x20, 0));
+        Assert.That(outgoingQueue.CurrentQueueDepth, Is.EqualTo(1));
 
         Assert.That(outgoingQueue.TryDequeue(out var dequeued), Is.True);
         Assert.That(dequeued.SessionId, Is.EqualTo(session.SessionId));
         Assert.That(dequeued.Packet.OpCode, Is.EqualTo(0x20));
+        Assert.That(outgoingQueue.CurrentQueueDepth, Is.EqualTo(0));
     }
 
     [Test]

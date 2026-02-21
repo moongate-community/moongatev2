@@ -32,6 +32,11 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     private long _tickCount;
     private TimeSpan _uptime;
     private double _averageTickMs;
+    private double _maxTickMs;
+    private long _idleSleepCount;
+    private long _totalWorkUnits;
+    private double _averageWorkUnits;
+    private long _outboundPacketsTotal;
 
     public GameLoopService(
         IPacketDispatchService packetDispatchService,
@@ -63,7 +68,16 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
     {
         lock (_metricsSync)
         {
-            return new(_tickCount, _uptime, _averageTickMs);
+            return new(
+                _tickCount,
+                _uptime,
+                _averageTickMs,
+                _maxTickMs,
+                _idleSleepCount,
+                _averageWorkUnits,
+                _outgoingPacketQueue.CurrentQueueDepth,
+                _outboundPacketsTotal
+            );
         }
     }
 
@@ -105,11 +119,15 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
                 _tickCount++;
                 _uptime += elapsed;
                 _averageTickMs = _averageTickMs * 0.95 + elapsed.TotalMilliseconds * 0.05;
+                _maxTickMs = Math.Max(_maxTickMs, elapsed.TotalMilliseconds);
+                _totalWorkUnits += workUnits;
+                _averageWorkUnits = _tickCount == 0 ? 0 : (double)_totalWorkUnits / _tickCount;
             }
 
             if (_idleCpuEnabled && workUnits == 0)
             {
                 Thread.Sleep(_idleSleepMilliseconds);
+                Interlocked.Increment(ref _idleSleepCount);
             }
         }
     }
@@ -158,6 +176,7 @@ public class GameLoopService : BaseMoongateService, IGameLoopService, IGameLoopM
 
             _outboundPacketSender.Send(client, outgoingPacket);
             drained++;
+            Interlocked.Increment(ref _outboundPacketsTotal);
         }
 
         return drained;

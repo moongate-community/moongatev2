@@ -94,6 +94,7 @@ public class NetworkService : INetworkService, INetworkMetricsSource
     {
         var totalReceivedBytes = _parserMetrics.Values.Sum(static metrics => metrics.ReceivedBytes);
         var totalParsedPackets = _parserMetrics.Values.Sum(static metrics => metrics.ParsedPackets);
+        var totalUnknownOpcodeDrops = _parserMetrics.Values.Sum(static metrics => metrics.UnknownOpcodeDrops);
         var totalParserErrors = _parserMetrics.Values.Sum(
             static metrics =>
                 metrics.UnknownOpcodeDrops +
@@ -107,7 +108,9 @@ public class NetworkService : INetworkService, INetworkMetricsSource
             _gameNetworkSessionService.Count,
             totalReceivedBytes,
             totalParsedPackets,
-            totalParserErrors
+            totalParserErrors,
+            _messageBusService.CurrentQueueDepth,
+            totalUnknownOpcodeDrops
         );
     }
 

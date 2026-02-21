@@ -21,6 +21,12 @@ public sealed class GameLoopMetricsProvider : IMetricProvider
 
         return ValueTask.FromResult<IReadOnlyList<MetricSample>>(
             [
+                new("loop.tick.duration.avg_ms", snapshot.AverageTickMs),
+                new("loop.tick.duration.max_ms", snapshot.MaxTickMs),
+                new("loop.idle.sleep.count", snapshot.IdleSleepCount),
+                new("loop.work.units.avg", snapshot.AverageWorkUnits),
+                new("network.outbound.queue.depth", snapshot.OutboundQueueDepth),
+                new("network.outbound.packets.total", snapshot.OutboundPacketsTotal),
                 new("ticks.total", snapshot.TickCount),
                 new("tick.duration.avg_ms", snapshot.AverageTickMs),
                 new("uptime.ms", snapshot.Uptime.TotalMilliseconds)

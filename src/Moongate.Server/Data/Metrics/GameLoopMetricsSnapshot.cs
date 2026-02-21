@@ -6,5 +6,10 @@ namespace Moongate.Server.Data.Metrics;
 public readonly record struct GameLoopMetricsSnapshot(
     long TickCount,
     TimeSpan Uptime,
-    double AverageTickMs
+    double AverageTickMs,
+    double MaxTickMs,
+    long IdleSleepCount,
+    double AverageWorkUnits,
+    int OutboundQueueDepth,
+    long OutboundPacketsTotal
 );

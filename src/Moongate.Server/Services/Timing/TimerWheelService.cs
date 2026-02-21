@@ -28,6 +28,7 @@ public sealed class TimerWheelService
     private long _totalExecutedCallbacks;
     private long _callbackErrors;
     private long _totalCallbackElapsedTicks;
+    private long _totalProcessedTicks;
     private long _lastTimestampMilliseconds = -1;
     private double _accumulatedMilliseconds;
 
@@ -82,6 +83,8 @@ public sealed class TimerWheelService
         for (var i = 0; i < ticksToProcess; i++)
             ProcessTick();
 
+        Interlocked.Add(ref _totalProcessedTicks, ticksToProcess);
+
         return ticksToProcess > int.MaxValue ? int.MaxValue : (int)ticksToProcess;
     }
 
@@ -106,7 +109,8 @@ public sealed class TimerWheelService
             Interlocked.Read(ref _totalRegisteredTimers),
             executedCallbacks,
             Interlocked.Read(ref _callbackErrors),
-            averageCallbackDurationMs
+            averageCallbackDurationMs,
+            Interlocked.Read(ref _totalProcessedTicks)
         );
     }
 
